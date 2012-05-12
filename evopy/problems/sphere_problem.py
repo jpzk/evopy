@@ -65,4 +65,3 @@ class SphereProblem():
         while(True):
             child = self.mutate(self.combine(sample(parents,2)), sigma)
             yield child
-

@@ -23,7 +23,6 @@ class SVCEvolutionStrategy(EvolutionStrategy):
 
     _count_is_meta_feasible = 0
     _count_train_metamodel = 0
-    _count_sum_wrong_class = 0
     _meta_model = SVCMetaModel()
 
     def __init__(\
@@ -37,10 +36,15 @@ class SVCEvolutionStrategy(EvolutionStrategy):
         self._parameter_gamma = parameter_gamma
 
     def get_statistics(self):
-        return {
+        statistics = {
             "metamodel-calls" : self._count_is_meta_feasible,
-            "train-function-calls" : self._count_train_metamodel,
-            "sum-wrong-classification" : self._count_sum_wrong_class } 
+            "train-function-calls" : self._count_train_metamodel}
+        
+        super_statistics = super(SVCEvolutionStrategy, self).get_statistics()
+        for k in super_statistics:
+            statistics[k] = super_statistics[k]
+        
+        return statistics
 
     # return true if solution is feasible in meta model, otherwise false.
     def is_meta_feasible(self, x):
