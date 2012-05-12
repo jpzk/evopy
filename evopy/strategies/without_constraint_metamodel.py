@@ -1,21 +1,20 @@
-#!/bin/env python
-# encoding utf-8
-
 ''' 
-This file is part of evolutionary-algorithms-sandbox.
+This file is part of evopy.
 
-evolutionary-algorithms-sandbox is free software: you can redistribute it
+Copyright 2012, Jendrik Poloczek
+
+evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
 by the Free Software Foundation, either version 3 of the License, or (at your
 option) any later version.
 
-evolutionary-algorithms-sandbox is distributed in the hope that it will be
+evopy is distributed in the hope that it will be
 useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
+evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from evolution_strategy import EvolutionStrategy
@@ -30,9 +29,6 @@ class WithoutConstraintMetaModel(EvolutionStrategy):
     def _run(self, (population, generation, m, l, lastfitness,\
         alpha, sigma)):
 
-        super(WithoutConstraintMetaModel, self)._run(\
-            population, generation, m, l, lastfitness, alpha, sigma)
-
         feasible_children = []
         while(len(feasible_children) < l): 
             child = self.generate_child(population, sigma) 
@@ -45,13 +41,17 @@ class WithoutConstraintMetaModel(EvolutionStrategy):
         fitness_of_best = self.fitness(next_population[0])
         fitness_of_worst = self.fitness(\
             next_population[len(next_population) - 1])
+        average_fitness = 0.0            
 
         # only for visual output purpose.
         print "generation " + str(generation) +\
         " smallest fitness " + str(fitness_of_best) 
 
         new_sigma = sigma
-   
+  
+        self.log_statistics(\
+            fitness_of_best, fitness_of_worst, average_fitness)
+
         if(self.termination(generation, fitness_of_best)):
             print next_population[0]
             return True

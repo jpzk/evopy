@@ -1,22 +1,24 @@
 ''' 
-This file is part of evolutionary-algorithms-sandbox.
+This file is part of evopy.
 
-evolutionary-algorithms-sandbox is free software: you can redistribute it
+Copyright 2012, Jendrik Poloczek
+
+evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
 by the Free Software Foundation, either version 3 of the License, or (at your
 option) any later version.
 
-evolutionary-algorithms-sandbox is distributed in the hope that it will be
+evopy is distributed in the hope that it will be
 useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
+evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from math import floor
-import numpy
+from numpy import array
 
 from sklearn.svm import SVC
 from sklearn.grid_search import GridSearchCV
@@ -40,8 +42,8 @@ class SVCCVSkGrid():
             'gamma': self._gamma_range,
             'C': self._C_range}]
 
-        X = numpy.array([f.value for f in feasible] + [i.value for i in infeasible])
-        y = numpy.array([1] * len(feasible) + [-1] * len(infeasible))
+        X = array([f.value for f in feasible] + [i.value for i in infeasible])
+        y = array([1] * len(feasible) + [-1] * len(infeasible))
 
         clf = GridSearchCV(SVC(), tuned_parameters, cv=self._cv_method)
 
