@@ -8,9 +8,11 @@ from evopy.strategies.svc_cv_best_sliding_weighted import SVCCVBestSlidingWeight
 from evopy.metamodel.cv.svc_cv_sklearn_grid import SVCCVSkGrid
 from evopy.scaling.scaling_dummy import ScalingDummy
 
-#method = WithoutConstraintMetaModel(\
-#    SphereProblem(), 15, 100, 0.5, 1) 
-"""
+method = WithoutConstraintMetaModel(\
+    SphereProblem(), 15, 100, 0.5, 1) 
+
+method.run()
+
 method = SVCBestSlidingWeighted(\
     SphereProblem(),
     mu = 15,
@@ -22,7 +24,8 @@ method = SVCBestSlidingWeighted(\
     append_to_window = 25,
     parameter_C = 1.0,
     parameter_gamma = 0.0)
- """
+
+method.run()
 
 sklearn_cv = SVCCVSkGrid(\
     gamma_range = [2 ** i for i in range(-15, 3, 2)],

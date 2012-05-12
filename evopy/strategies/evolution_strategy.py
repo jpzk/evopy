@@ -44,6 +44,9 @@ class EvolutionStrategy(object):
             "children-generated" : self._count_children_generated,
             "pop-generated": self._count_population_generated}
 
+    def termination(self, generations, fitness_of_best):
+        return self._problem.termination(generations, fitness_of_best)
+
     # return success_probabilty (rechenberg)
     def success_probability(self, children, success_fitness):
         return len(filter(

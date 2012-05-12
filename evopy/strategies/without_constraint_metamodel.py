@@ -51,8 +51,8 @@ class WithoutConstraintMetaModel(EvolutionStrategy):
         " smallest fitness " + str(fitness_of_best) 
 
         new_sigma = sigma
-    
-        if(2 - 1 * pow(10, -2) < fitness_of_best < 2 + 1 * pow(10, -2)):
+   
+        if(self.termination(generation, fitness_of_best)):
             print next_population[0]
             return True
         else:

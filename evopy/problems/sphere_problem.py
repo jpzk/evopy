@@ -23,6 +23,9 @@ class SphereProblem():
     _d = 2 
     _size = 10
 
+    def termination(self, generations, fitness_of_best):
+        return (2 - 1 * pow(10, -2) < fitness_of_best < 2 + 1 * pow(10, -2))
+
     # return true if solution is valid, otherwise false.
     def is_feasible(self, x):
         return sum(x.value) - 2.0 >= 0
