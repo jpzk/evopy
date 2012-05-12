@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from individual import Individual
+from evopy.individuals.individual import Individual
 from random import random, sample, gauss
 
 class SphereProblem():

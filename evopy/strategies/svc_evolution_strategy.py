@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License along with
 evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from individual import Individual
-from svc_meta_model import SVCMetaModel
+from evopy.individuals.individual import Individual
+from evopy.metamodel.svc_meta_model import SVCMetaModel
 from evolution_strategy import EvolutionStrategy
 
 class SVCEvolutionStrategy(EvolutionStrategy):

@@ -19,7 +19,6 @@ evolutionary-algorithms-sandbox.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from evolution_strategy import EvolutionStrategy
-from sphere_problem import SphereProblem
 
 class WithoutConstraintMetaModel(EvolutionStrategy): 
 
@@ -78,9 +77,9 @@ class WithoutConstraintMetaModel(EvolutionStrategy):
             result = self._run(result)
 
         return result
-
+"""
 if __name__ == "__main__":
     method = WithoutConstraintMetaModel(\
         SphereProblem(), 15, 100, 0.5, 1) 
     method.run()
- 
+"""
