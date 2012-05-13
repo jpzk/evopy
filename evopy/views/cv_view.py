@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from math import floor
+
 class CVView():
     def view(\
         self, generations, next_population, fitness, best_acc,\
@@ -24,8 +26,9 @@ class CVView():
 
         population = sorted(next_population, key=lambda child : fitness(child))
         best_fitness = fitness(population[0])
+        best_acc = floor(100 * best_acc)
 
         print("gen %i - fitness: %f "
-            "C: %f - gamma: %f - accuracy: %f" %\
+            "C: %.2f - gamma: %.2f - accuracy: %.2f" %\
             (generations, best_fitness, parameter_C, parameter_gamma, best_acc))
 
