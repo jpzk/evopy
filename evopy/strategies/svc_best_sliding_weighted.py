@@ -26,12 +26,13 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
         window (between generations) to build a meta model using SVC. """
 
     def __init__(\
-        self, problem, mu, lambd, alpha, sigma, beta, window_size,\
-        append_to_window, parameter_C, parameter_gamma):
+        self, problem, mu, lambd, alpha, sigma, combination, mutation,\
+        selection, view, beta, window_size, append_to_window,\
+        parameter_C, parameter_gamma):
 
         super(SVCBestSlidingWeighted, self).__init__(\
-            problem, mu, lambd, alpha, sigma,\
-            parameter_C, parameter_gamma)
+            problem, mu, lambd, alpha, sigma, combination, mutation,\
+            selection, view, parameter_C, parameter_gamma)
 
         self._beta = beta 
         self._window_size = window_size
@@ -39,7 +40,11 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
         self._sliding_best_feasibles = deque(maxlen = self._window_size)
         self._sliding_best_infeasibles = deque(maxlen = self._window_size)
 
-    # main evolution 
+    def generate_child(self, population, sigma):
+        combined_child = self.combine(population)
+        child = self.mutate(combined_child, sigma)
+        return child
+
     def _run(self, (population, generation, m, l, lastfitness,\
         alpha, sigma)):
         """ This method is called every generation. """
@@ -93,14 +98,13 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
 
         # feasible_children contains exactly lambda feasible children
         # and infeasible_children 
-        next_population =\
-            self.sortedbest(population + feasible_children)[:m]
+        next_population = self.select(population + feasible_children, m)
         
         map(self._sliding_best_infeasibles.append,
-            self.sortedbest(infeasible_children)[:self._append_to_window])
+            self.select(infeasible_children, self._append_to_window))
 
         map(self._sliding_best_feasibles.append,
-            self.sortedbest(feasible_children)[:self._append_to_window])
+            self.select(feasible_children, self._append_to_window))
 
         self.train_metamodel(\
             feasible = self._sliding_best_feasibles,
@@ -109,25 +113,16 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
             parameter_gamma = self._parameter_gamma)
       
         fitness_of_best = self.fitness(next_population[0])
-        fitness_of_worst = self.fitness(\
-            next_population[len(next_population) - 1])
-        average_fitness = 0.0            
-
-        # only for visual output purpose.
-        print "generation " + str(generation) +\
-        " smallest fitness " + str(fitness_of_best) 
-
-        new_sigma = sigma
-
-        self.log_statistics(\
-            fitness_of_best, fitness_of_worst, average_fitness)
+        
+        self.log(generation, next_population)
+        self.view(generation, next_population)
 
         if(self.termination(generation, fitness_of_best)):
             print next_population[0]
             return True
         else:
             return (next_population, generation + 1, m,\
-            l, fitness_of_best, alpha, new_sigma)
+            l, fitness_of_best, alpha, sigma)
 
     def run(self):
         """ This method initializes the population etc. And starts the 
@@ -164,8 +159,8 @@ class SVCBestSlidingWeighted(SVCEvolutionStrategy):
             if(self.is_feasible(parent)):
                 feasibles.append(parent)
 
-        best_feasibles = self.sortedbest(feasibles)[:self._window_size]
-        best_infeasibles = self.sortedbest(infeasibles)[:self._window_size]
+        best_feasibles = self.select(feasibles, self._window_size)
+        best_infeasibles = self.select(infeasibles, self._window_size)
 
         self.train_metamodel(\
             feasible = best_feasibles,

@@ -50,10 +50,8 @@ class SVCCVSkGrid():
         clf.fit(X, y)
         best_accuracy = clf.best_score_
 
-        print "best accuracy %f best C %f best gamma %f" %\
-            (best_accuracy, clf.best_estimator_.C, clf.best_estimator_.gamma)
-
         return (feasible,
             infeasible,
             clf.best_estimator_.C,
-            clf.best_estimator_.gamma)
+            clf.best_estimator_.gamma,
+            best_accuracy)

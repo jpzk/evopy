@@ -23,7 +23,11 @@ from random import random, sample, gauss
 class SphereProblem():
 
     _d = 2 
-    _size = 1000
+    _size = 10
+
+    # @todo        
+    def better_fitness(x, y):
+        return 
 
     def termination(self, generations, fitness_of_best):
         return (2 - 1 * pow(10, -2) < fitness_of_best < 2 + 1 * pow(10, -2))
@@ -36,22 +40,6 @@ class SphereProblem():
     def fitness(self, x):
         return sum(map(lambda x : pow(x,2), x.value)) 
 
-    def sortedbest(self, children):
-        return sorted(children, key=lambda child : self.fitness(child))
-
-    # return combined child of parents x,y
-    def combine(self, pair): 
-        v1 = pair[0].value
-        v2 = pair[1].value
-        return Individual(map(lambda i,j : (i+j)/2.0, v1, v2))
-
-    # mutate child with gauss devriation 
-    def mutate(self, child, sigma):
-        old_val = child.value
-        new_val = map(lambda value : value + gauss(0, sigma), old_val)
-        child.value = new_val
-        return child
-
     # python generator for inifinte list of parent population
     def population_generator(self):
         d = self._d
@@ -61,9 +49,3 @@ class SphereProblem():
             value = map(lambda x : ((x * random()) - 0.5) * size *2, [1] * d)
             yield(Individual(value))
 
-    # python generator for infinite list of feasible and infeasible 
-    # children. mutated and recombined with given parents.
-    def children_generator(self, parents, sigma):
-        while(True):
-            child = self.mutate(self.combine(sample(parents,2)), sigma)
-            yield child

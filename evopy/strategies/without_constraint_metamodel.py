@@ -21,48 +21,38 @@ from evolution_strategy import EvolutionStrategy
 
 class WithoutConstraintMetaModel(EvolutionStrategy): 
 
-    def __init__(self, problem, mu, lambd, alpha, sigma):
-        super(WithoutConstraintMetaModel, self).\
-            __init__(problem, mu, lambd, alpha, sigma)                 
+    def __init__(self, problem, mu, lambd, alpha, sigma,\
+        combination, mutation, selection, view):
 
-    # main evolution 
+        super(WithoutConstraintMetaModel, self).\
+            __init__(problem, mu, lambd, alpha, sigma,\
+            combination, mutation, selection, view) 
+
     def _run(self, (population, generation, m, l, lastfitness,\
         alpha, sigma)):
 
         feasible_children = []
         while(len(feasible_children) < l): 
-            child = self.generate_child(population, sigma) 
+            combined_child = self.combine(population)
+            child = self.mutate(combined_child, sigma)
+            
             if(self.is_feasible(child)):
                 feasible_children.append(child)
         
-        next_population =\
-            self.sortedbest(population + feasible_children)[:m]
-  
+        next_population = self.select(population + feasible_children, m)
         fitness_of_best = self.fitness(next_population[0])
-        fitness_of_worst = self.fitness(\
-            next_population[len(next_population) - 1])
-        average_fitness = 0.0            
 
-        # only for visual output purpose.
-        print "generation " + str(generation) +\
-        " smallest fitness " + str(fitness_of_best) 
-
-        new_sigma = sigma
-  
-        self.log_statistics(\
-            fitness_of_best, fitness_of_worst, average_fitness)
+        self.log(generation, next_population)
+        self.view(generation, next_population)            
 
         if(self.termination(generation, fitness_of_best)):
             print next_population[0]
             return True
         else:
             return (next_population, generation + 1, m,\
-            l, fitness_of_best, alpha, new_sigma)
+            l, fitness_of_best, alpha, sigma)
 
     def run(self):
-        # check for feasiblity and initialize sliding feasible and 
-        # infeasible populations.
-
         feasible_parents = []
         while(len(feasible_parents) < self._mu):
             parent = self.generate_population() 

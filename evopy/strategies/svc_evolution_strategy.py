@@ -25,22 +25,48 @@ class SVCEvolutionStrategy(EvolutionStrategy):
 
     _count_is_meta_feasible = 0
     _count_train_metamodel = 0
+
+    _statistics_parameter_C_trajectory = []
+    _statistics_parameter_gamma_trajectory = []
+    _statistics_best_acc_trajectory = []
+
     _meta_model = SVCMetaModel()
 
     def __init__(\
-        self, problem, mu, lambd, alpha, sigma, parameter_C,\
-        parameter_gamma):
+        self, problem, mu, lambd, alpha, sigma, combination,\
+        mutation, selection, view, parameter_C, parameter_gamma):
 
         super(SVCEvolutionStrategy, self).__init__(\
-            problem, mu, lambd, alpha, sigma)
+            problem, mu, lambd, alpha, sigma, combination,\
+            mutation, selection, view)
        
         self._parameter_C = parameter_C
         self._parameter_gamma = parameter_gamma
 
+    def log(\
+        self, generation, next_population, best_acc, parameter_C,\
+        parameter_gamma):
+        
+        super(SVCEvolutionStrategy, self).log(generation, next_population)
+
+        self._statistics_best_acc_trajectory.append(best_acc)
+        self._statistics_parameter_C_trajectory.append(parameter_C)
+        self._statistics_parameter_gamma_trajectory.append(parameter_gamma)
+
+    def view(\
+        self, generation, next_population, best_acc, parameter_C,\
+        parameter_gamma):
+        
+        self._view.view(generation, next_population, self._problem.fitness,\
+            best_acc, parameter_C, parameter_gamma)
+
     def get_statistics(self):
         statistics = {
             "metamodel-calls" : self._count_is_meta_feasible,
-            "train-function-calls" : self._count_train_metamodel}
+            "train-function-calls" : self._count_train_metamodel,
+            "best-acc" : self._statistics_best_acc_trajectory,
+            "parameter-C" : self._statistics_parameter_C_trajectory,
+            "parameter-gamma": self._statistics_parameter_gamma_trajectory}
         
         super_statistics = super(SVCEvolutionStrategy, self).get_statistics()
         for k in super_statistics:

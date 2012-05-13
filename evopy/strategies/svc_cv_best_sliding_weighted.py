@@ -27,11 +27,13 @@ class SVCCVBestSlidingWeighted(SVCEvolutionStrategy):
         window (between generations) to build a meta model using SVC. """
     
     def __init__(\
-        self, problem, mu, lambd, alpha, sigma, beta,\
-        window_size, append_to_window, crossvalidation, scaling):
+        self, problem, mu, lambd, alpha, sigma, combination,\
+        mutation, selection, view, beta, window_size, append_to_window,\
+        crossvalidation, scaling):
 
         super(SVCCVBestSlidingWeighted, self).__init__(\
-            problem, mu, lambd, alpha, sigma, 0.0, 0.0)
+            problem, mu, lambd, alpha, sigma, combination, mutation,\
+            selection, view, 0.0, 0.0)
 
         self._beta = beta
         self._append_to_window = append_to_window
@@ -40,6 +42,11 @@ class SVCCVBestSlidingWeighted(SVCEvolutionStrategy):
         self._scaling = scaling            
         self._sliding_best_feasibles = deque(maxlen = self._window_size)
         self._sliding_best_infeasibles = deque(maxlen = self._window_size)
+
+    def generate_child(self, population, sigma):
+        combined_child = self.combine(population)
+        child = self.mutate(combined_child, sigma)
+        return child
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
@@ -98,14 +105,13 @@ class SVCCVBestSlidingWeighted(SVCEvolutionStrategy):
 
         # feasible_children contains exactly lambda feasible children
         # and infeasible_children 
-        next_population =\
-            self.sortedbest(population + feasible_children)[:m]
-        
-        map(self._sliding_best_infeasibles.append,
-            self.sortedbest(infeasible_children)[:self._append_to_window])
+        next_population = self.select(population + feasible_children, m)
+
+        map(self._sliding_best_infeasibles.append, 
+            self.select(infeasible_children, self._append_to_window))
 
         map(self._sliding_best_feasibles.append,
-            next_population[:self._append_to_window])
+            self.select(feasible_children, self._append_to_window))
 
         sliding_best_infeasibles =\
             [child for child in self._sliding_best_infeasibles]
@@ -134,26 +140,24 @@ class SVCCVBestSlidingWeighted(SVCEvolutionStrategy):
             parameter_C = best_parameters[2],
             parameter_gamma = best_parameters[3])
 
+        best_parameter_gamma = best_parameters[3]
+        best_parameter_C = best_parameters[2]
+        best_acc = best_parameters[4]
+
         fitness_of_best = self.fitness(next_population[0])
-        fitness_of_worst = self.fitness(\
-            next_population[len(next_population)-1])
-        average_fitness = 0.0
 
-        # only for visual output purpose.
-        print "generation " + str(generation) +\
-        " smallest fitness " + str(fitness_of_best) 
+        self.log(generation, next_population, best_acc,\
+            best_parameter_C, best_parameter_gamma)
 
-        new_sigma = sigma
-
-        self.log_statistics(\
-            fitness_of_best, fitness_of_worst, average_fitness)
+        self.view(generation, next_population, best_acc,\
+            best_parameter_C, best_parameter_gamma)
 
         if(self.termination(generation, fitness_of_best)):
             print next_population[0]
             return True
         else:
             return (next_population, generation + 1, m,\
-            l, fitness_of_best, alpha, new_sigma)
+            l, fitness_of_best, alpha, sigma)
 
     def run(self):
         """ This method initializes the population etc. And starts the 
@@ -189,9 +193,9 @@ class SVCCVBestSlidingWeighted(SVCEvolutionStrategy):
 
         # initial training of the meta model
 
-        best_feasibles = self.sortedbest(feasibles)[:self._window_size]
-        best_infeasibles = self.sortedbest(infeasibles)[:self._window_size]
- 
+        best_feasibles = self.select(feasibles, self._window_size)
+        best_infeasibles = self.select(infeasibles, self._window_size)
+
         # adding to sliding windows
 
         map(self._sliding_best_feasibles.append, best_feasibles)

@@ -29,19 +29,23 @@ class EvolutionStrategy(object):
     _statistics_worst_fitness_trajectory = []
     _statistics_average_fitness_trajectory = []
 
-    def __init__(self, problem, mu, lambd, alpha, sigma):
+    def __init__(self, problem, mu, lambd, alpha, sigma,\
+        combination, mutation, selection, view):
 
         self._problem = problem
         self._mu = mu
         self._lambd = lambd
         self._alpha = alpha
         self._sigma = sigma
+        self._mutation = mutation
+        self._combination = combination
+        self._selection = selection
+        self._view = view
 
-    def log_statistics(self, best_fitness, worst_fitness, avg_fitness):
+    def log(self, generation, next_population):
         self._statistics_generations += 1
-        self._statistics_best_fitness_trajectory.append(best_fitness)
-        self._statistics_worst_fitness_trajectory.append(worst_fitness)
-        self._statistics_average_fitness_trajectory.append(avg_fitness)
+        fitnesses = map(self._problem.fitness, next_population)
+        # @todo
 
     def get_statistics(self):
         return {
@@ -73,26 +77,23 @@ class EvolutionStrategy(object):
         self._statistics_fitness += 1
         return self._problem.fitness(x)
 
+    def view(self, generation, next_population):
+        self._view.view(generation, next_population, self._problem.fitness)
+
     # return combined child of parents x,y
     def combine(self, pair):
-        self._statistics_combinations += 1
-        return self._problem.combine(pair)
+        return self._combination.combine(pair)
 
     # mutate child with gauss devriation 
     def mutate(self, child, sigma):
         self._statistics_mutations += 1
-        self._problem.mutate(child, sigma)
+        return self._mutation.mutate(child, sigma)
       
-    def sortedbest(self, children):
-        return self._problem.sortedbest(children)
+    def select(self, children, mu):
+        return self._selection.select(self.fitness, children, mu)
 
     def generate_population(self):
         self._statistics_population_generated += 1
         generator = self._problem.population_generator() 
-        return generator.next()
-
-    def generate_child(self, parents, sigma):
-        self._statistics_children_generated += 1
-        generator = self._problem.children_generator(parents, sigma)
         return generator.next()
 
