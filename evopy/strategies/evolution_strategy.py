@@ -17,14 +17,14 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from numpy import array
+
 class EvolutionStrategy(object):
    
     _statistics_is_feasible = 0
     _statistics_fitness = 0
     _statistics_generations = 0
     _statistics_mutations = 0
-    _statistics_children_generated = 0
-    _statistics_population_generated = 0
     _statistics_best_fitness_trajectory = []
     _statistics_worst_fitness_trajectory = []
     _statistics_average_fitness_trajectory = []
@@ -44,8 +44,11 @@ class EvolutionStrategy(object):
 
     def log(self, generation, next_population):
         self._statistics_generations += 1
-        fitnesses = map(self._problem.fitness, next_population)
-        # @todo
+        
+        fitnesses = array(map(self._problem.fitness, next_population))
+        self._statistics_worst_fitness_trajectory = fitnesses.min()
+        self._statistics_average_fitness_trajectory = fitnesses.mean()
+        self._statistics_best_fitness_trajectory = fitnesses.max()
 
     def get_statistics(self):
         return {
@@ -53,8 +56,6 @@ class EvolutionStrategy(object):
             "constraint-calls" : self._statistics_is_feasible,
             "fitness-function-calls" : self._statistics_fitness,
             "mutation-calls" : self._statistics_mutations,
-            "children-generated" : self._statistics_children_generated,
-            "pop-generated": self._statistics_population_generated,
             "best-fitness": self._statistics_best_fitness_trajectory,
             "worst-fitness": self._statistics_worst_fitness_trajectory,
             "avg-fitness": self._statistics_average_fitness_trajectory}
@@ -93,7 +94,6 @@ class EvolutionStrategy(object):
         return self._selection.select(self.fitness, population, children, mu)
 
     def generate_population(self):
-        self._statistics_population_generated += 1
         generator = self._problem.population_generator() 
         return generator.next()
 
