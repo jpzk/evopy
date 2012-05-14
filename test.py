@@ -60,43 +60,45 @@ writer_calls.writerow(\
     "metamodel-calls",
     "fitness-function-calls",
     "generations"])
-
 writer_fitnesses.writerow(\
     ["generation", "worst-fitness", "avg-fitness", "best-fitness"])
-
 writer_acc(["generation", "best-acc"])
 
-sklearn_cv = SVCCVSkGrid(\
-    gamma_range = [2 ** i for i in range(-15, 3, 2)],
-    C_range = [2 ** i for i in range(-5, 15, 2)],
-    cv_method = KFold(50, 5))
+for sample in range(0, 2):
 
-method = SVCCVDSBestSlidingWeighted(\
-    SASphereProblem(),
-    mu = 15,
-    lambd = 100,
-    alpha = 0.5,
-    sigma = 1,
-    theta = 0.7,
-    pi = 70, 
-    epsilon = 1.0,
-    combination = SAIntermediate(),\
-    mutation = GaussSigma(),\
-    selection = SmallestFitnessNewFirst(),
-    view = CVDSView(),
-    beta = 0.9,
-    window_size = 25,
-    append_to_window = 25,
-    crossvalidation = sklearn_cv,
-    scaling = ScalingDummy(),
-    selfadaption = Selfadaption())
+    method = "SVC-CV-DS-BSW-5FOLD"
+
+    sklearn_cv = SVCCVSkGrid(\
+        gamma_range = [2 ** i for i in range(-15, 3, 2)],
+        C_range = [2 ** i for i in range(-5, 15, 2)],
+        cv_method = KFold(50, 5))
+
+    method = SVCCVDSBestSlidingWeighted(\
+        SASphereProblem(),
+        mu = 15,
+        lambd = 100,
+        alpha = 0.5,
+        sigma = 1,
+        theta = 0.7,
+        pi = 70, 
+        epsilon = 1.0,
+        combination = SAIntermediate(),\
+        mutation = GaussSigma(),\
+        selection = SmallestFitnessNewFirst(),
+        view = CVDSView(),
+        beta = 0.9,
+        window_size = 25,
+        append_to_window = 25,
+        crossvalidation = sklearn_cv,
+        scaling = ScalingDummy(),
+        selfadaption = Selfadaption())
      
-method.run()
+    method.run()
 
-stats = method.get_statistics()
+    stats = method.get_statistics()
 
-writer_calls.writerow(\
-        ["SVCCVDSBestSlidingWeighted-5kfold",
+    writer_calls.writerow(\
+        [method,
         stats["train-function-calls"],
         stats["constraint-calls"],
         stats["metamodel-calls"],
@@ -105,12 +107,15 @@ writer_calls.writerow(\
 
 best_fitnesses = stats["best-fitness"]
 worst_fitnesses = stats["worst-fitness"]
-average_fitnesses = stats["avg-fitness"]
+avg_fitnesses = stats["avg-fitness"]
 
 for generation in range(0, int(stats["generations"])):
+    
     worst_fitness = worst_fitnesses[generation]
     avg_fitness = avg_fitnesses[generation]
     best_fitness = best_fitnesses[generation]
-    writer_calls.writerow([worst_fitness, avg_fitness, best_fitness])
-    writer_acc.writerow([generation, [stats["best-acc"][i]]])
+    writer_fitnesses.writerow(\
+        [method, generation, worst_fitness, avg_fitness, best_fitness])
+
+    writer_acc.writerow([method, generation, [stats["best-acc"][i]]])
    
