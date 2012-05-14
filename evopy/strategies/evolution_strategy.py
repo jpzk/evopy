@@ -44,11 +44,10 @@ class EvolutionStrategy(object):
 
     def log(self, generation, next_population):
         self._statistics_generations += 1
-        
         fitnesses = array(map(self._problem.fitness, next_population))
-        self._statistics_worst_fitness_trajectory = fitnesses.min()
-        self._statistics_average_fitness_trajectory = fitnesses.mean()
-        self._statistics_best_fitness_trajectory = fitnesses.max()
+        self._statistics_worst_fitness_trajectory.append(fitnesses.min())
+        self._statistics_average_fitness_trajectory.append(fitnesses.mean())
+        self._statistics_best_fitness_trajectory.append(fitnesses.max())
 
     def get_statistics(self):
         return {
