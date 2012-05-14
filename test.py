@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import csv
+
 from sklearn.cross_validation import KFold
 from sklearn.cross_validation import LeaveOneOut
 
@@ -33,6 +35,7 @@ from evopy.strategies.svc_cv_ds_best_sliding_weighted import SVCCVDSBestSlidingW
 
 # operators
 from evopy.operators.scaling.scaling_dummy import ScalingDummy
+from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.combination.intermediate import Intermediate
 from evopy.operators.combination.sa_intermediate import SAIntermediate
@@ -46,12 +49,13 @@ from evopy.views.cv_view import CVView
 from evopy.views.cv_ds_view import CVDSView
 from evopy.metamodel.cv.svc_cv_sklearn_grid import SVCCVSkGrid
 
-writer_calls =\
-    csv.writer(open('experiments/experiment_calls.csv', 'wb'), delimiter=';')
-writer_fitnesses =\
-    csw.writer(open('experiments/experiment_fitnesses.csv', 'wb'), delimiter=';')
-writer_acc =\
-    csw.writer(open('experiments/experiment_accuracy.csv', 'wb'), delimiter=';')
+file_call = 'experiments/experiment_calls.csv'
+file_fitnesses = 'experiments/experiment_fitnesses.csv'
+file_acc = 'experiments/experiment_acc.csv'
+
+writer_calls = csv.writer(open(file_call, 'wb'), delimiter=';')
+writer_fitnesses = csv.writer(open(file_fitnesses, 'wb'), delimiter=';')
+writer_acc = csv.writer(open(file_acc, 'wb'), delimiter=';')
 
 writer_calls.writerow(\
     ["method",
@@ -60,13 +64,20 @@ writer_calls.writerow(\
     "metamodel-calls",
     "fitness-function-calls",
     "generations"])
+
 writer_fitnesses.writerow(\
-    ["generation", "worst-fitness", "avg-fitness", "best-fitness"])
-writer_acc(["generation", "best-acc"])
+    ["generation", 
+    "worst-fitness", 
+    "avg-fitness", 
+    "best-fitness"])
+
+writer_acc.writerow(["generation", "best-acc"])
 
 for sample in range(0, 2):
 
-    method = "SVC-CV-DS-BSW-5FOLD"
+    # METHOD: SVC-CV-DS-BSW-5FOLD
+
+    methodname = "SVC-CV-DS-BSW-5FOLD"
 
     sklearn_cv = SVCCVSkGrid(\
         gamma_range = [2 ** i for i in range(-15, 3, 2)],
@@ -98,24 +109,23 @@ for sample in range(0, 2):
     stats = method.get_statistics()
 
     writer_calls.writerow(\
-        [method,
+        [sample, methodname,
         stats["train-function-calls"],
         stats["constraint-calls"],
         stats["metamodel-calls"],
         stats["fitness-function-calls"],
         stats["generations"]])
 
-best_fitnesses = stats["best-fitness"]
-worst_fitnesses = stats["worst-fitness"]
-avg_fitnesses = stats["avg-fitness"]
+    best_fitnesses = stats["best-fitness"]
+    worst_fitnesses = stats["worst-fitness"]
+    avg_fitnesses = stats["avg-fitness"]
 
-for generation in range(0, int(stats["generations"])):
+    for generation in range(0, int(stats["generations"])):
     
-    worst_fitness = worst_fitnesses[generation]
-    avg_fitness = avg_fitnesses[generation]
-    best_fitness = best_fitnesses[generation]
-    writer_fitnesses.writerow(\
-        [method, generation, worst_fitness, avg_fitness, best_fitness])
+        worst_fitness = worst_fitnesses[generation]
+        avg_fitness = avg_fitnesses[generation]
+        best_fitness = best_fitnesses[generation]
+        writer_fitnesses.writerow(\
+            [sample, methodname, generation, worst_fitness, avg_fitness, best_fitness])
+        writer_acc.writerow([sample, methodname, generation, stats["best-acc"][i]])
 
-    writer_acc.writerow([method, generation, [stats["best-acc"][i]]])
-   
