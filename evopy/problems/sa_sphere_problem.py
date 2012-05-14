@@ -30,7 +30,7 @@ class SASphereProblem():
         return 
 
     def termination(self, generations, fitness_of_best):
-        return (2 - 1 * pow(10, -2) < fitness_of_best < 2 + 1 * pow(10, -2))
+        return (2 - 1 * pow(10, -4) < fitness_of_best < 2 + 1 * pow(10, -4))
 
     # return true if solution is valid, otherwise false.
     def is_feasible(self, x):

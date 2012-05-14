@@ -29,6 +29,7 @@ from evopy.strategies.without_constraint_metamodel import WithoutConstraintMetaM
 from evopy.strategies.svc_best_sliding_weighted import SVCBestSlidingWeighted
 from evopy.strategies.svc_cv_best_sliding_weighted import SVCCVBestSlidingWeighted
 from evopy.strategies.svc_cv_sa_best_weighted import SVCCVSABestSlidingWeighted
+from evopy.strategies.svc_cv_ds_best_sliding_weighted import SVCCVDSBestSlidingWeighted
 
 # operators
 from evopy.operators.scaling.scaling_dummy import ScalingDummy
@@ -36,11 +37,13 @@ from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.combination.intermediate import Intermediate
 from evopy.operators.combination.sa_intermediate import SAIntermediate
 from evopy.operators.selection.smallest_fitness import SmallestFitness
+from evopy.operators.selection.smallest_fitness_new_first import SmallestFitnessNewFirst
 from evopy.operators.selfadaption.selfadaption import Selfadaption
 
 # views, etc. 
 from evopy.views.default_view import DefaultView
 from evopy.views.cv_view import CVView
+from evopy.views.cv_ds_view import CVDSView
 from evopy.metamodel.cv.svc_cv_sklearn_grid import SVCCVSkGrid
 
 """
@@ -76,16 +79,19 @@ sklearn_cv = SVCCVSkGrid(\
     C_range = [2 ** i for i in range(-5, 15, 2)],
     cv_method = KFold(50, 5))
 
-method = SVCCVSABestSlidingWeighted(\
+method = SVCCVDSBestSlidingWeighted(\
     SASphereProblem(),
     mu = 15,
     lambd = 100,
     alpha = 0.5,
     sigma = 1,
+    theta = 0.7,
+    pi = 70, 
+    epsilon = 1.0,
     combination = SAIntermediate(),\
     mutation = GaussSigma(),\
-    selection = SmallestFitness(),
-    view = CVView(),
+    selection = SmallestFitnessNewFirst(),
+    view = CVDSView(),
     beta = 0.9,
     window_size = 25,
     append_to_window = 25,

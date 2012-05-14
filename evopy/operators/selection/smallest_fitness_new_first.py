@@ -17,13 +17,7 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from evopy.individuals.selfadaptive_individual import SelfadaptiveIndividual
+class SmallestFitnessNewFirst():
+    def select(self, fitness, population, children, mu):        
+        return sorted(population + children, key=lambda child : fitness(child) + child.sigma)[:mu]
 
-class SAIntermediate():
-    def combine(self, pair):
-        v1 = pair[0].value
-        v2 = pair[1].value
-        value = map(lambda i,j : (i+j)/2.0, v1, v2)
-        sigma = min(pair[0].sigma, pair[1].sigma)#((pair[0].sigma + pair[1].sigma)/2.0)
-        return SelfadaptiveIndividual(value, sigma)
-       

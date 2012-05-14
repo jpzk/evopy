@@ -89,8 +89,8 @@ class EvolutionStrategy(object):
         self._statistics_mutations += 1
         return self._mutation.mutate(child, sigma)
       
-    def select(self, children, mu):
-        return self._selection.select(self.fitness, children, mu)
+    def select(self, population, children, mu):
+        return self._selection.select(self.fitness, population, children, mu)
 
     def generate_population(self):
         self._statistics_population_generated += 1
