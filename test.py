@@ -46,34 +46,26 @@ from evopy.views.cv_view import CVView
 from evopy.views.cv_ds_view import CVDSView
 from evopy.metamodel.cv.svc_cv_sklearn_grid import SVCCVSkGrid
 
-"""
-method = WithoutConstraintMetaModel(\
-    SphereProblem(), 15, 100, 0.5, 1,\
-    Intermediate(),\
-    GaussSigma(),\
-    SmallestFitness(), 
-    DefaultView()) 
+writer_calls =\
+    csv.writer(open('experiments/experiment_calls.csv', 'wb'), delimiter=';')
+writer_fitnesses =\
+    csw.writer(open('experiments/experiment_fitnesses.csv', 'wb'), delimiter=';')
+writer_acc =\
+    csw.writer(open('experiments/experiment_accuracy.csv', 'wb'), delimiter=';')
 
-method.run()
+writer_calls.writerow(\
+    ["method",
+    "train-function-calls",
+    "constraint-calls",
+    "metamodel-calls",
+    "fitness-function-calls",
+    "generations"])
 
-method = SVCBestSlidingWeighted(\
-    SphereProblem(),\
-    mu = 15,\
-    lambd = 100,\
-    alpha = 0.5,\
-    sigma = 1,\
-    combination = Intermediate(),\
-    mutation = GaussSigma(),\
-    selection = SmallestFitness(),
-    view = DefaultView(),
-    beta = 0.9,\
-    window_size = 25,\
-    append_to_window = 25,\
-    parameter_C = 1.0,\
-    parameter_gamma = 0.0)\
+writer_fitnesses.writerow(\
+    ["generation", "worst-fitness", "avg-fitness", "best-fitness"])
 
-method.run()
-"""
+writer_acc(["generation", "best-acc"])
+
 sklearn_cv = SVCCVSkGrid(\
     gamma_range = [2 ** i for i in range(-15, 3, 2)],
     C_range = [2 ** i for i in range(-5, 15, 2)],
@@ -99,4 +91,26 @@ method = SVCCVDSBestSlidingWeighted(\
     scaling = ScalingDummy(),
     selfadaption = Selfadaption())
      
-method.run() 
+method.run()
+
+stats = method.get_statistics()
+
+writer_calls.writerow(\
+        ["SVCCVDSBestSlidingWeighted-5kfold",
+        stats["train-function-calls"],
+        stats["constraint-calls"],
+        stats["metamodel-calls"],
+        stats["fitness-function-calls"],
+        stats["generations"]])
+
+best_fitnesses = stats["best-fitness"]
+worst_fitnesses = stats["worst-fitness"]
+average_fitnesses = stats["avg-fitness"]
+
+for generation in range(0, int(stats["generations"])):
+    worst_fitness = worst_fitnesses[generation]
+    avg_fitness = avg_fitnesses[generation]
+    best_fitness = best_fitnesses[generation]
+    writer_calls.writerow([worst_fitness, avg_fitness, best_fitness])
+    writer_acc.writerow([generation, [stats["best-acc"][i]]])
+   
