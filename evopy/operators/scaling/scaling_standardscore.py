@@ -18,6 +18,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from numpy import array
+from copy import deepcopy
 
 class ScalingStandardscore():
     """ Scaling to standardscore """
@@ -28,9 +29,9 @@ class ScalingStandardscore():
         self._mean = iarray.mean()
         self._std = iarray.std()
 
-    def scale(self, individuals):
-        values = map(lambda i : i.value, individuals)
-        return map(\
-            lambda x : (x - self._mean) / self._std, 
-            values)
-
+    def scale(self, individualx):
+        individual = deepcopy(individualx)
+        val = individual.value
+        scaled = map(lambda x : (x - self._mean) / self._std, val)
+        individual.value = scaled        
+        return individual 
