@@ -80,7 +80,7 @@ class DSESSVC(SVCEvolutionStrategy):
         statistics = {
             "parameter-epsilon" : self._statistics_parameter_epsilon_trajectory,
             "DSES-infeasibles" : self._statistics_DSES_infeasibles_trajectory,
-            "avg-sigma" : self._statitics_average_sigma_trajectory}
+            "avg-sigma" : self._statistics_average_sigma_trajectory}
         
         super_statistics = super(DSESSVC, self).get_statistics()
         for k in super_statistics:
