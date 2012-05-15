@@ -18,6 +18,6 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 class SmallestFitness():
-    def select(self, fitness, children, mu):
+    def select(self, fitness, population, children, mu):
         return sorted(children, key=lambda child : fitness(child))[:mu]
 

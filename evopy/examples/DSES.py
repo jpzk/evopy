@@ -20,7 +20,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from evopy.problems.sa_sphere_problem import SASphereProblem
 from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.combination.sa_intermediate import SAIntermediate
-from evopy.operators.selection.smallest_fitness_new_first import SmallestFitnessNewFirst
+from evopy.operators.selection.smallest_fitness import SmallestFitness
 from evopy.operators.selfadaption.selfadaption import Selfadaption
 from evopy.views.dses_view import DSESView
 from evopy.strategies.dses import DSES
@@ -35,7 +35,7 @@ def get_method():
         epsilon = 1.0,
         combination = SAIntermediate(),
         mutation = GaussSigma(),
-        selection = SmallestFitnessNewFirst(),
+        selection = SmallestFitness(),
         view = DSESView(),
         selfadaption = Selfadaption())
 
