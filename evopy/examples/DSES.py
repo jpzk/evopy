@@ -25,18 +25,17 @@ from evopy.operators.selfadaption.selfadaption import Selfadaption
 from evopy.views.dses_view import DSESView
 from evopy.strategies.dses import DSES
 
-method = DSES(\
-    problem = SASphereProblem(),
-    mu = 15, 
-    lambd = 100,
-    pi = 70,
-    theta = 0.7,
-    epsilon = 1.0,
-    combination = SAIntermediate(),
-    mutation = GaussSigma(),
-    selection = SmallestFitnessNewFirst(),
-    view = DSESView(),
-    selfadaption = Selfadaption())
-
-method.run()
+def get_method():
+    return DSES(\
+        problem = SASphereProblem(),
+        mu = 15, 
+        lambd = 100,
+        pi = 70,
+        theta = 0.7,
+        epsilon = 1.0,
+        combination = SAIntermediate(),
+        mutation = GaussSigma(),
+        selection = SmallestFitnessNewFirst(),
+        view = DSESView(),
+        selfadaption = Selfadaption())
 
