@@ -17,7 +17,12 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-class SmallestFitnessNewFirst():
-    def select(self, fitness, population, children, mu):        
-        return sorted(population + children, key=lambda child : fitness(child) + child.sigma)[:mu]
+from evopy.problems.sa_sphere_problem import SASphereProblem
+from evopy.individuals.selfadaptive_individual import SelfadaptiveIndividual
+from random import random, sample, gauss
 
+class SASphereProblemUnconstrained(SASphereProblem):
+
+    # return true if solution is valid, otherwise false.
+    def is_feasible(self, x):
+        return True
