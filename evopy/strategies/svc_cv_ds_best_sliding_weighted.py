@@ -270,8 +270,8 @@ class SVCCVDSBestSlidingWeighted(SVCEvolutionStrategy):
 
         # scaling, scaling factors are kept in scaling attribute.
         self._scaling.setup(best_feasibles + best_infeasibles)
-        scaled_best_feasibles = self._scaling.scale(best_feasibles)
-        scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
+        scaled_best_feasibles = map(self._scaling.scale, best_feasibles)
+        scaled_best_infeasibles = map(self._scaling.scale, best_infeasibles)
 
         best_parameters = self._crossvalidation.crossvalidate(\
             scaled_best_feasibles,
