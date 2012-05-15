@@ -26,13 +26,6 @@ from sklearn.cross_validation import LeaveOneOut
 from evopy.problems.sphere_problem import SphereProblem
 from evopy.problems.sa_sphere_problem import SASphereProblem
 
-# strategies
-from evopy.strategies.without_constraint_metamodel import WithoutConstraintMetaModel
-from evopy.strategies.svc_best_sliding_weighted import SVCBestSlidingWeighted
-from evopy.strategies.svc_cv_best_sliding_weighted import SVCCVBestSlidingWeighted
-from evopy.strategies.svc_cv_sa_best_weighted import SVCCVSABestSlidingWeighted
-from evopy.strategies.svc_cv_ds_best_sliding_weighted import SVCCVDSBestSlidingWeighted
-
 # operators
 from evopy.operators.scaling.scaling_dummy import ScalingDummy
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
@@ -48,6 +41,12 @@ from evopy.views.default_view import DefaultView
 from evopy.views.cv_view import CVView
 from evopy.views.cv_ds_view import CVDSView
 from evopy.metamodel.cv.svc_cv_sklearn_grid import SVCCVSkGrid
+
+# strategies
+from evopy.strategies.dpes_svc import DPESSVC
+from evopy.strategies.dpes import DPES
+from evopy.strategies.saes_svc import SAESSVC
+from evopy.strategies.dses_svc import DSESSVC
 
 file_call = 'experiments/experiment_calls.csv'
 file_fitnesses = 'experiments/experiment_fitnesses.csv'
@@ -75,21 +74,17 @@ writer_acc.writerow(["generation", "best-acc"])
 
 for sample in range(0, 2):
 
-    # METHOD: SVC-CV-DS-BSW-5FOLD
-
-    methodname = "SVC-CV-DS-BSW-5FOLD"
+    methodname = "DSESSVC"
 
     sklearn_cv = SVCCVSkGrid(\
         gamma_range = [2 ** i for i in range(-15, 3, 2)],
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(50, 5))
 
-    method = SVCCVDSBestSlidingWeighted(\
+    method = DSESSVC(\
         SASphereProblem(),
         mu = 15,
         lambd = 100,
-        alpha = 0.5,
-        sigma = 1,
         theta = 0.7,
         pi = 70, 
         epsilon = 1.0,

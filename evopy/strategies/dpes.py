@@ -19,14 +19,14 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 
 from evolution_strategy import EvolutionStrategy
 
-class WithoutConstraintMetaModel(EvolutionStrategy): 
+class DPES(EvolutionStrategy): 
 
-    def __init__(self, problem, mu, lambd, alpha, sigma,\
+    def __init__(self, problem, mu, lambd, sigma,\
         combination, mutation, selection, view):
 
-        super(WithoutConstraintMetaModel, self).\
-            __init__(problem, mu, lambd, alpha, sigma,\
-            combination, mutation, selection, view) 
+        super(DPES, self).\
+            __init__(problem, mu, lambd, \
+            combination, mutation, selection, view, sigma = sigma) 
 
     def _run(self, (population, generation, m, l, lastfitness,\
         alpha, sigma)):
@@ -39,11 +39,11 @@ class WithoutConstraintMetaModel(EvolutionStrategy):
             if(self.is_feasible(child)):
                 feasible_children.append(child)
         
-        next_population = self.select(population + feasible_children, m)
+        next_population = self.select(population, feasible_children, m)
         fitness_of_best = self.fitness(next_population[0])
 
         self.log(generation, next_population)
-        self.view(generation, next_population)            
+        self.view(generation, next_population)         
 
         if(self.termination(generation, fitness_of_best)):
             print next_population[0]
@@ -67,9 +67,3 @@ class WithoutConstraintMetaModel(EvolutionStrategy):
             result = self._run(result)
 
         return result
-"""
-if __name__ == "__main__":
-    method = WithoutConstraintMetaModel(\
-        SphereProblem(), 15, 100, 0.5, 1) 
-    method.run()
-"""

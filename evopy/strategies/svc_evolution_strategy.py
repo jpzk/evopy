@@ -33,11 +33,12 @@ class SVCEvolutionStrategy(EvolutionStrategy):
     _meta_model = SVCMetaModel()
 
     def __init__(\
-        self, problem, mu, lambd, alpha, sigma, combination,\
-        mutation, selection, view, parameter_C, parameter_gamma):
+        self, problem, mu, lambd, combination,\
+        mutation, selection, view, parameter_C = None,\
+        parameter_gamma = None, sigma = None):
 
         super(SVCEvolutionStrategy, self).__init__(\
-            problem, mu, lambd, alpha, sigma, combination,\
+            problem, mu, lambd, combination,\
             mutation, selection, view)
        
         self._parameter_C = parameter_C

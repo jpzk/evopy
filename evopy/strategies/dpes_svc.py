@@ -17,35 +17,24 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from numpy import array
-from math import floor, sqrt
+from math import floor
 from collections import deque 
 
 from svc_evolution_strategy import SVCEvolutionStrategy
 
-class SVCCVDSBestSlidingWeighted(SVCEvolutionStrategy):
+class DPESSVC(SVCEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
- 
-    _statistics_parameter_epsilon_trajectory = []
-    _statistics_DSES_infeasibles_trajectory = []
-    _statistics_average_sigma_trajectory = []
     
     def __init__(\
-        self, problem, mu, lambd, alpha, sigma, theta, pi, epsilon, combination,\
+        self, problem, mu, lambd, sigma, combination,\
         mutation, selection, view, beta, window_size, append_to_window,\
-        crossvalidation, scaling, selfadaption):
+        crossvalidation, scaling):
 
-        super(SVCCVDSBestSlidingWeighted, self).__init__(\
-            problem, mu, lambd, alpha, sigma, combination, mutation,\
-            selection, view, 0.0, 0.0)
+        super(DPESSVC, self).__init__(\
+            problem, mu, lambd, combination, mutation,\
+            selection, view, sigma = sigma)
 
-        # Death Penalty step control parameters
-        self._theta = theta
-        self._pi = pi
-        self._epsilon = epsilon
-
-        self._selfadaption = selfadaption
         self._beta = beta
         self._append_to_window = append_to_window
         self._window_size = window_size
@@ -54,58 +43,17 @@ class SVCCVDSBestSlidingWeighted(SVCEvolutionStrategy):
         self._sliding_best_feasibles = deque(maxlen = self._window_size)
         self._sliding_best_infeasibles = deque(maxlen = self._window_size)
 
-    def log(\
-        self, generation, next_population, best_acc, parameter_C,\
-        parameter_gamma, parameter_epsilon, DSES_infeasibles):
-        
-        super(SVCCVDSBestSlidingWeighted, self).log(\
-            generation, next_population, best_acc, parameter_C,
-            parameter_gamma)
-
-        sigmas = array(map(lambda child : child.sigma, next_population))
-        self._statistics_average_sigma_trajectory.append(sigmas.mean())
-        self._statistics_parameter_epsilon_trajectory.append(parameter_epsilon)
-        self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
-
-    def view(\
-        self, generation, next_population, best_acc, parameter_C,\
-        parameter_gamma, parameter_epsilon, DSES_infeasibles):
- 
-        sigmas = array(map(lambda child : child.sigma, next_population))
-        self._view.view(generation, next_population, self._problem.fitness,\
-            best_acc, parameter_C, parameter_gamma, parameter_epsilon,\
-            DSES_infeasibles, sigmas.mean())
-
-    def get_statistics(self):
-        statistics = {
-            "parameter-epsilon" : self._statistics_parameter_epsilon_trajectory}
-        
-        super_statistics = super(SVCCVDSBestSlidingWeighted, self).get_statistics()
-        for k in super_statistics:
-            statistics[k] = super_statistics[k]
-        
-        return statistics
-
-    # generate child 
-    def generate_child(self, population, minimum_sigma):
-        #tau = (1.0/sqrt(self._lambd))
-        tau = 1.0/(sqrt(self._lambd)) 
+    def generate_child(self, population, sigma):
         combined_child = self.combine(population)
-        mutated_child = self.mutate(combined_child, combined_child.sigma)
-        selfadapted_child = self._selfadaption.mutate(mutated_child, tau)
-
-        # minimum DSES step size control
-        if(selfadapted_child.sigma < minimum_sigma):
-            selfadapted_child.sigma = minimum_sigma
-        return selfadapted_child            
+        child = self.mutate(combined_child, sigma)
+        return child
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
-        alpha, epsilon)):
+        alpha, sigma)):
         """ This method is called every generation. """
 
-        DSES_infeasibles = 0
-        children = [self.generate_child(population, epsilon) for child in range(0,l)]
+        children = [self.generate_child(population, sigma) for child in range(0,l)]
 
         # Filter by checking feasiblity with SVC meta model, the 
         # meta model might be wrong, so we have to weighten between
@@ -117,13 +65,10 @@ class SVCCVDSBestSlidingWeighted(SVCEvolutionStrategy):
 
         # check scaled against meta model, BUT the unscaled against 
         # the constraint function.
-        meta_feasible_children = []
-        for meta_child in meta_children: 
-            if(self.is_meta_feasible(self._scaling.scale(meta_child))):
-                meta_feasible_children.append(meta_child)
-            else:
-                DSES_infeasibles += 1
-
+        meta_feasible_children = filter(\
+            lambda child : self.is_meta_feasible(self._scaling.scale(child)), 
+            meta_children)
+        
         # Filter by true feasibility with constraind function, here we
         # can update the sliding feasibles and infeasibles.
         feasible_children = []
@@ -134,15 +79,12 @@ class SVCCVDSBestSlidingWeighted(SVCEvolutionStrategy):
                 feasible_children.append(meta_feasible)               
             else:
                 infeasible_children.append(meta_feasible)
-                DSES_infeasibles += 1
                 # Because of Death Penalty we need a feasible reborn.
                 reborn = []                
                 while(len(reborn) < 1):  
-                    generated = self.generate_child(population, epsilon)
+                    generated = self.generate_child(population, sigma)
                     if(self.is_feasible(generated)):
                         reborn.append(generated)
-                    else:
-                        DSES_infeasibles += 1
                 feasible_children.extend(reborn)                  
 
         # Filter the other part of the cut with the true constraint function. 
@@ -152,27 +94,24 @@ class SVCCVDSBestSlidingWeighted(SVCEvolutionStrategy):
                 feasible_children.append(child)
             else:
                 infeasible_children.append(child) 
-                DSES_infeasibles += 1
  
                 # Because of Death Penalty we need a feasible reborn.
                 reborn = []
                 while(len(reborn) < 1):
-                    generated = self.generate_child(population, epsilon)                     
+                    generated = self.generate_child(population, sigma) 
                     if(self.is_feasible(generated)):
                         reborn.append(generated)
-                    else:
-                        DSES_infeasibles += 1
                 feasible_children.extend(reborn)
 
         # feasible_children contains exactly lambda feasible children
         # and infeasible_children 
-        next_population = self.select(population, feasible_children, m)
+        next_population = self.select(population + feasible_children, m)
 
         map(self._sliding_best_infeasibles.append, 
-            self.select([], infeasible_children, self._append_to_window))
+            self.select(infeasible_children, self._append_to_window))
 
         map(self._sliding_best_feasibles.append,
-            self.select([], feasible_children, self._append_to_window))
+            self.select(feasible_children, self._append_to_window))
 
         sliding_best_infeasibles =\
             [child for child in self._sliding_best_infeasibles]
@@ -207,24 +146,18 @@ class SVCCVDSBestSlidingWeighted(SVCEvolutionStrategy):
 
         fitness_of_best = self.fitness(next_population[0])
 
-        # step size reduction if infeasibles >= pi
-        if(DSES_infeasibles >= self._pi):
-            epsilon = epsilon * self._theta
-
         self.log(generation, next_population, best_acc,\
-            best_parameter_C, best_parameter_gamma, epsilon, DSES_infeasibles)
+            best_parameter_C, best_parameter_gamma)
 
         self.view(generation, next_population, best_acc,\
-            best_parameter_C, best_parameter_gamma, epsilon, DSES_infeasibles)
-
-        DSES_infeasibles = 0            
+            best_parameter_C, best_parameter_gamma)
 
         if(self.termination(generation, fitness_of_best)):
             print next_population[0]
             return True
         else:
             return (next_population, generation + 1, m,\
-            l, fitness_of_best, alpha, epsilon)
+            l, fitness_of_best, alpha, sigma)
 
     def run(self):
         """ This method initializes the population etc. And starts the 
@@ -260,8 +193,8 @@ class SVCCVDSBestSlidingWeighted(SVCEvolutionStrategy):
 
         # initial training of the meta model
 
-        best_feasibles = self.select([], feasibles, self._window_size)
-        best_infeasibles = self.select([], infeasibles, self._window_size)
+        best_feasibles = self.select(feasibles, self._window_size)
+        best_infeasibles = self.select(infeasibles, self._window_size)
 
         # adding to sliding windows
 
@@ -270,8 +203,8 @@ class SVCCVDSBestSlidingWeighted(SVCEvolutionStrategy):
 
         # scaling, scaling factors are kept in scaling attribute.
         self._scaling.setup(best_feasibles + best_infeasibles)
-        scaled_best_feasibles = map(self._scaling.scale, best_feasibles)
-        scaled_best_infeasibles = map(self._scaling.scale, best_infeasibles)
+        scaled_best_feasibles = self._scaling.scale(best_feasibles)
+        scaled_best_infeasibles = self._scaling.scale(best_infeasibles)
 
         best_parameters = self._crossvalidation.crossvalidate(\
             scaled_best_feasibles,
@@ -284,32 +217,10 @@ class SVCCVDSBestSlidingWeighted(SVCEvolutionStrategy):
             parameter_gamma = best_parameters[3])
 
         result = self._run((feasible_parents, 0, self._mu, self._lambd,\
-            0, self._alpha, self._epsilon))
+            0, self._alpha, self._sigma))
 
         while result != True:
             result = self._run(result)
 
         return result
 
-"""
-if __name__ == "__main__":
- 
-    sklearn_cv = SVCCVSkGrid(\
-        gamma_range = [2 ** i for i in range(-15, 3, 2)],
-        C_range = [2 ** i for i in range(-5, 15, 2)],
-        cv_method = KFold(50, 5))
-
-    method = SVCCVBestSlidingWeighted(\
-        SphereProblem(),
-        mu = 15,
-        lambd = 100,
-        alpha = 0.5,
-        sigma = 1,
-        beta = 0.9,
-        window_size = 25,
-        append_to_window = 25,
-        crossvalidation = sklearn_cv,
-        scaling = ScalingDummy())
-     
-    method.run()
- """

@@ -29,13 +29,12 @@ class EvolutionStrategy(object):
     _statistics_worst_fitness_trajectory = []
     _statistics_average_fitness_trajectory = []
 
-    def __init__(self, problem, mu, lambd, alpha, sigma,\
-        combination, mutation, selection, view):
+    def __init__(self, problem, mu, lambd, \
+        combination, mutation, selection, view, sigma = None):
 
         self._problem = problem
         self._mu = mu
         self._lambd = lambd
-        self._alpha = alpha
         self._sigma = sigma
         self._mutation = mutation
         self._combination = combination
