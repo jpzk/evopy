@@ -78,7 +78,9 @@ class DSESSVC(SVCEvolutionStrategy):
 
     def get_statistics(self):
         statistics = {
-            "parameter-epsilon" : self._statistics_parameter_epsilon_trajectory}
+            "parameter-epsilon" : self._statistics_parameter_epsilon_trajectory,
+            "DSES-infeasibles" : self._statistics_DSES_infeasibles_trajectory,
+            "avg-sigma" : self._statitics_average_sigma_trajectory}
         
         super_statistics = super(DSESSVC, self).get_statistics()
         for k in super_statistics:
@@ -88,7 +90,6 @@ class DSESSVC(SVCEvolutionStrategy):
 
     # generate child 
     def generate_child(self, population, minimum_sigma):
-        #tau = (1.0/sqrt(self._lambd))
         tau = 1.0/(sqrt(self._lambd)) 
         combined_child = self.combine(population)
         mutated_child = self.mutate(combined_child, combined_child.sigma)
