@@ -28,7 +28,11 @@ class DSES(EvolutionStrategy):
     _statistics_DSES_infeasibles_trajectory = []
     _statistics_average_sigma_trajectory = []
 
-    def __init__(self, problem, mu, lambd, theta, pi, epsilon, \
+    listadd = lambda self, l1, l2 : map(lambda i1, i2 : i1 + i2, l1, l2)
+    meansigmas = lambda self, sigmas : map(lambda sigma : sigma / len(sigmas),\
+        reduce(self.listadd, sigmas))
+
+    def __init__(self, problem, mu, lambd, theta, pi, epsilon, tau0, tau1, \
         combination, mutation, selection, view, selfadaption):
 
         super(DSES, self).\
@@ -40,24 +44,29 @@ class DSES(EvolutionStrategy):
         self._pi = pi
         self._epsilon = epsilon
 
+        # Selfadaption           
         self._selfadaption = selfadaption
+        self._tau0 = tau0
+        self._tau1 = tau1
 
     def log(\
         self, generation, next_population, parameter_epsilon, DSES_infeasibles):
         
         super(DSES, self).log(generation, next_population)
 
-        sigmas = array(map(lambda child : child.sigma, next_population))
-        self._statistics_average_sigma_trajectory.append(sigmas.mean())
+        sigmas = map(lambda child : child.sigmas, next_population)
+
+        self._statistics_average_sigma_trajectory.append(self.meansigmas(sigmas))
         self._statistics_parameter_epsilon_trajectory.append(parameter_epsilon)
         self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
 
     def view(\
         self, generation, next_population, epsilon, DSES_infeasibles):
- 
-        sigmas = array(map(lambda child : child.sigma, next_population))
+
+        sigmas = map(lambda child : child.sigmas, next_population)
+
         self._view.view(generation, next_population, self._problem.fitness,\
-            epsilon, DSES_infeasibles, sigmas.mean())
+            epsilon, DSES_infeasibles, array(self.meansigmas(sigmas)).mean())
 
     def get_statistics(self):
         statistics = {
@@ -73,14 +82,14 @@ class DSES(EvolutionStrategy):
 
     # generate child 
     def generate_child(self, population, minimum_sigma):
-        tau = 1.0/(sqrt(self._lambd)) 
         combined_child = self.combine(population)
-        mutated_child = self.mutate(combined_child, combined_child.sigma)
-        selfadapted_child = self._selfadaption.mutate(mutated_child, tau)
+        mutated_child = self.mutate(combined_child, combined_child.sigmas)
+        selfadapted_child = self._selfadaption.mutate(\
+            mutated_child, self._tau0, self._tau1)
 
         # minimum DSES step size control
-        if(selfadapted_child.sigma < minimum_sigma):
-            selfadapted_child.sigma = minimum_sigma
+        if(selfadapted_child.sigmas < minimum_sigma):
+            selfadapted_child.sigmas = minimum_sigma
         return selfadapted_child            
 
     def _run(self, (population, generation, m, l, lastfitness, epsilon)):

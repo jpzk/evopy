@@ -18,7 +18,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from math import floor, sqrt
-from collections import deque # used for sliding window for best
+from collections import deque 
 
 from svc_evolution_strategy import SVCEvolutionStrategy
 
@@ -29,7 +29,7 @@ class SAESSVC(SVCEvolutionStrategy):
     def __init__(\
         self, problem, mu, lambd, combination, mutation,\
         selection, view, beta, window_size, append_to_window, crossvalidation,\
-        scaling, selfadaption, initial_sigma):
+        scaling, selfadaption, initial_sigmas):
 
         super(SAESSVC, self).__init__(\
             problem, mu, lambd, combination, mutation, selection, view)
@@ -42,23 +42,23 @@ class SAESSVC(SVCEvolutionStrategy):
         self._sliding_best_feasibles = deque(maxlen = self._window_size)
         self._sliding_best_infeasibles = deque(maxlen = self._window_size)
         self._selfadaption = selfadaption
-        self._initial_sigma = initial_sigma
+        self._initial_sigmas = initial_sigmas
 
     # generate population with initial sigma
     def generate_population(self):
-        generator = self._problem.population_generator(self._initial_sigma) 
+        generator = self._problem.population_generator(self._initial_sigmas) 
         return generator.next()
 
     # generate child 
     def generate_child(self, population):
         tau = (1.0/sqrt(self._lambd)) 
         combined_child = self.combine(population)
-        mutated_child = self.mutate(combined_child, combined_child.sigma)
+        mutated_child = self.mutate(combined_child, combined_child.sigmas)
         return self._selfadaption.mutate(mutated_child, tau)
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
-        alpha, sigma)):
+        alpha, sigmas)):
         """ This method is called every generation. """
 
         children = [self.generate_child(population) for child in range(0,l)]
@@ -165,7 +165,7 @@ class SAESSVC(SVCEvolutionStrategy):
             return True
         else:
             return (next_population, generation + 1, m,\
-            l, fitness_of_best, alpha, sigma)
+            l, fitness_of_best, alpha, sigmas)
 
     def run(self):
         """ This method initializes the population etc. And starts the 
@@ -225,7 +225,7 @@ class SAESSVC(SVCEvolutionStrategy):
             parameter_gamma = best_parameters[3])
 
         result = self._run((feasible_parents, 0, self._mu, self._lambd,\
-            0, self._alpha, self._sigma))
+            0, self._alpha, self._sigmas))
 
         while result != True:
             result = self._run(result)

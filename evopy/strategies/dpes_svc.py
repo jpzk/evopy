@@ -27,13 +27,13 @@ class DPESSVC(SVCEvolutionStrategy):
         window (between generations) to build a meta model using SVC. """
     
     def __init__(\
-        self, problem, mu, lambd, sigma, combination,\
+        self, problem, mu, lambd, sigmas, combination,\
         mutation, selection, view, beta, window_size, append_to_window,\
         crossvalidation, scaling):
 
         super(DPESSVC, self).__init__(\
             problem, mu, lambd, combination, mutation,\
-            selection, view, sigma = sigma)
+            selection, view, sigmas = sigmas)
 
         self._beta = beta
         self._append_to_window = append_to_window
@@ -43,17 +43,17 @@ class DPESSVC(SVCEvolutionStrategy):
         self._sliding_best_feasibles = deque(maxlen = self._window_size)
         self._sliding_best_infeasibles = deque(maxlen = self._window_size)
 
-    def generate_child(self, population, sigma):
+    def generate_child(self, population, sigmas):
         combined_child = self.combine(population)
-        child = self.mutate(combined_child, sigma)
+        child = self.mutate(combined_child, sigmas)
         return child
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness,\
-        alpha, sigma)):
+        alpha, sigmas)):
         """ This method is called every generation. """
 
-        children = [self.generate_child(population, sigma) for child in range(0,l)]
+        children = [self.generate_child(population, sigmas) for child in range(0,l)]
 
         # Filter by checking feasiblity with SVC meta model, the 
         # meta model might be wrong, so we have to weighten between
@@ -82,7 +82,7 @@ class DPESSVC(SVCEvolutionStrategy):
                 # Because of Death Penalty we need a feasible reborn.
                 reborn = []                
                 while(len(reborn) < 1):  
-                    generated = self.generate_child(population, sigma)
+                    generated = self.generate_child(population, sigmas)
                     if(self.is_feasible(generated)):
                         reborn.append(generated)
                 feasible_children.extend(reborn)                  
@@ -98,7 +98,7 @@ class DPESSVC(SVCEvolutionStrategy):
                 # Because of Death Penalty we need a feasible reborn.
                 reborn = []
                 while(len(reborn) < 1):
-                    generated = self.generate_child(population, sigma) 
+                    generated = self.generate_child(population, sigmas) 
                     if(self.is_feasible(generated)):
                         reborn.append(generated)
                 feasible_children.extend(reborn)
@@ -157,7 +157,7 @@ class DPESSVC(SVCEvolutionStrategy):
             return True
         else:
             return (next_population, generation + 1, m,\
-            l, fitness_of_best, alpha, sigma)
+            l, fitness_of_best, alpha, sigmas)
 
     def run(self):
         """ This method initializes the population etc. And starts the 
@@ -217,7 +217,7 @@ class DPESSVC(SVCEvolutionStrategy):
             parameter_gamma = best_parameters[3])
 
         result = self._run((feasible_parents, 0, self._mu, self._lambd,\
-            0, self._alpha, self._sigma))
+            0, self._alpha, self._sigmas))
 
         while result != True:
             result = self._run(result)

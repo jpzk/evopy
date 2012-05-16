@@ -22,7 +22,7 @@ from evopy.problems.sa_sphere_problem import SASphereProblem
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.combination.sa_intermediate import SAIntermediate
-from evopy.operators.selection.smallest_fitness_new_first import SmallestFitnessNewFirst
+from evopy.operators.selection.smallest_fitness import SmallestFitness
 from evopy.operators.selfadaption.selfadaption import Selfadaption
 from evopy.views.cv_ds_view import CVDSView
 from evopy.metamodel.cv.svc_cv_sklearn_grid import SVCCVSkGrid
@@ -41,9 +41,11 @@ def get_method():
         theta = 0.7,
         pi = 70, 
         epsilon = 1.0,
+        tau0 = 1.0,
+        tau1 = 1.0,
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
-        selection = SmallestFitnessNewFirst(),
+        selection = SmallestFitness(),
         view = CVDSView(),
         beta = 0.9,
         window_size = 25,

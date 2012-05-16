@@ -47,5 +47,5 @@ class SASphereProblem():
 
         while(True):
             value = map(lambda x : ((x * random()) - 0.5) * size *2, [1] * d)
-            yield(SelfadaptiveIndividual(value, gauss(0,1)))
+            yield(SelfadaptiveIndividual(value, d * [1.0]))
 

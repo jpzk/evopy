@@ -35,7 +35,7 @@ class SVCEvolutionStrategy(EvolutionStrategy):
     def __init__(\
         self, problem, mu, lambd, combination,\
         mutation, selection, view, parameter_C = None,\
-        parameter_gamma = None, sigma = None):
+        parameter_gamma = None, sigmas = None):
 
         super(SVCEvolutionStrategy, self).__init__(\
             problem, mu, lambd, combination,\

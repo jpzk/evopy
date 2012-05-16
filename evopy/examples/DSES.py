@@ -33,6 +33,8 @@ def get_method():
         pi = 70,
         theta = 0.7,
         epsilon = 1.0,
+        tau0 = 0.1,
+        tau1 = 1.0,
         combination = SAIntermediate(),
         mutation = GaussSigma(),
         selection = SmallestFitness(),

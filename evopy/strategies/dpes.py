@@ -21,20 +21,20 @@ from evolution_strategy import EvolutionStrategy
 
 class DPES(EvolutionStrategy): 
 
-    def __init__(self, problem, mu, lambd, sigma,\
+    def __init__(self, problem, mu, lambd, sigmas,\
         combination, mutation, selection, view):
 
         super(DPES, self).\
             __init__(problem, mu, lambd, \
-            combination, mutation, selection, view, sigma = sigma) 
+            combination, mutation, selection, view, sigmas = sigmas) 
 
     def _run(self, (population, generation, m, l, lastfitness,\
-        alpha, sigma)):
+        alpha, sigmas):
 
         feasible_children = []
         while(len(feasible_children) < l): 
             combined_child = self.combine(population)
-            child = self.mutate(combined_child, sigma)
+            child = self.mutate(combined_child, sigmas)
             
             if(self.is_feasible(child)):
                 feasible_children.append(child)
@@ -50,7 +50,7 @@ class DPES(EvolutionStrategy):
             return True
         else:
             return (next_population, generation + 1, m,\
-            l, fitness_of_best, alpha, sigma)
+            l, fitness_of_best, alpha, sigmas)
 
     def run(self):
         feasible_parents = []
@@ -61,7 +61,7 @@ class DPES(EvolutionStrategy):
 
         result = self._run((\
             feasible_parents, 0, self._mu, self._lambd, 0, 
-            self._alpha, self._sigma))
+            self._alpha, self._sigmas))
 
         while result != True:
             result = self._run(result)

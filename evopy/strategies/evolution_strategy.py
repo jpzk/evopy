@@ -30,12 +30,12 @@ class EvolutionStrategy(object):
     _statistics_average_fitness_trajectory = []
 
     def __init__(self, problem, mu, lambd, \
-        combination, mutation, selection, view, sigma = None):
+        combination, mutation, selection, view, sigmas = None):
 
         self._problem = problem
         self._mu = mu
         self._lambd = lambd
-        self._sigma = sigma
+        self._sigmas = sigmas
         self._mutation = mutation
         self._combination = combination
         self._selection = selection
@@ -79,14 +79,13 @@ class EvolutionStrategy(object):
     def view(self, generation, next_population):
         self._view.view(generation, next_population, self._problem.fitness)
 
-    # return combined child of parents x,y
-    def combine(self, pair):
-        return self._combination.combine(pair)
+    def combine(self, population):
+        return self._combination.combine(population)
 
     # mutate child with gauss devriation 
-    def mutate(self, child, sigma):
+    def mutate(self, child, sigmas):
         self._statistics_mutations += 1
-        return self._mutation.mutate(child, sigma)
+        return self._mutation.mutate(child, sigmas)
       
     def select(self, population, children, mu):
         return self._selection.select(self.fitness, population, children, mu)

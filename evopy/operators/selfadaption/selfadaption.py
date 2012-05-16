@@ -17,11 +17,16 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from math import e
-from random import gauss 
+from numpy import exp
+from random import gauss
+from evopy.individuals.selfadaptive_individual import SelfadaptiveIndividual
 
 class Selfadaption(object):
-    def mutate(self, individual, tau):
-        sigma = individual.sigma
-        individual.sigma = sigma * (e ** (tau * gauss(0, 1)))
-        return individual
+    def mutate(self, selfadaptive_individual, tau0, tau1):
+        sigmas = selfadaptive_individual.sigmas
+        temp = exp(tau0 * gauss(0, 1))
+        mutation = lambda sigma : sigma * temp * exp(tau1 * gauss(0,1))
+        new_sigmas = map(mutation, sigmas)        
+        selfadaptive_individual.sigmas = new_sigmas 
+        return selfadaptive_individual
+

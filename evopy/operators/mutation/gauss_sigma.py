@@ -20,10 +20,10 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from random import gauss
 
 class GaussSigma():
-    def mutate(self, child, sigma):
-        old_val = child.value
-        new_val = map(lambda value : value + gauss(0, sigma), old_val)
-        child.value = new_val
+    def mutate(self, child, sigmas):
+        x = child.value
+        new_x = map(lambda (xi, sigma): xi + gauss(0, sigma), zip(x, sigmas))
+        child.value = new_x
         return child
 
 

@@ -20,7 +20,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from individual import Individual
 
 class SelfadaptiveIndividual(Individual):
-    def __init__(self, value, sigma):
+    def __init__(self, value, sigmas):
         self.value = value
-        self.sigma = sigma
+        self.sigmas = sigmas
 
