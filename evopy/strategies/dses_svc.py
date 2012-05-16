@@ -107,8 +107,10 @@ class DSESSVC(SVCEvolutionStrategy):
             mutated_child, self._tau0, self._tau1)
 
         # minimum DSES step size control
-        if(selfadapted_child.sigmas < minimum_sigma):
-            selfadapted_child.sigmas = minimum_sigma
+        for sigma in selfadapted_child: 
+            if(sigma < minimum_sigma):
+                sigma = minimum_sigma
+
         return selfadapted_child            
 
     # main evolution 
