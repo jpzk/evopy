@@ -22,12 +22,8 @@ from random import random, sample, gauss
 
 class SASphereProblem():
 
-    _d = 2 
+    _d = 50 
     _size = 10
-
-    # @todo        
-    def better_fitness(x, y):
-        return 
 
     def termination(self, generations, fitness_of_best):
         return (2 - 1 * pow(10, -4) < fitness_of_best < 2 + 1 * pow(10, -4))

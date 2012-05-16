@@ -17,21 +17,24 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from evopy.problems.sa_sphere_problem import SASphereProblem
 from evopy.individuals.selfadaptive_individual import SelfadaptiveIndividual
 from random import random, sample, gauss
 
-class SASphereProblemUnconstrained(SASphereProblem):
+class SAOriginHyperplane():
 
-    _d = 50 
+    _d = 2 
     _size = 10
 
     def termination(self, generations, fitness_of_best):
-        return (2 - 1 * pow(10, -4) < fitness_of_best < 2 + 1 * pow(10, -4))
+        return (1 * pow(10, -4) < fitness_of_best < 1 * pow(10, -4))
+
+    # return true if solution is valid, otherwise false.
+    def is_feasible(self, x):
+        return x.value[-1] >= 0
 
     # return fitness, 0 is best.
     def fitness(self, x):
-        return sum(map(lambda x : pow(x,2), x.value)) 
+        return abs(sum(x.value))
 
     # python generator for inifinte list of parent population
     def population_generator(self):
@@ -39,9 +42,6 @@ class SASphereProblemUnconstrained(SASphereProblem):
         size = self._size
 
         while(True):
-            value = map(lambda x : ((x * random()) - 0.5) * size *2, [1] * d)
+            value = map(lambda x : ((x * random()) - 0.5) * size * 2, [1] * d)
             yield(SelfadaptiveIndividual(value, d * [1.0]))
 
-    # return true if solution is valid, otherwise false.
-    def is_feasible(self, x):
-        return True

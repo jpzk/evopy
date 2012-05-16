@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from evopy.problems.sa_sphere_problem import SASphereProblem
+from evopy.problems.origin_hyperplane import SAOriginHyperplane
 from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.combination.sa_intermediate import SAIntermediate
 from evopy.operators.selection.smallest_fitness import SmallestFitness
@@ -27,14 +27,14 @@ from evopy.strategies.dses import DSES
 
 def get_method():
     return DSES(\
-        problem = SASphereProblem(),
+        problem = SAOriginHyperplane(),
         mu = 15, 
         lambd = 100,
         pi = 70,
         theta = 0.7,
         epsilon = 1.0,
         tau0 = 0.1,
-        tau1 = 0.1,
+        tau1 = 1.0,
         combination = SAIntermediate(),
         mutation = GaussSigma(),
         selection = SmallestFitness(),

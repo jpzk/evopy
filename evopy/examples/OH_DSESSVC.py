@@ -17,27 +17,41 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from evopy.problems.sa_sphere_problem import SASphereProblem
+from sklearn.cross_validation import KFold
+from evopy.problems.origin_hyperplane import SAOriginHyperplane
 from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.combination.sa_intermediate import SAIntermediate
 from evopy.operators.selection.smallest_fitness import SmallestFitness
 from evopy.operators.selfadaption.selfadaption import Selfadaption
-from evopy.views.dses_view import DSESView
-from evopy.strategies.dses import DSES
+from evopy.views.cv_ds_view import CVDSView
+from evopy.strategies.dses_svc import DSESSVC
+from evopy.metamodel.cv.svc_cv_sklearn_grid import SVCCVSkGrid
+from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 
 def get_method():
-    return DSES(\
-        problem = SASphereProblem(),
-        mu = 15, 
-        lambd = 100,
-        pi = 70,
-        theta = 0.7,
-        epsilon = 1.0,
-        tau0 = 0.1,
-        tau1 = 0.1,
-        combination = SAIntermediate(),
-        mutation = GaussSigma(),
-        selection = SmallestFitness(),
-        view = DSESView(),
-        selfadaption = Selfadaption())
+    sklearn_cv = SVCCVSkGrid(\
+        gamma_range = [2 ** i for i in range(-15, 3, 2)],
+        C_range = [2 ** i for i in range(-5, 15, 2)],
+        cv_method = KFold(50, 5))
 
+    method = DSESSVC(\
+        SAOriginHyperplane(),
+        mu = 15,
+        lambd = 100,
+        theta = 0.7,
+        pi = 70, 
+        epsilon = 1.0,
+        tau0 = 1.0,
+        tau1 = 1.0,
+        combination = SAIntermediate(),\
+        mutation = GaussSigma(),\
+        selection = SmallestFitness(),
+        view = CVDSView(),
+        beta = 0.9,
+        window_size = 25,
+        append_to_window = 25,
+        crossvalidation = sklearn_cv,
+        scaling = ScalingStandardscore(),
+        selfadaption = Selfadaption())
+     
+    return method

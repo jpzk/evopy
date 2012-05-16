@@ -35,7 +35,7 @@ def get_method():
         theta = 0.7,
         epsilon = 0.0,
         tau0 = 0.1,
-        tau1 = 1.0,
+        tau1 = 0.1,
         combination = SAIntermediate(),
         mutation = GaussSigma(),
         selection = SmallestFitness(),
