@@ -100,18 +100,17 @@ class DSESSVC(SVCEvolutionStrategy):
         return statistics
 
     # generate child 
-    def generate_child(self, population, minimum_sigma):
+    def generate_child(self, population, epsilon):
         combined_child = self.combine(population)
         mutated_child = self.mutate(combined_child, combined_child.sigmas)
-        selfadapted_child = self._selfadaption.mutate(\
+        sa_child = self._selfadaption.mutate(\
             mutated_child, self._tau0, self._tau1)
-
+        
         # minimum DSES step size control
-        selfadapted_child.sigmas = map(\
-            lambda s : s if s < minimum_sigma else minimum_sigma,\
-            selfadapted_child.sigmas)
+        sa_child.sigmas =\
+            [epsilon if s < epsilon else s for s in sa_child.sigmas]
 
-        return selfadapted_child            
+        return sa_child            
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness, epsilon)):
