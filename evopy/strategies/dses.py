@@ -88,10 +88,10 @@ class DSES(EvolutionStrategy):
             mutated_child, self._tau0, self._tau1)
 
         # minimum DSES step size control
-        for sigma in selfadapted_child.sigmas: 
-            if(sigma < minimum_sigma):
-                sigma = minimum_sigma
-
+        selfadapted_child.sigmas = map(\
+            lambda s : s if s < minimum_sigma else minimum_sigma,\
+            selfadapted_child.sigmas)
+    
         return selfadapted_child            
 
     def _run(self, (population, generation, m, l, lastfitness, epsilon)):
