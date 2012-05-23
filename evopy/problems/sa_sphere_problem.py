@@ -22,11 +22,11 @@ from random import random, sample, gauss
 
 class SASphereProblem():
 
-    _d = 50 
+    _d = 2 
     _size = 10
 
     def termination(self, generations, fitness_of_best):
-        return (2 - 1 * pow(10, -4) < fitness_of_best < 2 + 1 * pow(10, -4))
+        return (fitness_of_best < 2 + 1 * pow(10, -4))
 
     # return true if solution is valid, otherwise false.
     def is_feasible(self, x):

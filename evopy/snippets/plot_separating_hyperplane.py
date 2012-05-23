@@ -15,7 +15,7 @@ X_infeasible = np.random.randn(20, 2) + [4, 3]
 X = np.r_[X_feasible, X_infeasible]
 Y = [0] * 20 + [1] * 20
 
-clf = svm.SVC(kernel='linear', C = 1.0)
+clf = svm.SVC(kernel='linear', C = 0.1)
 clf.fit(X, Y)
 
 w = clf.coef_[0]
@@ -42,7 +42,7 @@ for x in X_infeasible:
     pl.scatter(x[0], x[1], facecolors='red')    
     
  #   s = - ((clf.decision_function(x)) / np.sqrt(np.sum(clf.coef_ ** 2)))
-    s = - clf.decision_function(x)*(2 / np.sqrt(np.sum(clf.coef_ ** 2)))
+    s = - 2 * (clf.decision_function(x)*(1/np.sqrt(np.sum(clf.coef_ ** 2))))
     print "clf.decision_function(x)", clf.decision_function(x)
     print "margin" , margin
 
