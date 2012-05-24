@@ -28,6 +28,10 @@ class DSESSVCM(SVCEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
  
+    _strategy_name =\
+        "Death Penalty Step Control with linear SVC "\
+        "meta model and repair-mirroring"
+
     _statistics_parameter_epsilon_trajectory = []
     _statistics_DSES_infeasibles_trajectory = []
     _statistics_average_sigma_trajectory = []

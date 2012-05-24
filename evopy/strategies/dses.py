@@ -24,6 +24,8 @@ from evolution_strategy import EvolutionStrategy
 
 class DSES(EvolutionStrategy): 
 
+    _strategy_name = "Death Penalty Step Control"
+
     _statistics_parameter_epsilon_trajectory = []
     _statistics_DSES_infeasibles_trajectory = []
     _statistics_average_sigma_trajectory = []

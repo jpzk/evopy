@@ -21,6 +21,8 @@ from evolution_strategy import EvolutionStrategy
 
 class DPES(EvolutionStrategy): 
 
+    _strategy_name = "Death Penalty"
+
     def __init__(self, problem, mu, lambd, sigmas,\
         combination, mutation, selection, view):
 
