@@ -32,7 +32,7 @@ from evopy.metamodel.cv.svc_cv_sklearn_grid_rbf import SVCCVSkGridRBF
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 
 from evopy.views.dses_view import DSESView
-from evopy.views.cv_ds_view import CVDSView
+from evopy.views.cv_ds_rbf_view import CVDSRBFView
 from evopy.views.cv_ds_linear_view import CVDSLinearView
 
 from evopy.strategies.dses import DSES
@@ -59,7 +59,7 @@ def _run_dsessvc():
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
-        view = CVDSView(),
+        view = CVDSRBFView(),
         beta = 0.9,
         window_size = 25,
         append_to_window = 25,
