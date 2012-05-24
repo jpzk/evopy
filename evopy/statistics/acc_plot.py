@@ -18,31 +18,30 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import pylab
+from sys import argv
 from numpy import unique
 from matplotlib.mlab import rec2txt, csv2rec, rec_groupby
 
-data = csv2rec('experiments/experiment_acc.csv', delimiter=';')
+data = csv2rec(argv[1], delimiter=';')
 
 fig = pylab.figure()
 ax1 = fig.add_subplot(111)
 ax1.set_xlabel('generations #')
 ax1.set_ylabel('best accuracy')
 ax1.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
-pylab.title("[70,0.7]-DSES with CV-SVC metamodel accuracy with std score scaling")
-pylab.axis([0, 450, 0.1, 1.0])
+pylab.title(argv[2])
+pylab.axis([argv[3], argv[4], 0.1, 1.0])
 
 generations = unique(data['generation'])
 
 for sample in ["0"]:
     print sample
     sample = data[data['sample'] == int(sample)]
+    generations = sample['generation']
     best_accuracy = sample['bestacc']
-
     pylab.plot(generations, best_accuracy, "g")
 #    pylab.plot(generations, best_fitnesses, "b")
 #    pylab.plot(generations, worst_fitnesses, "r")
-
-
 
 pylab.show()
 

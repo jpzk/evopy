@@ -18,33 +18,32 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import pylab
+from sys import argv
 from numpy import unique
 from matplotlib.mlab import rec2txt, csv2rec, rec_groupby
 
-data = csv2rec('experiments/experiment_fitnesses.csv', delimiter=';')
+data = csv2rec(argv[1], delimiter=';')
 
-fig = pylab.figure()
-ax1 = fig.add_subplot(111)
-ax1.set_xlabel('generations #')
-ax1.set_ylabel('avg fitness')
-ax1.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
+for sample in [0]:
+    fig = pylab.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.set_xlabel('generations #')
+    ax1.set_ylabel('avg fitness')
+    ax1.yaxis.grid(True, linestyle='-', which='major', color='lightgrey', alpha=0.5)
 
-pylab.title("[70;0.7]-DSES with SVC metamodel average fitness")
-pylab.axis([0, 400, 2.0, 2.01])
-generations = unique(data['generation'])
+    sample = data[data['sample'] == sample]
 
-for sample in ["0","1"]:
-    print sample
-    sample = data[data['sample'] == int(sample)]
+    pylab.title(argv[2])
+    pylab.axis([0, sample['generation'].max(), 25.0, 100.0])
+
+    generations = sample['generation']
     avg_fitnesses = sample['avgfitness']
     best_fitnesses = sample['bestfitness']    
     worst_fitnesses = sample['worstfitness']    
 
-    pylab.plot(generations, avg_fitnesses, "g")
-#    pylab.plot(generations, best_fitnesses, "b")
-#    pylab.plot(generations, worst_fitnesses, "r")
-
-
-
+#    pylab.plot(generations, best_fitnesses, "r",antialiased=True )  
+    pylab.plot(generations, avg_fitnesses, "g", antialiased=True)    
+#    pylab.plot(generations, worst_fitnesses, "b")    
+   
 pylab.show()
 
