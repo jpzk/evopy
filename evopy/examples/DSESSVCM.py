@@ -25,11 +25,15 @@ from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.combination.sa_intermediate import SAIntermediate
 from evopy.operators.selection.smallest_fitness import SmallestFitness
 from evopy.operators.selfadaption.selfadaption import Selfadaption
-from evopy.views.cv_ds_view import CVDSView
-from evopy.metamodel.cv.svc_cv_sklearn_grid import SVCCVSkGrid
+from evopy.views.cv_ds_linear_view import CVDSLinearView
+from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.strategies.dses_svc_mirror import DSESSVCM
 
 def get_method():
+    sklearn_cv = SVCCVSkGridLinear(\
+        C_range = [2 ** i for i in range(-5, 15, 2)],
+        cv_method = KFold(50, 5))
+
     method = DSESSVCM(\
         SASphereProblem(),
         mu = 15,
@@ -42,11 +46,12 @@ def get_method():
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
-        view = CVDSView(),
+        view = CVDSLinearView(),
         beta = 0.9,
         window_size = 25,
         append_to_window = 25,
         scaling = ScalingStandardscore(),
+        crossvalidation = sklearn_cv, 
         selfadaption = Selfadaption())
      
     return method

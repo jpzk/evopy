@@ -44,15 +44,15 @@ class DSESSVCM(SVCEvolutionStrategy):
         return self._linear_meta_model.check_feasibility(x)
 
     # train the metamodel with given points
-    def train_metamodel(self, feasible, infeasible):
+    def train_metamodel(self, feasible, infeasible, parameter_C):
 
         self._count_train_metamodel += 1
-        self._linear_meta_model.train(feasible, infeasible)
+        self._linear_meta_model.train(feasible, infeasible, parameter_C)
 
     def __init__(\
         self, problem, mu, lambd, theta, pi, epsilon, tau0, tau1, combination,\
         mutation, selection, view, beta, window_size, append_to_window, scaling,\
-        selfadaption):
+        crossvalidation, selfadaption):
 
         super(DSESSVCM, self).__init__(\
             problem, mu, lambd, combination, mutation,\
@@ -75,11 +75,14 @@ class DSESSVCM(SVCEvolutionStrategy):
         self._scaling = scaling            
         self._sliding_best_feasibles = deque(maxlen = self._window_size)
         self._sliding_best_infeasibles = deque(maxlen = self._window_size)
+        self._crossvalidation = crossvalidation
 
     def log(\
         self, generation, next_population, best_acc, parameter_C,\
-        parameter_gamma, parameter_epsilon, DSES_infeasibles):
+        parameter_epsilon, DSES_infeasibles):
         
+        parameter_gamma = 0.0
+
         super(DSESSVCM, self).log(\
             generation, next_population, best_acc, parameter_C,
             parameter_gamma)
@@ -91,13 +94,13 @@ class DSESSVCM(SVCEvolutionStrategy):
         self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
 
     def view(\
-        self, generation, next_population, best_acc, parameter_C,\
-        parameter_gamma, parameter_epsilon, DSES_infeasibles):
+        self, generation, next_population, best_acc, parameter_C, parameter_epsilon, 
+        DSES_infeasibles):
 
         sigmas = map(lambda child : child.sigmas, next_population)
 
         self._view.view(generation, next_population, self._problem.fitness,\
-            best_acc, parameter_C, parameter_gamma, parameter_epsilon,\
+            best_acc, parameter_C, parameter_epsilon,\
             DSES_infeasibles, array(self.meansigmas(sigmas)).mean())
 
     def get_statistics(self):
@@ -219,9 +222,13 @@ class DSESSVCM(SVCEvolutionStrategy):
             self._scaling.scale,
             self._sliding_best_infeasibles)                
 
+        best_parameters = self._crossvalidation.crossvalidate(\
+            scaled_best_feasibles, scaled_best_infeasibles)                    
+
         self.train_metamodel(\
-            feasible = scaled_best_feasibles,
-            infeasible = scaled_best_infeasibles)
+            feasible = best_parameters[0],
+            infeasible = best_parameters[1],
+            parameter_C = best_parameters[2])
 
         fitness_of_best = self.fitness(next_population[0])
 
@@ -229,13 +236,13 @@ class DSESSVCM(SVCEvolutionStrategy):
         if(DSES_infeasibles >= self._pi):
             epsilon = epsilon * self._theta
 
-        best_acc = 0.0
+        best_acc = best_parameters[3]
 
         self.log(generation, next_population, best_acc,\
-            1.0, 0.0, epsilon, DSES_infeasibles)
+            best_parameters[2], epsilon, DSES_infeasibles)
 
         self.view(generation, next_population, best_acc,\
-            1.0, 0.0, epsilon, DSES_infeasibles)
+            best_parameters[2], epsilon, DSES_infeasibles)
 
         DSES_infeasibles = 0            
 
@@ -293,9 +300,13 @@ class DSESSVCM(SVCEvolutionStrategy):
         scaled_best_feasibles = map(self._scaling.scale, best_feasibles)
         scaled_best_infeasibles = map(self._scaling.scale, best_infeasibles)
 
+        best_parameters = self._crossvalidation.crossvalidate(\
+            scaled_best_feasibles, scaled_best_infeasibles)                    
+
         self.train_metamodel(\
-            feasible = scaled_best_feasibles,
-            infeasible = scaled_best_infeasibles)
+            feasible = best_parameters[0],
+            infeasible = best_parameters[1],
+            parameter_C = best_parameters[2])
 
         result = self._run((feasible_parents, 0, self._mu, self._lambd,\
             0, self._epsilon))
