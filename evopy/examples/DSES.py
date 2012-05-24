@@ -18,6 +18,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from evopy.problems.sa_sphere_problem import SASphereProblem
+from evopy.problems.simple_sa_sphere_problem import SimpleSASphereProblem
 from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.combination.sa_intermediate import SAIntermediate
 from evopy.operators.selection.smallest_fitness import SmallestFitness
@@ -30,10 +31,10 @@ def get_method():
         problem = SASphereProblem(),
         mu = 15, 
         lambd = 100,
-        pi = 70,
+        pi = 50,
         theta = 0.7,
         epsilon = 1.0,
-        tau0 = 0.1,
+        tau0 = 1.0,
         tau1 = 0.1,
         combination = SAIntermediate(),
         mutation = GaussSigma(),

@@ -25,7 +25,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import KFold
 from sklearn.cross_validation import LeaveOneOut
 
-class SVCCVSkGrid():
+class SVCCVSkGridRBF():
     """ A strategy for crossvalidation """
 
     def __init__(self, gamma_range, C_range, cv_method):

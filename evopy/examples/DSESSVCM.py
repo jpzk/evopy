@@ -37,7 +37,7 @@ def get_method():
         theta = 0.7,
         pi = 70, 
         epsilon = 1.0,
-        tau0 = 0.1,
+        tau0 = 1.0,
         tau1 = 0.1,
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\

@@ -25,11 +25,11 @@ from evopy.operators.selection.smallest_fitness import SmallestFitness
 from evopy.operators.selfadaption.selfadaption import Selfadaption
 from evopy.views.cv_ds_view import CVDSView
 from evopy.strategies.dses_svc import DSESSVC
-from evopy.metamodel.cv.svc_cv_sklearn_grid import SVCCVSkGrid
+from evopy.metamodel.cv.svc_cv_sklearn_grid import SVCCVSkGridRBF
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 
 def get_method():
-    sklearn_cv = SVCCVSkGrid(\
+    sklearn_cv = SVCCVSkGridRBF(\
         gamma_range = [2 ** i for i in range(-15, 3, 2)],
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(50, 5))
