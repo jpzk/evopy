@@ -28,8 +28,6 @@ class SVCLinearMetaModel:
 
         points_svm = [i.value for i in infeasible] + [f.value for f in feasible]
 
-        #print points_svm 
-
         labels = [-1] * len(infeasible) + [1] * len(feasible) 
         self._clf = svm.SVC(kernel = 'linear', C = parameter_C)
         self._clf.fit(points_svm, labels)
@@ -38,19 +36,13 @@ class SVCLinearMetaModel:
         x = individual.value
 
         w = self._clf.coef_[0]
-        a2 = w[1] / w[0]
+        nw = w / np.sqrt(np.sum(w ** 2))
+        b = self._clf.intercept_[0] / w[1]
+      
+        s = 2 * (self._clf.decision_function(x) * (1/np.sqrt(np.sum(w ** 2))))
+        nx = x + (nw * s)
 
-        decision_val = self._clf.decision_function(x)
-        margin = (1/np.sqrt(np.sum(self._clf.coef_ ** 2)))
-        s = 2 * (decision_val / margin)
-        
-        new_x0 = x[0] - s
-        new_x1 = a2 * (x[0] - s) - (a2 * x[0] - x[1])
-    
-        new_x0 = new_x0[0][0]
-        new_x1 = new_x1[0][0]
-
-        individual.value = [new_x0, new_x1]
+        individual.value = nx[0]
         return individual
 
     def check_feasibility(self, individual):
