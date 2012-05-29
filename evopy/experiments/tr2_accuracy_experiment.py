@@ -126,9 +126,9 @@ def _run_dses():
 class Experiment():
 
     def __init__(self):
-        self._file_call = 'evopy_experiments/tr25-repair/experiment_calls.csv'
-        self._file_fitnesses = 'evopy_experiments/tr25-repair/experiment_fitnesses.csv'
-        self._file_acc = 'evopy_experiments/tr25-repair/experiment_acc.csv'
+        self._file_call = 'evopy_experiments/tr2-accuracy/experiment_calls.csv'
+        self._file_fitnesses = 'evopy_experiments/tr2-accuracy/experiment_fitnesses.csv'
+        self._file_acc = 'evopy_experiments/tr2-accuracy/experiment_acc.csv'
 
         self._writer_calls = writer(open(self._file_call, 'wb'), delimiter=';')
         self._writer_fitnesses = writer(open(self._file_fitnesses, 'wb'), \
@@ -192,14 +192,6 @@ class Experiment():
                 i,
                 dses.get_statistics())
             self.update_progress(i+1, n, "dses-svc")
-
-        for i in range(0, n):
-            dses = _run_dsessvcm()
-            self._write_stats(\
-                dses._strategy_name,
-                i,
-                dses.get_statistics())
-            self.update_progress(i+1, n, "dses-svc-m")
 
     def _write_stats(self, methodname, sample, stats):
         '''no documentation yet'''
