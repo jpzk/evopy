@@ -50,7 +50,7 @@ def _run_dsessvc():
         cv_method = KFold(50, 5))
 
     dsessvc = DSESSVC(\
-        SASphereProblem(),
+        SASphereProblem(dimensions = 25, accuracy = 0),
         mu = 15,
         lambd = 100,
         theta = 0.7,
@@ -80,7 +80,7 @@ def _run_dsessvcm():
         cv_method = KFold(50, 5))
 
     dsessvcm = DSESSVCM(\
-        SASphereProblem(),
+        SASphereProblem(dimensions = 25, accuracy = 0),
         mu = 15,
         lambd = 100,
         theta = 0.7,
@@ -106,7 +106,7 @@ def _run_dses():
     ''' no documentation yet '''
 
     dses = DSES(\
-        problem = SASphereProblem(),
+        problem = SASphereProblem(dimensions = 25, accuracy = 0),
         mu = 15, 
         lambd = 100,
         pi = 50,
