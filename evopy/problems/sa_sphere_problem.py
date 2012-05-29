@@ -22,15 +22,17 @@ from random import random, sample, gauss
 
 class SASphereProblem():
 
-    _d = 2 
-    _size = 10
+    def __init__(self, dimensions = 2, accuracy = 0, size = 10):
+        self._d = dimensions
+        self._accuracy = accuracy
+        self._size = 10
 
     def termination(self, generations, fitness_of_best):
-        return (fitness_of_best < 2 + 1 * pow(10, -4))
+        return (fitness_of_best < float(self._d) + 1 * pow(10, self._accuracy))
 
     # return true if solution is valid, otherwise false.
     def is_feasible(self, x):
-        return sum(x.value) - 2.0 >= 0
+        return sum(x.value) - float(self._d) >= 0
 
     # return fitness, 0 is best.
     def fitness(self, x):
