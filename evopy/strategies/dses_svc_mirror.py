@@ -251,7 +251,6 @@ class DSESSVCM(SVCEvolutionStrategy):
         DSES_infeasibles = 0            
 
         if(self.termination(generation, fitness_of_best)):
-            print next_population[0]
             return True
         else:
             return (next_population, generation + 1, m,\

@@ -18,8 +18,10 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from math import floor
+from view import View
 
-class DSESView():
+class DSESView(View):
+
     def view(\
         self, generations, next_population, fitness, epsilon,\
         DSES_infeasibles, sigmasmean):
@@ -27,7 +29,8 @@ class DSESView():
         population = sorted(next_population, key=lambda child : fitness(child))
         best_fitness = fitness(population[0])
 
-        print("gen %i - fit: %f - e: %f - inf: %i - sm: %f " %\
+        output = "gen %i - fit: %f - e: %f - inf: %i - sm: %f " %\
             (generations, best_fitness, epsilon, DSES_infeasibles,\
-            sigmasmean))
-       
+            sigmasmean)
+
+        self._output(output)               

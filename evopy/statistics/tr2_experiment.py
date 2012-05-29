@@ -17,7 +17,9 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from sys import stdout
 from csv import writer
+from math import floor
 from sklearn.cross_validation import KFold
 
 from evopy.problems.sa_sphere_problem import SASphereProblem
@@ -59,7 +61,7 @@ def _run_dsessvc():
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
-        view = CVDSRBFView(),
+        view = CVDSRBFView(mute = True),
         beta = 0.9,
         window_size = 25,
         append_to_window = 25,
@@ -89,7 +91,7 @@ def _run_dsessvcm():
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
-        view = CVDSLinearView(),
+        view = CVDSLinearView(mute = True),
         beta = 0.9,
         window_size = 25,
         append_to_window = 25,
@@ -115,7 +117,7 @@ def _run_dses():
         combination = SAIntermediate(),
         mutation = GaussSigma(),
         selection = SmallestFitness(),
-        view = DSESView(),
+        view = DSESView(mute = True),
         selfadaption = Selfadaption())
 
     dses.run()
@@ -161,28 +163,51 @@ class Experiment():
             "generation", 
             "best-acc"])
 
+    def done(self, i, n, msg):
+        s = "["
+        percentage = int(floor((float(i)/float(n)*10)))
+        for i in range(0, percentage):
+            s += "="
+        for i in range(percentage, 10):
+            s += " "
+        s += "] " + msg
+        return s
+
+    def update_progress(self, i, n, msg):
+        stdout.write('\r'*(12+len(msg)))
+        stdout.flush()
+        msg = self.done(i, n, msg)      
+        stdout.write(msg)
+        stdout.flush()
+
     def run(self):
         ''' no documentation yet '''
-        for i in range(0, 1):
+
+        n = 10
+
+        for i in range(0, n):
             dses = _run_dses()
             self._write_stats(\
                 dses._strategy_name,
                 i,
-                dses.get_statistics())
+            dses.get_statistics())
+            self.update_progress(i+1, n, "dses")
 
-        for i in range(0, 1):
+        for i in range(0, n):
             dses = _run_dsessvc()
             self._write_stats(\
                 dses._strategy_name,
                 i,
                 dses.get_statistics())
+            self.update_progress(i+1, n, "dses-svc")
 
-        for i in range(0, 1):
+        for i in range(0, n):
             dses = _run_dsessvcm()
             self._write_stats(\
                 dses._strategy_name,
                 i,
                 dses.get_statistics())
+            self.update_progress(i+1, n, "dses-svc-m")
 
     def _write_stats(self, methodname, sample, stats):
         '''no documentation yet'''

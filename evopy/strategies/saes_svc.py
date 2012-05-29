@@ -161,7 +161,6 @@ class SAESSVC(SVCEvolutionStrategy):
             best_parameter_C, best_parameter_gamma)
 
         if(self.termination(generation, fitness_of_best)):
-            print next_population[0]
             return True
         else:
             return (next_population, generation + 1, m,\

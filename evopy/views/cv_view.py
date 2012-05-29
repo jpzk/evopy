@@ -18,17 +18,20 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from math import floor
+from view import View
 
-class CVView():
+class CVView(View):
+    
     def view(\
         self, generations, next_population, fitness, best_acc,\
-        parameter_C, parameter_gamma):
+        parameter_C, parameter_gamma, delegate_output = False):
 
         population = sorted(next_population, key=lambda child : fitness(child))
         best_fitness = fitness(population[0])
         best_acc = floor(100 * best_acc)
 
-        print("gen %i - fitness: %f "
+        output = "gen %i - fitness: %f "
             "C: %.2f - gamma: %.2f - accuracy: %.2f" %\
-            (generations, best_fitness, parameter_C, parameter_gamma, best_acc))
+            (generations, best_fitness, parameter_C, parameter_gamma, best_acc)
 
+        self._output(output)

@@ -18,8 +18,10 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from math import floor
+from view import View
 
-class CVDSRBFView():
+class CVDSRBFView(View):
+
     def view(\
         self, generations, next_population, fitness, best_acc,\
         parameter_C, parameter_gamma, epsilon, DSES_infeasibles, sigmasmean):
@@ -28,9 +30,10 @@ class CVDSRBFView():
         best_fitness = fitness(population[0])
         best_acc = floor(100 * best_acc)
 
-        print("gen %i - fit: %f "
-            "C: %.2f - g: %.2f - acc: %.2f - e: %f - inf: %i - sm: %f " %\
+        output = ("gen %i - fit: %f " + 
+            "C: %.2f - g: %.2f - acc: %.2f - e: %f - inf: %i - sm: %f ") %\
             (generations, best_fitness, parameter_C,\
             parameter_gamma, best_acc, epsilon, DSES_infeasibles,\
-            sigmasmean))
-       
+            sigmasmean)
+   
+        self._output(output)

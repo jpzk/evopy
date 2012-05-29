@@ -48,7 +48,6 @@ class DPES(EvolutionStrategy):
         self.view(generation, next_population)         
 
         if(self.termination(generation, fitness_of_best)):
-            print next_population[0]
             return True
         else:
             return (next_population, generation + 1, m,\

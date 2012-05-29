@@ -17,23 +17,16 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from math import floor
-from view import View
+class View(object):
 
-class CVDSLinearView(View):
+    def __init__(self, mute = False, delegate_output = False):
+        self._mute = mute
+        self._delegate_output = delegate_output
 
-    def view(\
-        self, generations, next_population, fitness, best_acc,\
-        parameter_C, epsilon, DSES_infeasibles, sigmasmean):
+    def _output(self, output):
+        if not self._mute:
+            if not self._delegate_output:
+                print output
+            else: 
+                self._delegate_output.delegate(output)
 
-        population = sorted(next_population, key=lambda child : fitness(child))
-        best_fitness = fitness(population[0])
-        best_acc = floor(100 * best_acc)
-
-        output = ("gen %i - fit: %f " + 
-                "C: %.2f - acc: %.2f - e: %f - inf: %i - sm: %f ") %\
-                (generations, best_fitness, parameter_C,\
-                best_acc, epsilon, DSES_infeasibles,\
-                sigmasmean)
-
-        self._output(output)

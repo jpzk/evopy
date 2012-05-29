@@ -17,8 +17,14 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-class DefaultView():
-    def view(self, generations, next_population, fitness):
+from view import View
+
+class DefaultView(View):
+
+    def view(self, generations, next_population, fitness, delegate_output = False):
         population = sorted(next_population, key=lambda child : fitness(child))
         best_fitness = fitness(population[0])
-        print("generation %i - best_fitness: %f" % (generations, best_fitness)) 
+
+        output = "generation %i - best_fitness: %f" % (generations, best_fitness) 
+
+        self._output(output)            
