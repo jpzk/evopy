@@ -56,7 +56,7 @@ class DSESSVCM(SVCEvolutionStrategy):
     def __init__(\
         self, problem, mu, lambd, theta, pi, epsilon, tau0, tau1, combination,\
         mutation, selection, view, beta, window_size, append_to_window, scaling,\
-        crossvalidation, selfadaption):
+        crossvalidation, selfadaption, repair_mode = 'mirror'):
 
         super(DSESSVCM, self).__init__(\
             problem, mu, lambd, combination, mutation,\
@@ -80,6 +80,7 @@ class DSESSVCM(SVCEvolutionStrategy):
         self._sliding_best_feasibles = deque(maxlen = self._window_size)
         self._sliding_best_infeasibles = deque(maxlen = self._window_size)
         self._crossvalidation = crossvalidation
+        self._repair_mode = repair_mode
 
     def log(\
         self, generation, next_population, best_acc, parameter_C,\
@@ -155,7 +156,9 @@ class DSESSVCM(SVCEvolutionStrategy):
                 meta_feasible_children.append(meta_child)
             else:
                 # Use Mirroring
-                meta_child = self._linear_meta_model.repair(meta_child)
+                meta_child = self._linear_meta_model.repair(\
+                    meta_child, self._repair_mode)
+
                 meta_feasible_children.append(meta_child)
 
         # Filter by true feasibility with constraind function, here we

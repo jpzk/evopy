@@ -32,14 +32,22 @@ class SVCLinearMetaModel:
         self._clf = svm.SVC(kernel = 'linear', C = parameter_C)
         self._clf.fit(points_svm, labels)
 
-    def repair(self, individual):
+    def repair(self, individual, repair_mode):
         x = individual.value
 
         w = self._clf.coef_[0]
         nw = w / np.sqrt(np.sum(w ** 2))
         b = self._clf.intercept_[0] / w[1]
       
-        s = 2 * (self._clf.decision_function(x) * (1/np.sqrt(np.sum(w ** 2))))
+        to_hp = (self._clf.decision_function(x) * (1/np.sqrt(np.sum(w ** 2))))
+
+        if repair_mode == 'mirror':
+            s = 2 * to_hp
+        if repair_mode == 'project':
+            s = to_hp
+        if repair_mode == None: 
+            raise Exception("no repair_mode selected: " + repair_mode)
+
         nx = x + (nw * s)
 
         individual.value = nx[0]
