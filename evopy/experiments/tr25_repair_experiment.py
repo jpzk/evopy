@@ -15,6 +15,11 @@ Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
+
+
+This experiment evaluates DSES, DSES-SVC and DSES-SVC with infeasible repair.
+The main goal of this experiment is to compare constraint-calls of these three
+methods.
 '''
 
 from sys import stdout
@@ -22,6 +27,7 @@ from csv import writer
 from math import floor
 from sklearn.cross_validation import KFold
 
+from experiment import Experiment
 from evopy.problems.sa_sphere_problem import SASphereProblem
 
 from evopy.operators.mutation.gauss_sigma import GaussSigma
@@ -123,7 +129,7 @@ def _run_dses():
     dses.run()
     return dses
 
-class Experiment():
+class TR25RepairExperiment(Experiment):
 
     def __init__(self):
         self._file_call = 'evopy_experiments/tr25-repair/experiment_calls.csv'
@@ -163,27 +169,11 @@ class Experiment():
             "generation", 
             "best-acc"])
 
-    def done(self, i, n, msg):
-        s = "["
-        percentage = int(floor((float(i)/float(n)*10)))
-        for i in range(0, percentage):
-            s += "="
-        for i in range(percentage, 10):
-            s += " "
-        s += "] " + msg
-        return s
-
-    def update_progress(self, i, n, msg):
-        stdout.write('\r'*(12+len(msg)))
-        stdout.flush()
-        msg = self.done(i, n, msg)      
-        stdout.write(msg)
-        stdout.flush()
-
     def run(self):
         ''' no documentation yet '''
 
-        n = 10
+        n = 25
+        print __doc__
 
         for i in range(0, n):
             dses = _run_dsessvc()

@@ -15,13 +15,23 @@ Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
+
+---
+
+This experiment evaluates DSES-SVC with infeasible repair by mirroring on the 
+metamodel hyperplane and DSES-SVC with infeasbible repair by projecting on the 
+hyperplane. The main goal of this experiment is to compare constraint-calls 
+of these two methods.
+
 '''
 
 from sys import stdout
 from csv import writer
 from math import floor
+
 from sklearn.cross_validation import KFold
 
+from experiment import Experiment
 from evopy.problems.sa_sphere_problem import SASphereProblem
 from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.combination.sa_intermediate import SAIntermediate
@@ -95,7 +105,7 @@ def _run_dsessvcm_mirror():
     dsessvcm.run()
     return dsessvcm
 
-class Experiment():
+class TR25RepairProjectExperiment(Experiment):
 
     def __init__(self):
         self._file_call = 'evopy_experiments/tr25-repair-project/experiment_calls.csv'
@@ -135,26 +145,10 @@ class Experiment():
             "generation", 
             "best-acc"])
 
-    def done(self, i, n, msg):
-        s = "["
-        percentage = int(floor((float(i)/float(n)*10)))
-        for i in range(0, percentage):
-            s += "="
-        for i in range(percentage, 10):
-            s += " "
-        s += "] " + msg
-        return s
-
-    def update_progress(self, i, n, msg):
-        stdout.write('\r'*(12+len(msg)))
-        stdout.flush()
-        msg = self.done(i, n, msg)      
-        stdout.write(msg)
-        stdout.flush()
-
     def run(self):
         ''' no documentation yet '''
 
+        print __doc__
         n = 25 
 
         for i in range(0, n):
