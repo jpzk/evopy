@@ -62,7 +62,7 @@ def _run_dsessvc():
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
-        view = CVDSRBFView(mute = True),
+        view = CVDSRBFView(),
         beta = 0.9,
         window_size = 25,
         append_to_window = 25,
@@ -92,7 +92,7 @@ def _run_dsessvcm_project():
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
-        view = CVDSLinearView(mute = True),
+        view = CVDSLinearView(),
         beta = 0.9,
         window_size = 25,
         append_to_window = 25,
@@ -123,7 +123,7 @@ def _run_dsessvcm_mirror():
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
-        view = CVDSLinearView(mute = True),
+        view = CVDSLinearView(),
         beta = 0.9,
         window_size = 25,
         append_to_window = 25,
@@ -150,7 +150,7 @@ def _run_dses():
         combination = SAIntermediate(),
         mutation = GaussSigma(),
         selection = SmallestFitness(),
-        view = DSESView(mute = True),
+        view = DSESView(),
         selfadaption = Selfadaption())
 
     dses.run()
@@ -203,6 +203,14 @@ class TR25AllExperiment(Experiment):
         print __doc__
 
         for i in range(0, n):
+            dses = _run_dses()
+            self._write_stats(\
+                dses._strategy_name,
+                i,
+                dses.get_statistics())
+            self.update_progress(i+1, n, "dses")
+
+        for i in range(0, n):
             dses = _run_dsessvc()
             self._write_stats(\
                 dses._strategy_name,
@@ -211,12 +219,20 @@ class TR25AllExperiment(Experiment):
             self.update_progress(i+1, n, "dses-svc")
 
         for i in range(0, n):
-            dses = _run_dsessvcm()
+            dses = _run_dsessvcm_mirror()            
             self._write_stats(\
                 dses._strategy_name,
                 i,
                 dses.get_statistics())
-            self.update_progress(i+1, n, "dses-svc-m")
+            self.update_progress(i+1, n, "dses-svc-m (mirror)")
+ 
+        for i in range(0, n):
+            dses = _run_dsessvcm_project()            
+            self._write_stats(\
+                dses._strategy_name,
+                i,
+                dses.get_statistics())
+            self.update_progress(i+1, n, "dses-svc-m (project)")    
 
     def _write_stats(self, methodname, sample, stats):
         '''no documentation yet'''
