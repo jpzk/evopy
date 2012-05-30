@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from sys import stdout
+from math import floor
+
 class Experiment():
     def done(self, i, n, msg):
         s = "["
