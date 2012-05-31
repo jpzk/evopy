@@ -39,6 +39,7 @@ from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.views.dses_view import DSESView
 from evopy.views.cv_ds_linear_view import CVDSLinearView
+from evopy.views.cv_ds_r_linear_view import CVDSRLinearView
 from evopy.strategies.dses_svc_repair import DSESSVCR
 from evopy.strategies.dses_svc import DSESSVC
 from evopy.views.cv_ds_rbf_view import CVDSRBFView
@@ -94,7 +95,7 @@ def _run_dsessvcm_project():
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
-        view = CVDSLinearView(),
+        view = CVDSRLinearView(),
         beta = 0.9,
         window_size = 25,
         append_to_window = 25,
