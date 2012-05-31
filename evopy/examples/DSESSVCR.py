@@ -26,16 +26,17 @@ from evopy.operators.combination.sa_intermediate import SAIntermediate
 from evopy.operators.selection.smallest_fitness import SmallestFitness
 from evopy.operators.selfadaption.selfadaption import Selfadaption
 from evopy.views.cv_ds_linear_view import CVDSLinearView
+from evopy.views.cv_ds_r_linear_view import CVDSRLinearView
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
-from evopy.strategies.dses_svc_mirror import DSESSVCM
+from evopy.strategies.dses_svc_repair import DSESSVCR
 
 def get_method():
     sklearn_cv = SVCCVSkGridLinear(\
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(50, 5))
 
-    method = DSESSVCM(\
-        SASphereProblem(),
+    method = DSESSVCR(\
+        SASphereProblem(dimensions = 2, accuracy = -4),
         mu = 15,
         lambd = 100,
         theta = 0.7,
@@ -46,12 +47,13 @@ def get_method():
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
-        view = CVDSLinearView(),
+        view = CVDSRLinearView(),
         beta = 0.9,
         window_size = 25,
         append_to_window = 25,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv, 
-        selfadaption = Selfadaption())
+        selfadaption = Selfadaption(),
+        repair_mode = 'project')
      
     return method
