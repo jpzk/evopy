@@ -58,7 +58,7 @@ class DSESSVCR(SVCEvolutionStrategy):
         mutation, selection, view, beta, window_size, append_to_window, scaling,\
         crossvalidation, selfadaption, repair_mode = 'project'):
 
-        super(DSESSVCM, self).__init__(\
+        super(DSESSVCR, self).__init__(\
             problem, mu, lambd, combination, mutation,\
             selection, view)
 
@@ -88,7 +88,7 @@ class DSESSVCR(SVCEvolutionStrategy):
         
         parameter_gamma = 0.0
 
-        super(DSESSVCM, self).log(\
+        super(DSESSVCR, self).log(\
             generation, next_population, best_acc, parameter_C,
             parameter_gamma)
 
@@ -114,7 +114,7 @@ class DSESSVCR(SVCEvolutionStrategy):
             "DSES-infeasibles" : self._statistics_DSES_infeasibles_trajectory,
             "avg-sigma" : self._statistics_average_sigma_trajectory}
         
-        super_statistics = super(DSESSVCM, self).get_statistics()
+        super_statistics = super(DSESSVCR, self).get_statistics()
         for k in super_statistics:
             statistics[k] = super_statistics[k]
         
