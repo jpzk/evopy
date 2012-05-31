@@ -35,7 +35,8 @@ class DSESSVCR(SVCEvolutionStrategy):
     _statistics_parameter_epsilon_trajectory = []
     _statistics_DSES_infeasibles_trajectory = []
     _statistics_average_sigma_trajectory = []
-  
+    _statistics_wrong_meta_infeasibles = []
+
     _linear_meta_model = SVCLinearMetaModel() 
 
     listadd = lambda self, l1, l2 : map(lambda i1, i2 : i1 + i2, l1, l2)
@@ -84,7 +85,7 @@ class DSESSVCR(SVCEvolutionStrategy):
 
     def log(\
         self, generation, next_population, best_acc, parameter_C,\
-        parameter_epsilon, DSES_infeasibles):
+        parameter_epsilon, DSES_infeasibles, wrong_meta_infeasibles):
         
         parameter_gamma = 0.0
 
@@ -97,21 +98,23 @@ class DSESSVCR(SVCEvolutionStrategy):
         self._statistics_average_sigma_trajectory.append(self.meansigmas(sigmas))
         self._statistics_parameter_epsilon_trajectory.append(parameter_epsilon)
         self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
+        self._statistics_wrong_meta_infeasibles.append(wrong_meta_infeasibles)
 
     def view(\
         self, generation, next_population, best_acc, parameter_C, parameter_epsilon, 
-        DSES_infeasibles):
+        DSES_infeasibles, meta_infeasibles):
 
         sigmas = map(lambda child : child.sigmas, next_population)
 
         self._view.view(generation, next_population, self._problem.fitness,\
             best_acc, parameter_C, parameter_epsilon,\
-            DSES_infeasibles, array(self.meansigmas(sigmas)).mean())
+            DSES_infeasibles, meta_infeasibles, array(self.meansigmas(sigmas)).mean())
 
     def get_statistics(self):
         statistics = {
             "parameter-epsilon" : self._statistics_parameter_epsilon_trajectory,
             "DSES-infeasibles" : self._statistics_DSES_infeasibles_trajectory,
+            "wrong-meta-infeasibles" : self._statistics_wrong_meta_infeasibles,
             "avg-sigma" : self._statistics_average_sigma_trajectory}
         
         super_statistics = super(DSESSVCR, self).get_statistics()
@@ -182,7 +185,6 @@ class DSESSVCR(SVCEvolutionStrategy):
                         reborn.append(generated)
                     else:
                         DSES_infeasibles += 1
-                        #reborn.append(self._linear_meta_model.repair(generated)) 
                 feasible_children.extend(reborn)                  
 
         # Filter the other part of the cut with the true constraint function. 
@@ -248,10 +250,10 @@ class DSESSVCR(SVCEvolutionStrategy):
         best_acc = best_parameters[3]
 
         self.log(generation, next_population, best_acc,\
-            best_parameters[2], epsilon, DSES_infeasibles)
+            best_parameters[2], epsilon, DSES_infeasibles, meta_infeasibles)
 
         self.view(generation, next_population, best_acc,\
-            best_parameters[2], epsilon, DSES_infeasibles)
+            best_parameters[2], epsilon, DSES_infeasibles, meta_infeasibles)
 
         if(self.termination(generation, fitness_of_best)):
             return True
