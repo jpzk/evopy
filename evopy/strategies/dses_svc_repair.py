@@ -24,13 +24,13 @@ from collections import deque
 from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
 from svc_evolution_strategy import SVCEvolutionStrategy
 
-class DSESSVCM(SVCEvolutionStrategy):
+class DSESSVCR(SVCEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
  
     _strategy_name =\
         "Death Penalty Step Control with linear SVC "\
-        "meta model and repair-mirroring"
+        "meta model and repair of infeasibles"
 
     _statistics_parameter_epsilon_trajectory = []
     _statistics_DSES_infeasibles_trajectory = []
@@ -56,7 +56,7 @@ class DSESSVCM(SVCEvolutionStrategy):
     def __init__(\
         self, problem, mu, lambd, theta, pi, epsilon, tau0, tau1, combination,\
         mutation, selection, view, beta, window_size, append_to_window, scaling,\
-        crossvalidation, selfadaption, repair_mode = 'mirror'):
+        crossvalidation, selfadaption, repair_mode = 'project'):
 
         super(DSESSVCM, self).__init__(\
             problem, mu, lambd, combination, mutation,\

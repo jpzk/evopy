@@ -16,10 +16,12 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 
+---
 
 This experiment evaluates DSES, DSES-SVC and DSES-SVC with infeasible repair.
 The main goal of this experiment is to compare constraint-calls of these three
 methods.
+
 '''
 
 from sys import stdout
@@ -44,7 +46,7 @@ from evopy.views.cv_ds_rbf_view import CVDSRBFView
 from evopy.views.cv_ds_linear_view import CVDSLinearView
 
 from evopy.strategies.dses import DSES
-from evopy.strategies.dses_svc_mirror import DSESSVCM
+from evopy.strategies.dses_svc_repair import DSESSVCR
 from evopy.strategies.dses_svc import DSESSVC
 
 def _run_dsessvc():
@@ -85,7 +87,7 @@ def _run_dsessvcm():
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(50, 5))
 
-    dsessvcm = DSESSVCM(\
+    dsessvcm = DSESSVCR(\
         SASphereProblem(dimensions = 25, accuracy = 0),
         mu = 15,
         lambd = 100,
@@ -103,7 +105,8 @@ def _run_dsessvcm():
         append_to_window = 25,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv, 
-        selfadaption = Selfadaption())
+        selfadaption = Selfadaption(),
+        repair_mode = 'project')
 
     dsessvcm.run()
     return dsessvcm

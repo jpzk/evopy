@@ -41,7 +41,7 @@ from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.views.dses_view import DSESView
 from evopy.views.cv_ds_linear_view import CVDSLinearView
-from evopy.strategies.dses_svc_mirror import DSESSVCM
+from evopy.strategies.dses_svc_repair import DSESSVCR
 
 def _run_dsessvcm_project():
     ''' no documentation yet '''
@@ -50,7 +50,7 @@ def _run_dsessvcm_project():
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(50, 5))
 
-    dsessvcm = DSESSVCM(\
+    dsessvcm = DSESSVCR(\
         SASphereProblem(dimensions = 25, accuracy = 0),
         mu = 15,
         lambd = 100,
@@ -81,7 +81,7 @@ def _run_dsessvcm_mirror():
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(50, 5))
 
-    dsessvcm = DSESSVCM(\
+    dsessvcm = DSESSVCR(\
         SASphereProblem(dimensions = 25, accuracy = 0),
         mu = 15,
         lambd = 100,

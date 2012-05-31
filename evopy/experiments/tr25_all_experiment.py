@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from sys import stdout
 from csv import writer
 from math import floor
 from sklearn.cross_validation import KFold
@@ -39,7 +38,7 @@ from evopy.views.cv_ds_rbf_view import CVDSRBFView
 from evopy.views.cv_ds_linear_view import CVDSLinearView
 
 from evopy.strategies.dses import DSES
-from evopy.strategies.dses_svc_mirror import DSESSVCM
+from evopy.strategies.dses_svc_repair import DSESSVCR
 from evopy.strategies.dses_svc import DSESSVC
 
 def _run_dsessvc():
@@ -80,7 +79,7 @@ def _run_dsessvcm_project():
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(50, 5))
 
-    dsessvcm = DSESSVCM(\
+    dsessvcm = DSESSVCR(\
         SASphereProblem(dimensions = 25, accuracy = -4),
         mu = 15,
         lambd = 100,
@@ -111,7 +110,7 @@ def _run_dsessvcm_mirror():
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(50, 5))
 
-    dsessvcm = DSESSVCM(\
+    dsessvcm = DSESSVCR(\
         SASphereProblem(dimensions = 25, accuracy = -4),
         mu = 15,
         lambd = 100,
