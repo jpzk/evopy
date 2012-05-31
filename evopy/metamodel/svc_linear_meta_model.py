@@ -18,7 +18,8 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sklearn import svm
-import numpy as np
+from sklearn import __version__ as sklearn_version
+from numpy import sum, sqrt, mean
 
 class SVCLinearMetaModel:
     """ SVC meta model which classfies feasible and infeasible points """
@@ -36,20 +37,26 @@ class SVCLinearMetaModel:
         x = individual.value
 
         w = self._clf.coef_[0]
-        nw = w / np.sqrt(np.sum(w ** 2))
+        nw = w / sqrt(sum(w ** 2))
         b = self._clf.intercept_[0] / w[1]
       
-        to_hp = (self._clf.decision_function(x) * (1/np.sqrt(np.sum(w ** 2))))
+        to_hp = (self._clf.decision_function(x) * (1/sqrt(sum(w ** 2))))
         if repair_mode == 'mirror':
             s = 2 * to_hp
         if repair_mode == 'project':
             s = to_hp 
         if repair_mode == 'projectsigma':
-            s = to_hp * 2 * np.mean(individual.sigmas[0])
+            s = to_hp + mean(individual.sigmas[0])
         if repair_mode == None: 
             raise Exception("no repair_mode selected: " + repair_mode)
-        
-        nx = x - (nw * s)
+
+        # VERY IMPORTANT
+        if sklearn_version == '0.10':
+            nx = x - (nw * s)
+        if sklearn_version == '0.11':
+            nx = x + (nw * s)      
+        if sklearn_version != '0.10' and sklearn_version != '0.11':
+            raise Exception("sklearn version is not supported")
 
         for sigma in individual.sigmas:
             sigma = to_hp
