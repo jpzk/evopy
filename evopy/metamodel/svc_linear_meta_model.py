@@ -40,15 +40,19 @@ class SVCLinearMetaModel:
         b = self._clf.intercept_[0] / w[1]
       
         to_hp = (self._clf.decision_function(x) * (1/np.sqrt(np.sum(w ** 2))))
-
         if repair_mode == 'mirror':
             s = 2 * to_hp
         if repair_mode == 'project':
-            s = to_hp
+            s = to_hp 
+        if repair_mode == 'projectsigma':
+            s = to_hp * 2 * np.mean(individual.sigmas[0])
         if repair_mode == None: 
             raise Exception("no repair_mode selected: " + repair_mode)
+        
+        nx = x - (nw * s)
 
-        nx = x + (nw * s)
+        for sigma in individual.sigmas:
+            sigma = to_hp
 
         individual.value = nx[0]
         return individual

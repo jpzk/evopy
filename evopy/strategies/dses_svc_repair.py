@@ -138,6 +138,8 @@ class DSESSVCR(SVCEvolutionStrategy):
         """ This method is called every generation. """
 
         DSES_infeasibles = 0
+        meta_infeasibles = 0
+
         children = [self.generate_child(population, epsilon) for child in range(0,l)]
 
         # Filter by checking feasiblity with SVC meta model, the 
@@ -155,10 +157,9 @@ class DSESSVCR(SVCEvolutionStrategy):
             if(self.is_meta_feasible(self._scaling.scale(meta_child))):
                 meta_feasible_children.append(meta_child)
             else:
-                # Use Mirroring
+                #DSES_infeasibles += 1
                 meta_child = self._linear_meta_model.repair(\
                     meta_child, self._repair_mode)
-
                 meta_feasible_children.append(meta_child)
 
         # Filter by true feasibility with constraind function, here we
@@ -172,6 +173,7 @@ class DSESSVCR(SVCEvolutionStrategy):
             else:
                 infeasible_children.append(meta_feasible)
                 DSES_infeasibles += 1
+                meta_infeasibles += 1
                 # Because of Death Penalty we need a feasible reborn.
                 reborn = []                
                 while(len(reborn) < 1):  
@@ -250,8 +252,6 @@ class DSESSVCR(SVCEvolutionStrategy):
 
         self.view(generation, next_population, best_acc,\
             best_parameters[2], epsilon, DSES_infeasibles)
-
-        DSES_infeasibles = 0            
 
         if(self.termination(generation, fitness_of_best)):
             return True
