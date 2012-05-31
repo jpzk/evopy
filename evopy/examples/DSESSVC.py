@@ -25,7 +25,7 @@ from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.combination.sa_intermediate import SAIntermediate
 from evopy.operators.selection.smallest_fitness import SmallestFitness
 from evopy.operators.selfadaption.selfadaption import Selfadaption
-from evopy.views.cv_ds_view import CVDSView
+from evopy.views.cv_ds_rbf_view import CVDSRBFView
 from evopy.metamodel.cv.svc_cv_sklearn_grid_rbf import SVCCVSkGridRBF
 from evopy.strategies.dses_svc import DSESSVC
 
@@ -36,7 +36,7 @@ def get_method():
         cv_method = KFold(50, 5))
 
     method = DSESSVC(\
-        SASphereProblem(),
+        SASphereProblem(dimensions = 2, accuracy = -4),
         mu = 15,
         lambd = 100,
         theta = 0.7,
@@ -47,7 +47,7 @@ def get_method():
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
-        view = CVDSView(),
+        view = CVDSRBFView(),
         beta = 0.9,
         window_size = 25,
         append_to_window = 25,
