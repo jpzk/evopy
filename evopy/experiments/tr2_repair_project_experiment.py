@@ -160,6 +160,15 @@ class TR2RepairProjectExperiment(Experiment):
                 dses.get_statistics())
             self.update_progress(i+1, n, "dses-svc-m (project)")
 
+        for i in range(0, n):
+            dses = _run_dsessvc()
+            self._write_stats(\
+                dses._strategy_name,
+                i,
+                dses.get_statistics())
+            self.update_progress(i+1, n, "dses-svc")
+
+
     def _write_stats(self, methodname, sample, stats):
         '''no documentation yet'''
 
