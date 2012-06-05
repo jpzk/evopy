@@ -18,6 +18,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from numpy import array
+from random import random
 from math import floor, sqrt
 from collections import deque 
 
@@ -100,16 +101,6 @@ class DSESSVCR(SVCEvolutionStrategy):
         self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
         self._statistics_wrong_meta_infeasibles.append(wrong_meta_infeasibles)
 
-    def view(\
-        self, generation, next_population, best_acc, parameter_C, parameter_epsilon, 
-        DSES_infeasibles, meta_infeasibles):
-
-        sigmas = map(lambda child : child.sigmas, next_population)
-
-        self._view.view(generation, next_population, self._problem.fitness,\
-            best_acc, parameter_C, parameter_epsilon,\
-            DSES_infeasibles, meta_infeasibles, array(self.meansigmas(sigmas)).mean())
-
     def get_statistics(self):
         statistics = {
             "parameter-epsilon" : self._statistics_parameter_epsilon_trajectory,
@@ -123,13 +114,20 @@ class DSESSVCR(SVCEvolutionStrategy):
         
         return statistics
 
+    # mutate child with gauss devriation 
+    def mutate(self, child, sigmas):
+        self._statistics_mutations += 1
+        normal = self._linear_meta_model.get_normal()
+        return self._mutation.mutate(child, sigmas, normal)
+ 
     # generate child 
     def generate_child(self, population, epsilon):
         combined_child = self.combine(population)
+        normal = array([1.0, 1.0])
         mutated_child = self.mutate(combined_child, combined_child.sigmas)
         sa_child = self._selfadaption.mutate(\
             mutated_child, self._tau0, self._tau1)
-        
+       
         # minimum DSES step size control
         sa_child.sigmas =\
             [epsilon if s < epsilon else s for s in sa_child.sigmas]
@@ -160,9 +158,8 @@ class DSESSVCR(SVCEvolutionStrategy):
             if(self.is_meta_feasible(self._scaling.scale(meta_child))):
                 meta_feasible_children.append(meta_child)
             else:
-                #DSES_infeasibles += 1
                 meta_child = self._linear_meta_model.repair(\
-                    meta_child, self._repair_mode)
+                   meta_child, self._repair_mode)
                 meta_feasible_children.append(meta_child)
 
         # Filter by true feasibility with constraind function, here we
@@ -248,12 +245,16 @@ class DSESSVCR(SVCEvolutionStrategy):
             epsilon = epsilon * self._theta
 
         best_acc = best_parameters[3]
+        parameter_C = best_parameters[2]        
 
         self.log(generation, next_population, best_acc,\
             best_parameters[2], epsilon, DSES_infeasibles, meta_infeasibles)
 
-        self.view(generation, next_population, best_acc,\
-            best_parameters[2], epsilon, DSES_infeasibles, meta_infeasibles)
+        self._view.view(generations = generation,\
+            best_fitness = fitness_of_best, best_acc = best_acc,\
+            parameter_C = parameter_C, DSES_infeasibles = DSES_infeasibles,\
+            wrong_meta_infeasibles = meta_infeasibles,\
+            angle = self._linear_meta_model.get_angle_degree())
 
         if(self.termination(generation, fitness_of_best)):
             return True

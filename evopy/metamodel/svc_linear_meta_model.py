@@ -19,7 +19,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 
 from sklearn import svm
 from sklearn import __version__ as sklearn_version
-from numpy import sum, sqrt, mean
+from numpy import sum, sqrt, mean, arctan2, pi
 
 class SVCLinearMetaModel:
     """ SVC meta model which classfies feasible and infeasible points """
@@ -33,33 +33,46 @@ class SVCLinearMetaModel:
         self._clf = svm.SVC(kernel = 'linear', C = parameter_C)
         self._clf.fit(points_svm, labels)
 
+    def get_normal(self):
+        # VERY IMPORTANT
+        w = self._clf.coef_[0]
+        nw = w / sqrt(sum(w ** 2))
+ 
+        if sklearn_version == '0.10':
+            return -nw 
+        if sklearn_version == '0.11':
+            return nw 
+        if sklearn_version != '0.10' and sklearn_version != '0.11':
+            raise Exception("sklearn version is not supported")
+
+    def get_angle_degree(self):
+        normal = self.get_normal()
+        inormal = -normal
+        return arctan2(inormal[0], inormal[1]) * (180/pi)
+
     def repair(self, individual, repair_mode):
         x = individual.value
 
         w = self._clf.coef_[0]
-        nw = w / sqrt(sum(w ** 2))
+        nw = self.get_normal()
         b = self._clf.intercept_[0] / w[1]
       
         to_hp = (self._clf.decision_function(x) * (1/sqrt(sum(w ** 2))))
         if repair_mode == 'mirror':
             s = 2 * to_hp
+        if repair_mode == 'none':
+            return individual
         if repair_mode == 'project':
             s = to_hp 
         if repair_mode == 'projectsigma':
-            s = to_hp + mean(individual.sigmas[0])
+            s = to_hp + mean(individual.sigmas)
         if repair_mode == None: 
             raise Exception("no repair_mode selected: " + repair_mode)
 
-        # VERY IMPORTANT
-        if sklearn_version == '0.10':
-            nx = x - (nw * s)
-        if sklearn_version == '0.11':
-            nx = x + (nw * s)      
-        if sklearn_version != '0.10' and sklearn_version != '0.11':
-            raise Exception("sklearn version is not supported")
+        nx = x + (nw * s)
 
         for sigma in individual.sigmas:
-            sigma = to_hp
+            sigma = to_hp            
 
         individual.value = nx[0]
         return individual
