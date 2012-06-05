@@ -112,9 +112,9 @@ def _run_dsessvcm_project():
 class TR2RepairAlignedExperiment(Experiment):
 
     def __init__(self):
-        self._file_call = 'evopy_experiments/tr2-repair-project/experiment_calls.csv'
-        self._file_fitnesses = 'evopy_experiments/tr2-repair-project/experiment_fitnesses.csv'
-        self._file_acc = 'evopy_experiments/tr2-repair-project/experiment_acc.csv'
+        self._file_call = 'evopy_experiments/tr2-repair-aligned/experiment_calls.csv'
+        self._file_fitnesses = 'evopy_experiments/tr2-repair-aligned/experiment_fitnesses.csv'
+        self._file_acc = 'evopy_experiments/tr2-repair-aligned/experiment_acc.csv'
 
         self._writer_calls = writer(open(self._file_call, 'wb'), delimiter=';')
         self._writer_fitnesses = writer(open(self._file_fitnesses, 'wb'), \
