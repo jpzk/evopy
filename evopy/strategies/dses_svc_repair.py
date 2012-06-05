@@ -119,15 +119,16 @@ class DSESSVCR(SVCEvolutionStrategy):
         self._statistics_mutations += 1
         normal = self._linear_meta_model.get_normal()
         return self._mutation.mutate(child, sigmas, normal)
- 
+
     # generate child 
     def generate_child(self, population, epsilon):
         combined_child = self.combine(population)
-        normal = array([1.0, 1.0])
         mutated_child = self.mutate(combined_child, combined_child.sigmas)
         sa_child = self._selfadaption.mutate(\
             mutated_child, self._tau0, self._tau1)
-       
+
+        sa_child.sigmas[0] = (1/10) * sa_child.sigmas[1]
+
         # minimum DSES step size control
         sa_child.sigmas =\
             [epsilon if s < epsilon else s for s in sa_child.sigmas]

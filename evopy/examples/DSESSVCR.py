@@ -41,7 +41,7 @@ def get_method():
         mu = 15,
         lambd = 100,
         theta = 0.7,
-        pi = 70, 
+        pi = 10, 
         epsilon = 1.0,
         tau0 = 1.0,
         tau1 = 0.1,
@@ -55,6 +55,6 @@ def get_method():
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv, 
         selfadaption = Selfadaption(),
-        repair_mode = 'projectsigma')
+        repair_mode = 'mirror')
      
     return method
