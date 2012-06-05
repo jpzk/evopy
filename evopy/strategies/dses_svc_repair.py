@@ -37,6 +37,7 @@ class DSESSVCR(SVCEvolutionStrategy):
     _statistics_DSES_infeasibles_trajectory = []
     _statistics_average_sigma_trajectory = []
     _statistics_wrong_meta_infeasibles = []
+    _statistics_angle_trajectory = []
 
     _linear_meta_model = SVCLinearMetaModel() 
 
@@ -86,7 +87,7 @@ class DSESSVCR(SVCEvolutionStrategy):
 
     def log(\
         self, generation, next_population, best_acc, parameter_C,\
-        parameter_epsilon, DSES_infeasibles, wrong_meta_infeasibles):
+        parameter_epsilon, DSES_infeasibles, wrong_meta_infeasibles, angle):
         
         parameter_gamma = 0.0
 
@@ -100,6 +101,7 @@ class DSESSVCR(SVCEvolutionStrategy):
         self._statistics_parameter_epsilon_trajectory.append(parameter_epsilon)
         self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
         self._statistics_wrong_meta_infeasibles.append(wrong_meta_infeasibles)
+        self._statistics_angle_trajectory.append(angle)
 
     def get_statistics(self):
         statistics = {
@@ -249,7 +251,8 @@ class DSESSVCR(SVCEvolutionStrategy):
         parameter_C = best_parameters[2]        
 
         self.log(generation, next_population, best_acc,\
-            best_parameters[2], epsilon, DSES_infeasibles, meta_infeasibles)
+            best_parameters[2], epsilon, DSES_infeasibles, meta_infeasibles,\
+            self._linear_meta_model.get_angle_degree())
 
         self._view.view(generations = generation,\
             best_fitness = fitness_of_best, best_acc = best_acc,\
