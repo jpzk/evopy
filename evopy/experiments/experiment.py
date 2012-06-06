@@ -17,10 +17,15 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from multiprocessing import cpu_count
+from playdoh import map
 from sys import stdout
 from math import floor
 from os import makedirs
 from csv import writer
+
+def call_case(case):
+    return case()
 
 class Experiment(object):
 
@@ -76,15 +81,15 @@ class Experiment(object):
 
     def run_cases(self, cases, samples):
         for case in cases:
-            for sample in range(0, samples):
-                result = case()
+            results = map(call_case, [case] * samples, cpu = cpu_count())
+            for result in results:
                 method = result._strategy_name
                 meta_stats =\
                     {"problem" : self._problem,\
                     "method" : method,\
                     "sample" : sample}
                 self._write_stats(meta_stats, result.get_statistics())
-                self._update_progress(sample + 1, samples, method)
+                self._update_progress(sample + 1, samples, method)               
 
     def _write_stats(self, meta_stats, stats):
         '''no documentation yet'''

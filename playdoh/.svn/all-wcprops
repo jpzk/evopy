@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 31
+/svn/!svn/ver/739/trunk/playdoh
+END
+pool.py
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/721/trunk/playdoh/pool.py
+END
+resources.py
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/729/trunk/playdoh/resources.py
+END
+synchandler.py
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/!svn/ver/729/trunk/playdoh/synchandler.py
+END
+userpref.py
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/734/trunk/playdoh/userpref.py
+END
+gputools.py
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/720/trunk/playdoh/gputools.py
+END
+connection.py
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/735/trunk/playdoh/connection.py
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/736/trunk/playdoh/__init__.py
+END
+baserpc.py
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/!svn/ver/721/trunk/playdoh/baserpc.py
+END
+interface.py
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/!svn/ver/739/trunk/playdoh/interface.py
+END
+cache.py
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/svn/!svn/ver/715/trunk/playdoh/cache.py
+END
+filetransfer.py
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/720/trunk/playdoh/filetransfer.py
+END
+rpc.py
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/!svn/ver/720/trunk/playdoh/rpc.py
+END
+asyncjobhandler.py
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/739/trunk/playdoh/asyncjobhandler.py
+END
+debugtools.py
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/!svn/ver/734/trunk/playdoh/debugtools.py
+END

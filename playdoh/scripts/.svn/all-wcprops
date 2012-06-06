@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/svn/!svn/ver/729/trunk/playdoh/scripts
+END
+__init__.py
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/!svn/ver/720/trunk/playdoh/scripts/__init__.py
+END
+open.py
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/!svn/ver/716/trunk/playdoh/scripts/open.py
+END
+client_gui.py
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/!svn/ver/729/trunk/playdoh/scripts/client_gui.py
+END
+console.py
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/!svn/ver/720/trunk/playdoh/scripts/console.py
+END
+openrestart.py
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/716/trunk/playdoh/scripts/openrestart.py
+END
