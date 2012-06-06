@@ -24,10 +24,10 @@ from csv import writer
 
 class Experiment(object):
 
-    parent_directory = "evopy_experiments/"
-    f_call = "calls.csv"
-    f_fitness = "fitness.csv"
-    f_acc = "accuracy.csv"
+    parent_dir = "evopy_experiments/"
+    f_call = "/calls.csv"
+    f_fitness = "/fitness.csv"
+    f_acc = "/accuracy.csv"
 
     general_attributes =\
         {"problem" : "problem", 
@@ -53,13 +53,14 @@ class Experiment(object):
 
     def __init__(self, problem, directory):
 
-        makedirs(self.parent_directory + directory)
+        folder = self.parent_dir + directory
+        makedirs(folder)
 
-        self._writer_calls = writer(open(self.f_call, 'wb'), delimiter=';')
-        self._writer_fitnesses = writer(open(self.f_fitness, 'wb'), \
+        self._writer_calls = writer(open(folder + self.f_call, 'wb'), delimiter=';')
+        self._writer_fitnesses = writer(open(folder + self.f_fitness, 'wb'), \
             delimiter=';')
 
-        self._writer_acc = writer(open(self.f_acc, 'wb'), delimiter=';')
+        self._writer_acc = writer(open(folder + self.f_acc, 'wb'), delimiter=';')
         self._problem = problem
 
         csv_calls_attributes = self.general_attributes.keys() +\
