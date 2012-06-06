@@ -18,18 +18,18 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 
 ---
 
-The intention of this experiment is to observe if the projection of infeasible
-solutions succeeds or fails.
+Problem: TR2 (dimension = 2) 
+Fitness-accuracy termination: 10^-4
+Strategies: DSES, DSES-rbfSVC, DSES-linSVC-repair-aligned
 
 '''
 
 from sys import stdout
-from csv import writer
 from math import floor
+from os import makedirs
 
 from sklearn.cross_validation import KFold
 
-from experiment import Experiment
 from evopy.problems.sa_sphere_problem import SASphereProblem
 from evopy.operators.mutation.gauss_sigma import GaussSigma
 from evopy.operators.mutation.gauss_sigma_aligned import GaussSigmaAligned
@@ -38,14 +38,39 @@ from evopy.operators.selection.smallest_fitness import SmallestFitness
 from evopy.operators.selfadaption.selfadaption import Selfadaption
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
+from evopy.metamodel.cv.svc_cv_sklearn_grid_rbf import SVCCVSkGridRBF
 from evopy.views.dses_view import DSESView
 from evopy.views.universal_view import UniversalView
 from evopy.views.cv_ds_linear_view import CVDSLinearView
 from evopy.views.cv_ds_r_linear_view import CVDSRLinearView
+from evopy.views.cv_ds_rbf_view import CVDSRBFView
+from evopy.views.dses_view import DSESView
+from evopy.strategies.dses import DSES
 from evopy.strategies.dses_svc_repair import DSESSVCR
 from evopy.strategies.dses_svc import DSESSVC
-from evopy.views.cv_ds_rbf_view import CVDSRBFView
-from evopy.metamodel.cv.svc_cv_sklearn_grid_rbf import SVCCVSkGridRBF
+
+from experiment import Experiment
+
+def _run_dses():
+    ''' no documentation yet '''
+
+    dses = DSES(\
+        problem = SASphereProblem(dimensions = 2, accuracy = -1),
+        mu = 15, 
+        lambd = 100,
+        pi = 50,
+        theta = 0.7,
+        epsilon = 1.0,
+        tau0 = 1.0,
+        tau1 = 0.1,
+        combination = SAIntermediate(),
+        mutation = GaussSigma(),
+        selection = SmallestFitness(),
+        view = DSESView(mute = False),
+        selfadaption = Selfadaption())
+
+    dses.run()
+    return dses
 
 def _run_dsessvc():
     ''' no documentation yet '''
@@ -56,7 +81,7 @@ def _run_dsessvc():
         cv_method = KFold(50, 5))
 
     dsessvc = DSESSVC(\
-        SASphereProblem(dimensions = 2, accuracy = -4),
+        SASphereProblem(dimensions = 2, accuracy = -1),
         mu = 15,
         lambd = 100,
         theta = 0.7,
@@ -78,7 +103,7 @@ def _run_dsessvc():
     dsessvc.run()
     return dsessvc
 
-def _run_dsessvcm_project():
+def _run_dsessvcr():
     ''' no documentation yet '''
 
     sklearn_cv = SVCCVSkGridLinear(\
@@ -86,7 +111,7 @@ def _run_dsessvcm_project():
         cv_method = KFold(50, 5))
 
     dsessvcm = DSESSVCR(\
-        SASphereProblem(dimensions = 2, accuracy = -4),
+        SASphereProblem(dimensions = 2, accuracy = -1),
         mu = 15,
         lambd = 100,
         theta = 0.7,
@@ -112,91 +137,14 @@ def _run_dsessvcm_project():
 class TR2RepairAlignedExperiment(Experiment):
 
     def __init__(self):
-        self._file_call = 'evopy_experiments/tr2-repair-aligned/experiment_calls.csv'
-        self._file_fitnesses = 'evopy_experiments/tr2-repair-aligned/experiment_fitnesses.csv'
-        self._file_acc = 'evopy_experiments/tr2-repair-aligned/experiment_acc.csv'
-
-        self._writer_calls = writer(open(self._file_call, 'wb'), delimiter=';')
-        self._writer_fitnesses = writer(open(self._file_fitnesses, 'wb'), \
-            delimiter=';')
-
-        self._writer_acc = writer(open(self._file_acc, 'wb'), delimiter=';')
-        self._problem = "TR2"
-
-        self._writer_calls.writerow(\
-            ["problem",
-            "method", 
-            "sample",
-            "train-function-calls",
-            "constraint-calls",
-            "metamodel-calls",
-            "fitness-function-calls",
-            "generations"])
-
-        self._writer_fitnesses.writerow(\
-            ["problem"
-            "method", 
-            "sample",
-            "generation", 
-            "worst-fitness", 
-            "avg-fitness", 
-            "best-fitness"])
-
-        self._writer_acc.writerow(\
-            ["problem",
-            "method",
-            "sample", 
-            "generation", 
-            "best-acc"])
+        super(TR2RepairAlignedExperiment, self).__init__(\
+            "TR2", "tr2-repair-aligned")
 
     def run(self):
         ''' no documentation yet '''
 
         print __doc__
-        n = 50
+        samples = 1
 
-        for i in range(0, n):
-            dses = _run_dsessvcm_project()
-            self._write_stats(\
-                dses._strategy_name + " (aligned)",
-                i,
-                dses.get_statistics())
-            self.update_progress(i+1, n, "dses-svc-m")
-
-        for i in range(0, n):
-            dses = _run_dsessvc()
-            self._write_stats(\
-                dses._strategy_name,
-                i,
-                dses.get_statistics())
-            self.update_progress(i+1, n, "dses-svc")
-
-
-    def _write_stats(self, methodname, sample, stats):
-        '''no documentation yet'''
-
-        self._writer_calls.writerow(\
-            [self._problem, methodname, sample,
-            stats["train-function-calls"],
-            stats["constraint-calls"],
-            stats["metamodel-calls"],
-            stats["fitness-function-calls"],
-            stats["generations"]])
-
-        best_fitnesses = stats["best-fitness"]
-        worst_fitnesses = stats["worst-fitness"]
-        avg_fitnesses = stats["avg-fitness"]
-
-        for generation in range(0, int(stats["generations"])):
-            
-            worst_fitness = worst_fitnesses[generation]
-            avg_fitness = avg_fitnesses[generation]
-            best_fitness = best_fitnesses[generation]
-
-            self._writer_fitnesses.writerow([self._problem, methodname, 
-                sample, methodname, \
-                generation, worst_fitness, avg_fitness, best_fitness])
-
-            self._writer_acc.writerow([self._problem, methodname, sample, \
-                generation, stats["best-acc"][generation]])
-
+        cases = [_run_dsessvcr, _run_dsessvc, _run_dses]
+        self.run_cases(cases, 1)
