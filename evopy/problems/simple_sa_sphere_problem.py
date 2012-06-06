@@ -19,19 +19,24 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 
 from evopy.individuals.selfadaptive_individual import SelfadaptiveIndividual
 from random import random, sample, gauss
+from math import sqrt
 
 class SimpleSASphereProblem():
 
     _d = 2 
     _size = 10
 
+    def __init__(self, accuracy = 0, size = 10):
+        self._accuracy = accuracy
+        self._size = 10
+
     def termination(self, generations, fitness_of_best):
-        return (1 - 1 * pow(10, -2) < fitness_of_best < 1 + 1 * pow(10, -2))
+        return (fitness_of_best < 2 + 1 * pow(10, self._accuracy))
 
     # return true if solution is valid, otherwise false.
     def is_feasible(self, x):
-        return sum(map(lambda x : pow(x,2), x.value)) > 1.0
-
+        return (x.value[0] - sqrt(2) >= 0)
+    
     # return fitness, 0 is best.
     def fitness(self, x):
         return sum(map(lambda x : pow(x,2), x.value)) 
