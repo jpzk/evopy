@@ -82,7 +82,7 @@ class Experiment(object):
     def run_cases(self, cases, samples):
         for case in cases:
             results = map(call_case, [case] * samples, cpu = cpu_count())
-            for result in results:
+            for sample, result in enumerate(results):
                 method = result._strategy_name
                 meta_stats =\
                     {"problem" : self._problem,\
