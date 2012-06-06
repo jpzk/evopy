@@ -22,10 +22,15 @@ from random import gauss
 from evopy.individuals.selfadaptive_individual import SelfadaptiveIndividual
 
 class Selfadaption(object):
-    def mutate(self, selfadaptive_individual, tau0, tau1):
+
+    def __init__(self, tau0, tau1):
+        self._tau0 = tau0
+        self._tau1 = tau1
+
+    def mutate(self, selfadaptive_individual):
         sigmas = selfadaptive_individual.sigmas
-        temp = exp(tau0 * gauss(0, 1))
-        mutation = lambda sigma : sigma * temp * exp(tau1 * gauss(0,1))
+        temp = exp(self._tau0 * gauss(0, 1))
+        mutation = lambda sigma : sigma * temp * exp(self._tau1 * gauss(0,1))
         new_sigmas = map(mutation, sigmas)        
         selfadaptive_individual.sigmas = new_sigmas 
         return selfadaptive_individual

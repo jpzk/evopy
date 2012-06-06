@@ -61,13 +61,11 @@ def _run_dses():
         pi = 50,
         theta = 0.7,
         epsilon = 1.0,
-        tau0 = 1.0,
-        tau1 = 0.1,
         combination = SAIntermediate(),
         mutation = GaussSigma(),
         selection = SmallestFitness(),
         view = DSESView(mute = False),
-        selfadaption = Selfadaption())
+        selfadaption = Selfadaption(tau0 = 1.0, tau1 = 0.1))
 
     dses.run()
     return dses
@@ -87,8 +85,6 @@ def _run_dsessvc():
         theta = 0.7,
         pi = 70, 
         epsilon = 1.0,
-        tau0 = 1.0,
-        tau1 = 0.1,
         combination = SAIntermediate(),\
         mutation = GaussSigma(),\
         selection = SmallestFitness(),
@@ -98,7 +94,7 @@ def _run_dsessvc():
         append_to_window = 25,
         crossvalidation = sklearn_cv,
         scaling = ScalingStandardscore(),
-        selfadaption = Selfadaption())
+        selfadaption = Selfadaption(tau0 = 1.0, tau1 = 0.1))
 
     dsessvc.run()
     return dsessvc
@@ -117,8 +113,6 @@ def _run_dsessvcr():
         theta = 0.7,
         pi = 10, 
         epsilon = 1.0,
-        tau0 = 1.0,
-        tau1 = 0.1,
         combination = SAIntermediate(),\
         mutation = GaussSigmaAligned(),\
         selection = SmallestFitness(),
@@ -128,7 +122,7 @@ def _run_dsessvcr():
         append_to_window = 25,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv, 
-        selfadaption = Selfadaption(),
+        selfadaption = Selfadaption(tau0 = 1.0, tau1 = 0.1),
         repair_mode = 'mirror')
 
     dsessvcm.run()

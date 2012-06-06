@@ -57,9 +57,9 @@ class DSESSVCR(SVCEvolutionStrategy):
         self._linear_meta_model.train(feasible, infeasible, parameter_C)
 
     def __init__(\
-        self, problem, mu, lambd, theta, pi, epsilon, tau0, tau1, combination,\
+        self, problem, mu, lambd, theta, pi, epsilon, combination,\
         mutation, selection, view, beta, window_size, append_to_window, scaling,\
-        crossvalidation, selfadaption, repair_mode = 'project'):
+        crossvalidation, selfadaption, repair_mode = 'mirror'):
 
         super(DSESSVCR, self).__init__(\
             problem, mu, lambd, combination, mutation,\
@@ -72,8 +72,6 @@ class DSESSVCR(SVCEvolutionStrategy):
 
         # Selfadaption           
         self._selfadaption = selfadaption
-        self._tau0 = tau0
-        self._tau1 = tau1
 
         # SVC Metamodel
         self._beta = beta
@@ -126,8 +124,7 @@ class DSESSVCR(SVCEvolutionStrategy):
     def generate_child(self, population, epsilon):
         combined_child = self.combine(population)
         mutated_child = self.mutate(combined_child, combined_child.sigmas)
-        sa_child = self._selfadaption.mutate(\
-            mutated_child, self._tau0, self._tau1)
+        sa_child = self._selfadaption.mutate(mutated_child)
 
         sa_child.sigmas[0] = (1/10) * sa_child.sigmas[1]
 

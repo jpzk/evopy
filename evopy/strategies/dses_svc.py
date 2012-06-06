@@ -38,7 +38,7 @@ class DSESSVC(SVCEvolutionStrategy):
         reduce(self.listadd, sigmas))
 
     def __init__(\
-        self, problem, mu, lambd, theta, pi, epsilon, tau0, tau1, combination,\
+        self, problem, mu, lambd, theta, pi, epsilon, combination,\
         mutation, selection, view, beta, window_size, append_to_window,\
         crossvalidation, scaling, selfadaption):
 
@@ -53,8 +53,6 @@ class DSESSVC(SVCEvolutionStrategy):
 
         # Selfadaption           
         self._selfadaption = selfadaption
-        self._tau0 = tau0
-        self._tau1 = tau1
 
         # SVC Metamodel
         self._beta = beta
@@ -105,8 +103,7 @@ class DSESSVC(SVCEvolutionStrategy):
     def generate_child(self, population, epsilon):
         combined_child = self.combine(population)
         mutated_child = self.mutate(combined_child, combined_child.sigmas)
-        sa_child = self._selfadaption.mutate(\
-            mutated_child, self._tau0, self._tau1)
+        sa_child = self._selfadaption.mutate(mutated_child)
         
         # minimum DSES step size control
         sa_child.sigmas =\

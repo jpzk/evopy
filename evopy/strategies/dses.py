@@ -34,7 +34,7 @@ class DSES(EvolutionStrategy):
     meansigmas = lambda self, sigmas : map(lambda sigma : sigma / len(sigmas),\
         reduce(self.listadd, sigmas))
 
-    def __init__(self, problem, mu, lambd, theta, pi, epsilon, tau0, tau1, \
+    def __init__(self, problem, mu, lambd, theta, pi, epsilon, \
         combination, mutation, selection, view, selfadaption):
 
         super(DSES, self).\
@@ -48,8 +48,6 @@ class DSES(EvolutionStrategy):
 
         # Selfadaption           
         self._selfadaption = selfadaption
-        self._tau0 = tau0
-        self._tau1 = tau1
 
     def log(\
         self, generation, next_population, parameter_epsilon, DSES_infeasibles):
@@ -86,8 +84,7 @@ class DSES(EvolutionStrategy):
     def generate_child(self, population, epsilon):
         combined_child = self.combine(population)
         mutated_child = self.mutate(combined_child, combined_child.sigmas)
-        sa_child = self._selfadaption.mutate(\
-            mutated_child, self._tau0, self._tau1)
+        sa_child = self._selfadaption.mutate(mutated_child)
         
         # minimum DSES step size control
         sa_child.sigmas =\
