@@ -31,7 +31,7 @@ class DSESSVCR(SVCEvolutionStrategy):
  
     _strategy_name =\
         "Death Penalty Step Control with linear SVC "\
-        "meta model and repair of infeasibles"
+        "meta model and repair of infeasibles and mutation ellipsoid alignment"
 
     _statistics_parameter_epsilon_trajectory = []
     _statistics_DSES_infeasibles_trajectory = []
@@ -52,7 +52,6 @@ class DSESSVCR(SVCEvolutionStrategy):
 
     # train the metamodel with given points
     def train_metamodel(self, feasible, infeasible, parameter_C):
-
         self._count_train_metamodel += 1
         self._linear_meta_model.train(feasible, infeasible, parameter_C)
 
