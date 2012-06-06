@@ -23,9 +23,9 @@ from math import floor, sqrt
 from collections import deque 
 
 from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
-from svc_evolution_strategy import SVCEvolutionStrategy
+from mm_evolution_strategy import MMEvolutionStrategy
 
-class DSESSVCR(SVCEvolutionStrategy):
+class DSESSVCR(MMEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
  
@@ -33,13 +33,13 @@ class DSESSVCR(SVCEvolutionStrategy):
         "Death Penalty Step Control with linear SVC "\
         "meta model and repair of infeasibles and mutation ellipsoid alignment"
 
+    _statistics_parameter_C_trajectory = []
     _statistics_parameter_epsilon_trajectory = []
     _statistics_DSES_infeasibles_trajectory = []
     _statistics_average_sigma_trajectory = []
-    _statistics_wrong_meta_infeasibles = []
     _statistics_angle_trajectory = []
 
-    _linear_meta_model = SVCLinearMetaModel() 
+    _meta_model = SVCLinearMetaModel() 
 
     listadd = lambda self, l1, l2 : map(lambda i1, i2 : i1 + i2, l1, l2)
     meansigmas = lambda self, sigmas : map(lambda sigma : sigma / len(sigmas),\
@@ -48,12 +48,12 @@ class DSESSVCR(SVCEvolutionStrategy):
     # return true if solution is feasible in meta model, otherwise false.
     def is_meta_feasible(self, x):
         self._count_is_meta_feasible += 1
-        return self._linear_meta_model.check_feasibility(x)
+        return self._meta_model.check_feasibility(x)
 
     # train the metamodel with given points
     def train_metamodel(self, feasible, infeasible, parameter_C):
         self._count_train_metamodel += 1
-        self._linear_meta_model.train(feasible, infeasible, parameter_C)
+        self._meta_model.train(feasible, infeasible, parameter_C)
 
     def __init__(\
         self, problem, mu, lambd, theta, pi, epsilon, combination,\
@@ -86,25 +86,22 @@ class DSESSVCR(SVCEvolutionStrategy):
         self, generation, next_population, best_acc, parameter_C,\
         parameter_epsilon, DSES_infeasibles, wrong_meta_infeasibles, angle):
         
-        parameter_gamma = 0.0
-
-        super(DSESSVCR, self).log(\
-            generation, next_population, best_acc, parameter_C,
-            parameter_gamma)
+        super(DSESSVCR, self).log(generation, next_population, best_acc,\
+            wrong_meta_infeasibles) 
 
         sigmas = map(lambda child : child.sigmas, next_population)
-
+    
+        self._statistics_parameter_C_trajectory.append(parameter_C)
         self._statistics_average_sigma_trajectory.append(self.meansigmas(sigmas))
         self._statistics_parameter_epsilon_trajectory.append(parameter_epsilon)
         self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
-        self._statistics_wrong_meta_infeasibles.append(wrong_meta_infeasibles)
         self._statistics_angle_trajectory.append(angle)
 
     def get_statistics(self):
         statistics = {
+            "parameter-C" : self._statistics_parameter_C_trajectory,
             "parameter-epsilon" : self._statistics_parameter_epsilon_trajectory,
             "DSES-infeasibles" : self._statistics_DSES_infeasibles_trajectory,
-            "wrong-meta-infeasibles" : self._statistics_wrong_meta_infeasibles,
             "avg-sigma" : self._statistics_average_sigma_trajectory,
             "angle": self._statistics_angle_trajectory}
         
@@ -117,7 +114,7 @@ class DSESSVCR(SVCEvolutionStrategy):
     # mutate child with gauss devriation 
     def mutate(self, child, sigmas):
         self._statistics_mutations += 1
-        normal = self._linear_meta_model.get_normal()
+        normal = self._meta_model.get_normal()
         return self._mutation.mutate(child, sigmas, normal)
 
     # generate child 
@@ -158,7 +155,7 @@ class DSESSVCR(SVCEvolutionStrategy):
             if(self.is_meta_feasible(self._scaling.scale(meta_child))):
                 meta_feasible_children.append(meta_child)
             else:
-                meta_child = self._linear_meta_model.repair(\
+                meta_child = self._meta_model.repair(\
                    meta_child, self._repair_mode)
                 meta_feasible_children.append(meta_child)
 
@@ -249,13 +246,13 @@ class DSESSVCR(SVCEvolutionStrategy):
 
         self.log(generation, next_population, best_acc,\
             best_parameters[2], epsilon, DSES_infeasibles, meta_infeasibles,\
-            self._linear_meta_model.get_angle_degree())
+            self._meta_model.get_angle_degree())
 
         self._view.view(generations = generation,\
             best_fitness = fitness_of_best, best_acc = best_acc,\
             parameter_C = parameter_C, DSES_infeasibles = DSES_infeasibles,\
             wrong_meta_infeasibles = meta_infeasibles,\
-            angle = self._linear_meta_model.get_angle_degree())
+            angle = self._meta_model.get_angle_degree())
 
         if(self.termination(generation, fitness_of_best)):
             return True

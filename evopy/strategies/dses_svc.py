@@ -21,9 +21,11 @@ from numpy import array
 from math import floor, sqrt
 from collections import deque 
 
-from svc_evolution_strategy import SVCEvolutionStrategy
+from mm_evolution_strategy import MMEvolutionStrategy
+from evopy.individuals.individual import Individual
+from evopy.metamodel.svc_meta_model import SVCMetaModel
 
-class DSESSVC(SVCEvolutionStrategy):
+class DSESSVC(MMEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
 
@@ -32,7 +34,11 @@ class DSESSVC(SVCEvolutionStrategy):
     _statistics_parameter_epsilon_trajectory = []
     _statistics_DSES_infeasibles_trajectory = []
     _statistics_average_sigma_trajectory = []
-   
+    _statistics_parameter_C_trajectory = []
+    _statistics_parameter_gamma_trajectory = []
+ 
+    _meta_model = SVCMetaModel()
+
     listadd = lambda self, l1, l2 : map(lambda i1, i2 : i1 + i2, l1, l2)
     meansigmas = lambda self, sigmas : map(lambda sigma : sigma / len(sigmas),\
         reduce(self.listadd, sigmas))
@@ -63,13 +69,32 @@ class DSESSVC(SVCEvolutionStrategy):
         self._sliding_best_feasibles = deque(maxlen = self._window_size)
         self._sliding_best_infeasibles = deque(maxlen = self._window_size)
 
+    # return true if solution is feasible in meta model, otherwise false.
+    def is_meta_feasible(self, x):
+        self._count_is_meta_feasible += 1
+        return self._meta_model.check_feasibility(x)
+
+    # train the metamodel with given points
+    def train_metamodel(\
+        self, 
+        feasible, 
+        infeasible,
+        parameter_C,
+        parameter_gamma):
+
+        self._count_train_metamodel += 1
+        self._meta_model.train(\
+            feasible, 
+            infeasible,
+            parameter_C,
+            parameter_gamma)
+
     def log(\
         self, generation, next_population, best_acc, parameter_C,\
-        parameter_gamma, parameter_epsilon, DSES_infeasibles):
+        parameter_gamma, parameter_epsilon, DSES_infeasibles, wrong_meta_infeasibles):
         
-        super(DSESSVC, self).log(\
-            generation, next_population, best_acc, parameter_C,
-            parameter_gamma)
+        super(DSESSVC, self).log(generation, next_population, best_acc,\
+            wrong_meta_infeasibles) 
 
         sigmas = map(lambda child : child.sigmas, next_population)
 
@@ -91,8 +116,10 @@ class DSESSVC(SVCEvolutionStrategy):
         statistics = {
             "parameter-epsilon" : self._statistics_parameter_epsilon_trajectory,
             "DSES-infeasibles" : self._statistics_DSES_infeasibles_trajectory,
-            "avg-sigma" : self._statistics_average_sigma_trajectory}
-        
+            "avg-sigma" : self._statistics_average_sigma_trajectory,
+            "parameter-C" : self._statistics_parameter_C_trajectory,
+            "parameter-gamma": self._statistics_parameter_gamma_trajectory}
+ 
         super_statistics = super(DSESSVC, self).get_statistics()
         for k in super_statistics:
             statistics[k] = super_statistics[k]
@@ -116,6 +143,8 @@ class DSESSVC(SVCEvolutionStrategy):
         """ This method is called every generation. """
 
         DSES_infeasibles = 0
+        meta_infeasibles = 0
+
         children = [self.generate_child(population, epsilon) for child in range(0,l)]
 
         # Filter by checking feasiblity with SVC meta model, the 
@@ -146,6 +175,7 @@ class DSESSVC(SVCEvolutionStrategy):
             else:
                 infeasible_children.append(meta_feasible)
                 DSES_infeasibles += 1
+                meta_infeasibles += 1
                 # Because of Death Penalty we need a feasible reborn.
                 reborn = []                
                 while(len(reborn) < 1):  
@@ -223,7 +253,8 @@ class DSESSVC(SVCEvolutionStrategy):
             epsilon = epsilon * self._theta
 
         self.log(generation, next_population, best_acc,\
-            best_parameter_C, best_parameter_gamma, epsilon, DSES_infeasibles)
+            best_parameter_C, best_parameter_gamma, epsilon, DSES_infeasibles,\
+            meta_infeasibles)
 
         self.view(generation, next_population, best_acc,\
             best_parameter_C, best_parameter_gamma, epsilon, DSES_infeasibles)
