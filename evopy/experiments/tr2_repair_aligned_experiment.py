@@ -55,7 +55,7 @@ def _run_dses():
     ''' no documentation yet '''
 
     dses = DSES(\
-        problem = SASphereProblem(dimensions = 2, accuracy = -1),
+        problem = SASphereProblem(dimensions = 2, accuracy = -4),
         mu = 15, 
         lambd = 100,
         pi = 50,
@@ -81,7 +81,7 @@ def _run_dsessvc():
         cv_method = KFold(50, 5))
 
     dsessvc = DSESSVC(\
-        SASphereProblem(dimensions = 2, accuracy = -1),
+        SASphereProblem(dimensions = 2, accuracy = -4),
         mu = 15,
         lambd = 100,
         theta = 0.7,
@@ -111,7 +111,7 @@ def _run_dsessvcr():
         cv_method = KFold(50, 5))
 
     dsessvcm = DSESSVCR(\
-        SASphereProblem(dimensions = 2, accuracy = -1),
+        SASphereProblem(dimensions = 2, accuracy = -4),
         mu = 15,
         lambd = 100,
         theta = 0.7,
@@ -147,4 +147,4 @@ class TR2RepairAlignedExperiment(Experiment):
         samples = 1
 
         cases = [_run_dsessvcr, _run_dsessvc, _run_dses]
-        self.run_cases(cases, 1)
+        self.run_cases(cases, 50)
