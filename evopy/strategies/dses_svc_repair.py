@@ -106,7 +106,8 @@ class DSESSVCR(SVCEvolutionStrategy):
             "parameter-epsilon" : self._statistics_parameter_epsilon_trajectory,
             "DSES-infeasibles" : self._statistics_DSES_infeasibles_trajectory,
             "wrong-meta-infeasibles" : self._statistics_wrong_meta_infeasibles,
-            "avg-sigma" : self._statistics_average_sigma_trajectory}
+            "avg-sigma" : self._statistics_average_sigma_trajectory,
+            "angle": self._statistics_angle_trajectory}
         
         super_statistics = super(DSESSVCR, self).get_statistics()
         for k in super_statistics:
