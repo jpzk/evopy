@@ -25,7 +25,8 @@ from os import makedirs
 from csv import writer
 
 def call_case(case):
-    return case()
+    result = case()
+    return (result, result.get_statistics())
 
 class Experiment(object):
 
@@ -83,12 +84,14 @@ class Experiment(object):
         for case in cases:
             results = map(call_case, [case] * samples, cpu = cpu_count())
             for sample, result in enumerate(results):
-                method = result._strategy_name
+                obj, statistics = result
+                print statistics
+                method = obj._strategy_name
                 meta_stats =\
                     {"problem" : self._problem,\
                     "method" : method,\
                     "sample" : sample}
-                self._write_stats(meta_stats, result.get_statistics())
+                self._write_stats(meta_stats, statistics)
                 self._update_progress(sample + 1, samples, method)               
 
     def _write_stats(self, meta_stats, stats):
@@ -100,8 +103,8 @@ class Experiment(object):
         sample = meta_stats[self.general_attributes["sample"]]
 
         # general cases
-        constraint_calls = stats[self.calls_attributes["constraint-calls"]],
-        fitness_calls = stats[self.calls_attributes["fitness-function-calls"]],
+        constraint_calls = stats[self.calls_attributes["constraint-calls"]]
+        fitness_calls = stats[self.calls_attributes["fitness-function-calls"]]
         generations = stats[self.calls_attributes["generations"]]
 
         # special cases
