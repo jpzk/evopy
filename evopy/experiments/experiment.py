@@ -82,17 +82,24 @@ class Experiment(object):
 
     def run_cases(self, cases, samples):
         for case in cases:
+
             results = map(call_case, [case] * samples, cpu = cpu_count())
+
             for sample, result in enumerate(results):
-                obj, statistics = result
-                print statistics
-                method = obj._strategy_name
-                meta_stats =\
-                    {"problem" : self._problem,\
-                    "method" : method,\
-                    "sample" : sample}
-                self._write_stats(meta_stats, statistics)
-                self._update_progress(sample + 1, samples, method)               
+
+                # its no playdoh exception
+                if result is tuple:
+                    obj, statistics = result
+                    method = obj._strategy_name
+                    meta_stats =\
+                        {"problem" : self._problem,\
+                        "method" : method,\
+                        "sample" : sample}
+                    self._write_stats(meta_stats, statistics)
+                    self._update_progress(sample + 1, samples, method)
+                # playdoh exception                    
+                else:
+                    print result.traceback
 
     def _write_stats(self, meta_stats, stats):
         '''no documentation yet'''
