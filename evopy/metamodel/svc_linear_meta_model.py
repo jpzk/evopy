@@ -45,11 +45,14 @@ class SVCLinearMetaModel:
         if sklearn_version != '0.10' and sklearn_version != '0.11':
             raise Exception("sklearn version is not supported")
 
-    def get_angle_degree(self):
+    def get_angles_degree(self):
         normal = self.get_normal()
         inormal = -normal
-        return arctan2(inormal[1], inormal[0]) * (180/pi)
-
+        angles = []
+        for x, y in [(0, i) for i in range(1,len(normal))]:
+            angles.append(arctan2(inormal[y], inormal[x]) * 180.0 / pi)
+        return angles                    
+ 
     def repair(self, individual, repair_mode):
         x = individual.value
 

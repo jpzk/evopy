@@ -37,7 +37,7 @@ class DSESSVCR(MMEvolutionStrategy):
     _statistics_parameter_epsilon_trajectory = []
     _statistics_DSES_infeasibles_trajectory = []
     _statistics_average_sigma_trajectory = []
-    _statistics_angle_trajectory = []
+    _statistics_angles_trajectory = []
 
     _meta_model = SVCLinearMetaModel() 
 
@@ -84,7 +84,7 @@ class DSESSVCR(MMEvolutionStrategy):
 
     def log(\
         self, generation, next_population, best_acc, parameter_C,\
-        parameter_epsilon, DSES_infeasibles, wrong_meta_infeasibles, angle):
+        parameter_epsilon, DSES_infeasibles, wrong_meta_infeasibles, angles):
         
         super(DSESSVCR, self).log(generation, next_population, best_acc,\
             wrong_meta_infeasibles) 
@@ -95,7 +95,7 @@ class DSESSVCR(MMEvolutionStrategy):
         self._statistics_average_sigma_trajectory.append(self.meansigmas(sigmas))
         self._statistics_parameter_epsilon_trajectory.append(parameter_epsilon)
         self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
-        self._statistics_angle_trajectory.append(angle)
+        self._statistics_angles_trajectory.append(angles)
 
     def get_statistics(self):
         statistics = {
@@ -246,15 +246,13 @@ class DSESSVCR(MMEvolutionStrategy):
 
         self.log(generation, next_population, best_acc,\
             best_parameters[2], epsilon, DSES_infeasibles, meta_infeasibles,\
-            self._meta_model.get_angle_degree())
+            self._meta_model.get_angles_degree())
 
         self._view.view(generations = generation,\
             best_fitness = fitness_of_best, best_acc = best_acc,\
             parameter_C = parameter_C, DSES_infeasibles = DSES_infeasibles,\
             wrong_meta_infeasibles = meta_infeasibles,\
-            angle = self._meta_model.get_angle_degree())
-
-        print epsilon
+            angles = self._meta_model.get_angles_degree())
 
         if(self.termination(generation, fitness_of_best)):
             return True

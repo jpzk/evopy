@@ -25,7 +25,7 @@ class UniversalView(View):
     def view(\
         self, generations = None, best_fitness = None, best_acc = None,\
         parameter_C = None, epsilon = None, DSES_infeasibles = None,\
-        wrong_meta_infeasibles = None, angle = None, sigmasmean = None):
+        wrong_meta_infeasibles = None, angles = None, sigmasmean = None):
 
         line = ""
 
@@ -43,7 +43,10 @@ class UniversalView(View):
             line += "d-inf: %i " % (DSES_infeasibles) 
         if(wrong_meta_infeasibles != None):
             line += "m-inf: %i " % (wrong_meta_infeasibles) 
-        if(angle != None):
-            line += "a: %f " % (angle) 
+                    
+        if(angles != None):
+            line += "\nangles: "
+            for angle in angles:
+                line += "%f " % (angle) 
            
         self._output(line)
