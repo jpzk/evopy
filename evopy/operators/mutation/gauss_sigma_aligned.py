@@ -31,7 +31,7 @@ class GaussSigmaAligned():
 
         # hyperplane alignment        
         inormal = -hyperplane_normal
-        rad = arctan2(inormal[0], inormal[1])
+        rad = arctan2(inormal[1], inormal[0])
         rotate = matrix([[cos(rad), -sin(rad)], [sin(rad), cos(rad)]])
 
         # mutation
