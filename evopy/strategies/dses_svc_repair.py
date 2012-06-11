@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from numpy import array
+from numpy import array, mean
 from random import random
 from math import floor, sqrt
 from collections import deque 
@@ -123,7 +123,7 @@ class DSESSVCR(MMEvolutionStrategy):
         mutated_child = self.mutate(combined_child, combined_child.sigmas)
         sa_child = self._selfadaption.mutate(mutated_child)
 
-        sa_child.sigmas[0] = (1/10) * sa_child.sigmas[1]
+        sa_child.sigmas[0] = (1.0/10.0) * mean(sa_child.sigmas[1:])
 
         # minimum DSES step size control
         sa_child.sigmas =\
@@ -253,6 +253,8 @@ class DSESSVCR(MMEvolutionStrategy):
             parameter_C = parameter_C, DSES_infeasibles = DSES_infeasibles,\
             wrong_meta_infeasibles = meta_infeasibles,\
             angle = self._meta_model.get_angle_degree())
+
+        print epsilon
 
         if(self.termination(generation, fitness_of_best)):
             return True

@@ -19,7 +19,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 
 from sklearn import svm
 from sklearn import __version__ as sklearn_version
-from numpy import sum, sqrt, mean, arctan2, pi
+from numpy import sum, sqrt, mean, arctan2, pi, matrix, sin, cos
 
 class SVCLinearMetaModel:
     """ SVC meta model which classfies feasible and infeasible points """
