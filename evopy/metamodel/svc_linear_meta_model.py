@@ -30,7 +30,7 @@ class SVCLinearMetaModel:
         points_svm = [i.value for i in infeasible] + [f.value for f in feasible]
 
         labels = [-1] * len(infeasible) + [1] * len(feasible) 
-        self._clf = svm.SVC(kernel = 'linear', C = parameter_C)
+        self._clf = svm.SVC(kernel = 'linear', C = parameter_C, tol = 1.0)
         self._clf.fit(points_svm, labels)
 
     def get_normal(self):
@@ -48,7 +48,7 @@ class SVCLinearMetaModel:
     def get_angle_degree(self):
         normal = self.get_normal()
         inormal = -normal
-        return arctan2(inormal[0], inormal[1]) * (180/pi)
+        return arctan2(inormal[1], inormal[0]) * (180/pi)
 
     def repair(self, individual, repair_mode):
         x = individual.value
