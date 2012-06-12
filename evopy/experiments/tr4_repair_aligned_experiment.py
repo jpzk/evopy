@@ -32,7 +32,7 @@ from sklearn.cross_validation import KFold
 
 from evopy.problems.sa_sphere_problem import SASphereProblem
 from evopy.operators.mutation.gauss_sigma import GaussSigma
-from evopy.operators.mutation.gauss_sigma_aligned import GaussSigmaAligned
+from evopy.operators.mutation.gauss_sigma_aligned_nd import GaussSigmaAlignedND
 from evopy.operators.combination.sa_intermediate import SAIntermediate
 from evopy.operators.selection.smallest_fitness import SmallestFitness
 from evopy.operators.selfadaption.selfadaption import Selfadaption
@@ -114,7 +114,7 @@ def _run_dsessvcr():
         pi = 10,
         epsilon = 1.0,
         combination = SAIntermediate(),\
-        mutation = GaussSigmaAligned(),\
+        mutation = GaussSigmaAlignedND(),\
         selection = SmallestFitness(),
         view = UniversalView(),
         beta = 0.9,
