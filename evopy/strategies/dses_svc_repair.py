@@ -114,8 +114,7 @@ class DSESSVCR(MMEvolutionStrategy):
     # mutate child with gauss devriation 
     def mutate(self, child, sigmas):
         self._statistics_mutations += 1
-        normal = self._meta_model.get_normal()
-        return self._mutation.mutate(child, sigmas, normal)
+        return self._mutation.mutate(child, sigmas)
 
     # generate child 
     def generate_child(self, population, epsilon):
@@ -235,6 +234,10 @@ class DSESSVCR(MMEvolutionStrategy):
             infeasible = best_parameters[1],
             parameter_C = best_parameters[2])
 
+        # prepare inverse rotation matrices
+        hyperplane_normal = self._meta_model.get_normal()
+        self._mutation.prepare_inverse_rotations(hyperplane_normal)
+
         fitness_of_best = self.fitness(next_population[0])
 
         # step size reduction if infeasibles >= pi
@@ -246,13 +249,13 @@ class DSESSVCR(MMEvolutionStrategy):
 
         self.log(generation, next_population, best_acc,\
             best_parameters[2], epsilon, DSES_infeasibles, meta_infeasibles,\
-            self._meta_model.get_angles_degree())
+            self._mutation.get_angles_degree())
 
         self._view.view(generations = generation,\
             best_fitness = fitness_of_best, best_acc = best_acc,\
             parameter_C = parameter_C, DSES_infeasibles = DSES_infeasibles,\
             wrong_meta_infeasibles = meta_infeasibles,\
-            angles = self._meta_model.get_angles_degree())
+            angles = self._mutation.get_angles_degree())
 
         if(self.termination(generation, fitness_of_best)):
             return True
@@ -314,6 +317,10 @@ class DSESSVCR(MMEvolutionStrategy):
             feasible = best_parameters[0],
             infeasible = best_parameters[1],
             parameter_C = best_parameters[2])
+
+        # prepare inverse rotation matrices
+        hyperplane_normal = self._meta_model.get_normal()
+        self._mutation.prepare_inverse_rotations(hyperplane_normal)
 
         result = self._run((feasible_parents, 0, self._mu, self._lambd,\
             0, self._epsilon))

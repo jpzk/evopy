@@ -50,37 +50,54 @@ class GaussSigmaAlignedND():
             mat.append(row)                                                
         return matrix(mat)
 
+    def get_angles_degree(self):
+        return self.angles
+
     def rotations(self, normal, d):       
         rotations = []
+        self.angles = []            
         enormals = [transpose(normal)]
+
         for x, y in [(0, i) for i in range(1,d)]:
             lnormal = enormals[-1]
             lnormal_as_list = lnormal.getA1()
+
+            # calculate radian of last embedded normal
             angle = arctan2(lnormal_as_list[y], lnormal_as_list[x])
+
+            # append angles for info
+            self.angles.append(angle * 180/pi)
+
+            # embed normal into next axis combination
             rotation = self.givens(x,y, -angle, d)
+
+            # append embedded normal
             enormals.append(rotation * lnormal)
+
+            # append rotation
             rotations.append(rotation)
         rotations.reverse()            
         return rotations
 
-    def mutate(self, child, sigmas, hyperplane_normal):
-
-        x = child.value
-        d = len(x)
-
-        # hyperplane alignment        
+    def prepare_inverse_rotations(self, hyperplane_normal):
         inormal = -hyperplane_normal
-        rad = arctan2(inormal[0], inormal[1])
-
+        d = len(inormal)
         inormal = matrix(inormal)
         rotations = self.rotations(inormal, d)
+        self.inverse_rotations = []
+        for rotation in rotations:
+            self.inverse_rotations.append(inv(rotation))
+       
+    def mutate(self, child, sigmas):
+        x = child.value
+        d = len(x)
 
         # mutation
         m = rand(1,d) * transpose(array([normal(0, sigma) for sigma in sigmas]))
 
         m_i = transpose(m)
-        for rotation in rotations:
-            m_i = inv(rotation) * m_i
+        for inverse_rotation in self.inverse_rotations:
+            m_i = inverse_rotation * m_i
 
         m_r = transpose(m_i)
 
