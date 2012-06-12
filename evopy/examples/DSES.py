@@ -28,17 +28,15 @@ from evopy.strategies.dses import DSES
 
 def get_method():
     return DSES(\
-        problem = SASphereProblem(),
+        problem = SASphereProblem(dimensions=4, accuracy=-4),
         mu = 15, 
         lambd = 100,
-        pi = 50,
+        pi = 70,
         theta = 0.7,
         epsilon = 1.0,
-        tau0 = 1.0,
-        tau1 = 0.1,
         combination = SAIntermediate(),
         mutation = GaussSigma(),
         selection = SmallestFitness(),
         view = DSESView(),
-        selfadaption = Selfadaption())
+        selfadaption = Selfadaption(tau0 = 1.0, tau1 = 0.1))
 
