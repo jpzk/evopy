@@ -23,6 +23,7 @@ from numpy import matrix, cos, sin, inner, array, sqrt, arccos, pi, arctan2
 from numpy import transpose
 from numpy.random import rand
 from numpy.random import normal
+from numpy.linalg import inv
 
 class GaussSigmaAlignedND():
 
@@ -49,17 +50,21 @@ class GaussSigmaAlignedND():
             mat.append(row)                                                
         return matrix(mat)
 
-    def rotations(self, normal):       
-        d = len(normal)
+    def rotations(self, normal, d):       
         rotations = []
+        enormals = [transpose(normal)]
         for x, y in [(0, i) for i in range(1,d)]:
-            angle = arctan2(normal[x], normal[y])
-            rotation = self.givens(x,y, angle, d) 
+            lnormal = enormals[-1]
+            lnormal_as_list = lnormal.getA1()
+            angle = arctan2(lnormal_as_list[y], lnormal_as_list[x])
+            rotation = self.givens(x,y, -angle, d)
+            enormals.append(rotation * lnormal)
             rotations.append(rotation)
         rotations.reverse()            
         return rotations
 
     def mutate(self, child, sigmas, hyperplane_normal):
+
         x = child.value
         d = len(x)
 
@@ -67,15 +72,15 @@ class GaussSigmaAlignedND():
         inormal = -hyperplane_normal
         rad = arctan2(inormal[0], inormal[1])
 
-        rotations = self.rotations(inormal)
-        rotate = rotations[0]
+        inormal = matrix(inormal)
+        rotations = self.rotations(inormal, d)
 
         # mutation
         m = rand(1,d) * transpose(array([normal(0, sigma) for sigma in sigmas]))
 
-        m_i = m
+        m_i = transpose(m)
         for rotation in rotations:
-            m_i = rotation * transpose(m_i)
+            m_i = inv(rotation) * m_i
 
         m_r = transpose(m_i)
 
