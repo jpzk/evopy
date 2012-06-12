@@ -37,11 +37,11 @@ def get_method():
         cv_method = KFold(50, 5))
 
     method = DSESSVCR(\
-        SASphereProblem(dimensions = 3, accuracy = -4),
+        SASphereProblem(dimensions = 2, accuracy = -4),
         mu = 15,
         lambd = 100,
         theta = 0.7,
-        pi = 50, 
+        pi = 10, 
         epsilon = 1.0,
         combination = SAIntermediate(),\
         mutation = GaussSigmaAlignedND(),\

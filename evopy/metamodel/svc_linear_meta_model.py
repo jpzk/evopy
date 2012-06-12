@@ -30,7 +30,7 @@ class SVCLinearMetaModel:
         points_svm = [i.value for i in infeasible] + [f.value for f in feasible]
 
         labels = [-1] * len(infeasible) + [1] * len(feasible) 
-        self._clf = svm.SVC(kernel = 'linear', C = parameter_C, tol = 1.0)
+        self._clf = svm.SVC(kernel = 'linear', C = parameter_C)
         self._clf.fit(points_svm, labels)
 
     def get_normal(self):

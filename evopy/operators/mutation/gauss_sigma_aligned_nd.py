@@ -39,9 +39,9 @@ class GaussSigmaAlignedND():
                 elif a == j and b == j:
                     row.append(cos(alpha))
                 elif a == j and b == i:
-                    row.append(-sin(alpha))
+                    row.append(sin(alpha))
                 elif a == i and b == j:
-                    row.append(sin(alpha))                    
+                    row.append(-sin(alpha))                    
                 elif a == b and a != j and b != j: 
                     row.append(1)   
                 else:
@@ -53,9 +53,10 @@ class GaussSigmaAlignedND():
         d = len(normal)
         rotations = []
         for x, y in [(0, i) for i in range(1,d)]:
-            angle = arctan2(normal[y], normal[x])
-            rotation = self.givens(x,y, -angle, d) 
+            angle = arctan2(normal[x], normal[y])
+            rotation = self.givens(x,y, angle, d) 
             rotations.append(rotation)
+        rotations.reverse()            
         return rotations
 
     def mutate(self, child, sigmas, hyperplane_normal):
@@ -64,15 +65,19 @@ class GaussSigmaAlignedND():
 
         # hyperplane alignment        
         inormal = -hyperplane_normal
+        rad = arctan2(inormal[0], inormal[1])
+
+        rotations = self.rotations(inormal)
+        rotate = rotations[0]
 
         # mutation
         m = rand(1,d) * transpose(array([normal(0, sigma) for sigma in sigmas]))
 
-        # d-1 rotations
-        for rotation in self.rotations(inormal):
-            m = m * rotation
+        m_i = m
+        for rotation in rotations:
+            m_i = rotation * transpose(m_i)
 
-        m_r = transpose(m)
+        m_r = transpose(m_i)
 
         new_x = array(x) + m_r
         child.value = new_x.tolist()[0]
