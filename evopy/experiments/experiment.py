@@ -88,7 +88,7 @@ class Experiment(object):
             for sample, result in enumerate(results):
 
                 # its no playdoh exception
-                if result is tuple:
+                if type(result) is tuple:
                     obj, statistics = result
                     method = obj._strategy_name
                     meta_stats =\
