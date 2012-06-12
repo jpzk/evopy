@@ -131,7 +131,7 @@ def _run_dsessvcr():
 class TR4RepairAlignedExperiment(Experiment):
 
     def __init__(self):
-        super(TR2RepairAlignedExperiment, self).__init__(\
+        super(TR4RepairAlignedExperiment, self).__init__(\
             "TR4", "tr4-repair-aligned")
 
     def run(self):
