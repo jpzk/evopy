@@ -18,7 +18,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from multiprocessing import cpu_count
-from playdoh import map
+from evopy.external.playdoh import map
 from sys import stdout
 from math import floor
 from os import makedirs
