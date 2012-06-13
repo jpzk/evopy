@@ -66,7 +66,7 @@ class GaussSigmaAlignedND():
             angle = arctan2(lnormal_as_list[y], lnormal_as_list[x])
 
             # append angles for info
-            self.angles.append(angle * 180/pi)
+            self.angles.append(angle * 180.0/pi)
 
             # embed normal into next axis combination
             rotation = self.givens(x,y, -angle, d)
@@ -85,20 +85,20 @@ class GaussSigmaAlignedND():
         inormal = matrix(inormal)
         rotations = self.rotations(inormal, d)
         self.inverse_rotations = []
+
         for rotation in rotations:
             self.inverse_rotations.append(inv(rotation))
-       
+
+        # left-associative reduce (important!)
+        self.new_basis = reduce(lambda r1, r2 : r1 * r2, self.inverse_rotations)
+
     def mutate(self, child, sigmas):
         x = child.value
         d = len(x)
 
         # mutation
         m = rand(1,d) * transpose(array([normal(0, sigma) for sigma in sigmas]))
-
-        m_i = transpose(m)
-        for inverse_rotation in self.inverse_rotations:
-            m_i = inverse_rotation * m_i
-
+        m_i = self.new_basis * transpose(m)
         m_r = transpose(m_i)
 
         new_x = array(x) + m_r
