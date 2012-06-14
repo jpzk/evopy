@@ -30,7 +30,7 @@ class SVCLinearMetaModel:
         points_svm = [i.value for i in infeasible] + [f.value for f in feasible]
 
         labels = [-1] * len(infeasible) + [1] * len(feasible) 
-        self._clf = svm.SVC(kernel = 'linear', C = parameter_C)
+        self._clf = svm.SVC(kernel = 'linear', C = parameter_C, tol = 1.0)
         self._clf.fit(points_svm, labels)
 
     def get_normal(self):
@@ -45,14 +45,6 @@ class SVCLinearMetaModel:
         if sklearn_version != '0.10' and sklearn_version != '0.11':
             raise Exception("sklearn version is not supported")
 
-    def get_angles_degree(self):
-        normal = self.get_normal()
-        inormal = -normal
-        angles = []
-        for x, y in [(0, i) for i in range(1,len(normal))]:
-            angles.append(arctan2(inormal[y], inormal[x]) * 180.0 / pi)
-        return angles                    
- 
     def repair(self, individual, repair_mode):
         x = individual.value
 
