@@ -21,11 +21,17 @@ from numpy import array
 from evolution_strategy import EvolutionStrategy
 
 class MMEvolutionStrategy(EvolutionStrategy):
-   
-    _count_is_meta_feasible = 0
-    _count_train_metamodel = 0
-    _statistics_best_acc_trajectory = []
-    _statistics_wrong_meta_infeasibles = []
+
+    def __init__(self, problem, mu, lambd, combination, mutation,\
+        selection, view):
+
+        super(MMEvolutionStrategy, self).__init__(\
+            problem, mu, lambd, combination, mutation, selection, view)
+
+        self._count_is_meta_feasible = 0
+        self._count_train_metamodel = 0
+        self._statistics_best_acc_trajectory = []
+        self._statistics_wrong_meta_infeasibles = []        
 
     def log(self, generation, next_population, best_acc, wrong_meta_infeasibles):        
         super(MMEvolutionStrategy, self).log(generation, next_population)

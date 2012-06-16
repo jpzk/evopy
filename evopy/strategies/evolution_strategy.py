@@ -21,14 +21,6 @@ from numpy import array
 
 class EvolutionStrategy(object):
    
-    _statistics_is_feasible = 0
-    _statistics_fitness = 0
-    _statistics_generations = 0
-    _statistics_mutations = 0
-    _statistics_best_fitness_trajectory = []
-    _statistics_worst_fitness_trajectory = []
-    _statistics_average_fitness_trajectory = []
-
     def __init__(self, problem, mu, lambd, \
         combination, mutation, selection, view, sigmas = None):
 
@@ -40,6 +32,14 @@ class EvolutionStrategy(object):
         self._combination = combination
         self._selection = selection
         self._view = view
+
+        self._statistics_is_feasible = 0
+        self._statistics_fitness = 0
+        self._statistics_generations = 0
+        self._statistics_mutations = 0
+        self._statistics_best_fitness_trajectory = []
+        self._statistics_worst_fitness_trajectory = []
+        self._statistics_average_fitness_trajectory = []
 
     def log(self, generation, next_population):
         self._statistics_generations += 1

@@ -26,10 +26,6 @@ class DSES(EvolutionStrategy):
 
     _strategy_name = "Death Penalty Step Control"
 
-    _statistics_parameter_epsilon_trajectory = []
-    _statistics_DSES_infeasibles_trajectory = []
-    _statistics_average_sigma_trajectory = []
-
     listadd = lambda self, l1, l2 : map(lambda i1, i2 : i1 + i2, l1, l2)
     meansigmas = lambda self, sigmas : map(lambda sigma : sigma / len(sigmas),\
         reduce(self.listadd, sigmas))
@@ -40,6 +36,10 @@ class DSES(EvolutionStrategy):
         super(DSES, self).\
             __init__(problem, mu, lambd, \
             combination, mutation, selection, view) 
+
+        self._statistics_parameter_epsilon_trajectory = []
+        self._statistics_DSES_infeasibles_trajectory = []
+        self._statistics_average_sigma_trajectory = []
 
         # Death Penalty step control parameters
         self._theta = theta
