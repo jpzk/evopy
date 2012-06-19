@@ -33,20 +33,6 @@ class DSESSVCR(MMEvolutionStrategy):
         "Death Penalty Step Control with linear SVC "\
         "meta model and repair of infeasibles and mutation ellipsoid alignment"
 
-    listadd = lambda self, l1, l2 : map(lambda i1, i2 : i1 + i2, l1, l2)
-    meansigmas = lambda self, sigmas : map(lambda sigma : sigma / len(sigmas),\
-        reduce(self.listadd, sigmas))
-
-    # return true if solution is feasible in meta model, otherwise false.
-    def is_meta_feasible(self, x):
-        self._count_is_meta_feasible += 1
-        return self._meta_model.check_feasibility(x)
-
-    # train the metamodel with given points
-    def train_metamodel(self, feasible, infeasible, parameter_C):
-        self._count_train_metamodel += 1
-        self._meta_model.train(feasible, infeasible, parameter_C)
-
     def __init__(\
         self, problem, mu, lambd, theta, pi, epsilon, combination,\
         mutation, selection, view, beta, window_size, append_to_window, scaling,\
@@ -88,9 +74,12 @@ class DSESSVCR(MMEvolutionStrategy):
             wrong_meta_infeasibles) 
 
         sigmas = map(lambda child : child.sigmas, next_population)
-    
+        listadd = lambda l1, l2 : map(lambda i1, i2 : i1 + i2, l1, l2)
+        meansigmas = lambda sigmas : map(lambda sigma : sigma / len(sigmas),\
+            reduce(listadd, sigmas))
+
         self._statistics_parameter_C_trajectory.append(parameter_C)
-        self._statistics_average_sigma_trajectory.append(self.meansigmas(sigmas))
+        self._statistics_average_sigma_trajectory.append(meansigmas(sigmas))
         self._statistics_parameter_epsilon_trajectory.append(parameter_epsilon)
         self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
         self._statistics_angles_trajectory.append(angles)
@@ -108,6 +97,16 @@ class DSESSVCR(MMEvolutionStrategy):
             statistics[k] = super_statistics[k]
         
         return statistics
+
+    # return true if solution is feasible in meta model, otherwise false.
+    def is_meta_feasible(self, x):
+        self._count_is_meta_feasible += 1
+        return self._meta_model.check_feasibility(x)
+
+    # train the metamodel with given points
+    def train_metamodel(self, feasible, infeasible, parameter_C):
+        self._count_train_metamodel += 1
+        self._meta_model.train(feasible, infeasible, parameter_C)
 
     # mutate child with gauss devriation 
     def mutate(self, child, sigmas):
