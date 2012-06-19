@@ -33,14 +33,6 @@ class DSESSVCR(MMEvolutionStrategy):
         "Death Penalty Step Control with linear SVC "\
         "meta model and repair of infeasibles and mutation ellipsoid alignment"
 
-    _statistics_parameter_C_trajectory = []
-    _statistics_parameter_epsilon_trajectory = []
-    _statistics_DSES_infeasibles_trajectory = []
-    _statistics_average_sigma_trajectory = []
-    _statistics_angles_trajectory = []
-
-    _meta_model = SVCLinearMetaModel() 
-
     listadd = lambda self, l1, l2 : map(lambda i1, i2 : i1 + i2, l1, l2)
     meansigmas = lambda self, sigmas : map(lambda sigma : sigma / len(sigmas),\
         reduce(self.listadd, sigmas))
@@ -61,8 +53,14 @@ class DSESSVCR(MMEvolutionStrategy):
         crossvalidation, selfadaption, repair_mode = 'mirror'):
 
         super(DSESSVCR, self).__init__(\
-            problem, mu, lambd, combination, mutation,\
-            selection, view)
+            problem, mu, lambd, combination, mutation, selection, view)
+
+        self._statistics_parameter_C_trajectory = []
+        self._statistics_parameter_epsilon_trajectory = []
+        self._statistics_DSES_infeasibles_trajectory = []
+        self._statistics_average_sigma_trajectory = []
+        self._statistics_angles_trajectory = []
+        self._meta_model = SVCLinearMetaModel() 
 
         # Death Penalty step control parameters
         self._theta = theta
@@ -229,10 +227,15 @@ class DSESSVCR(MMEvolutionStrategy):
         best_parameters = self._crossvalidation.crossvalidate(\
             scaled_best_feasibles, scaled_best_infeasibles)                    
 
+        training_feasibles = best_parameters[0]
+        training_infeasibles = best_parameters[1]
+        best_parameter_C = best_parameters[2]        
+        best_acc = best_parameters[3]
+
         self.train_metamodel(\
-            feasible = best_parameters[0],
-            infeasible = best_parameters[1],
-            parameter_C = best_parameters[2])
+            feasible = training_feasibles,
+            infeasible = training_infeasibles,
+            parameter_C = best_parameter_C)
 
         # prepare inverse rotation matrices
         hyperplane_normal = self._meta_model.get_normal()
@@ -242,10 +245,7 @@ class DSESSVCR(MMEvolutionStrategy):
 
         # step size reduction if infeasibles >= pi
         if(DSES_infeasibles >= self._pi):
-            epsilon = epsilon * self._theta
-
-        best_acc = best_parameters[3]
-        parameter_C = best_parameters[2]        
+            epsilon = epsilon * self._theta        
 
         self.log(generation, next_population, best_acc,\
             best_parameters[2], epsilon, DSES_infeasibles, meta_infeasibles,\
@@ -253,7 +253,7 @@ class DSESSVCR(MMEvolutionStrategy):
 
         self._view.view(generations = generation,\
             best_fitness = fitness_of_best, best_acc = best_acc,\
-            parameter_C = parameter_C, DSES_infeasibles = DSES_infeasibles,\
+            parameter_C = best_parameter_C, DSES_infeasibles = DSES_infeasibles,\
             wrong_meta_infeasibles = meta_infeasibles,\
             angles = self._mutation.get_angles_degree())
 
@@ -313,10 +313,15 @@ class DSESSVCR(MMEvolutionStrategy):
         best_parameters = self._crossvalidation.crossvalidate(\
             scaled_best_feasibles, scaled_best_infeasibles)                    
 
+        training_feasibles = best_parameters[0]
+        training_infeasibles = best_parameters[1]
+        best_parameter_C = best_parameters[2]        
+        best_acc = best_parameters[3]
+
         self.train_metamodel(\
-            feasible = best_parameters[0],
-            infeasible = best_parameters[1],
-            parameter_C = best_parameters[2])
+            feasible = training_feasibles,
+            infeasible = training_infeasibles,
+            parameter_C = best_parameter_C)
 
         # prepare inverse rotation matrices
         hyperplane_normal = self._meta_model.get_normal()
