@@ -33,6 +33,10 @@ class SVCLinearMetaModel:
         self._clf = svm.SVC(kernel = 'linear', C = parameter_C, tol = 1.0)
         self._clf.fit(points_svm, labels)
 
+    def distance_to_hp(self, x):
+        """ Returns the distance from a point to hyperplane """
+        return (self._clf.decision_function(x) * (1/sqrt(sum(w ** 2))))
+
     def get_normal(self):
         # VERY IMPORTANT
         w = self._clf.coef_[0]
