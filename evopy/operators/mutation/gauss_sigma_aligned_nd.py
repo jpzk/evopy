@@ -87,7 +87,9 @@ class GaussSigmaAlignedND():
         self.inverse_rotations = []
 
         for rotation in rotations:
-            self.inverse_rotations.append(inv(rotation))
+            # transpose(rotation matrix) is inverse
+            inv_rotation = transpose(rotation)
+            self.inverse_rotations.append(inv_rotation)
 
         # left-associative reduce (important!)
         self.new_basis = reduce(lambda r1, r2 : r1 * r2, self.inverse_rotations)
