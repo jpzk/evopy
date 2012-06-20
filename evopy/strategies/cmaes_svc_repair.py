@@ -17,8 +17,11 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from numpy import array, mean, log, eye
-from random import random
+from numpy.linalg import eigh
+from numpy import array, mean, log, eye, diag, transpose, matrix
+from numpy.random import normal, rand
+
+from copy import deepcopy
 from math import floor, sqrt
 from collections import deque 
 
@@ -45,6 +48,9 @@ class CMAESSVCR(MMEvolutionStrategy):
         # dimension of objective function
         N = 2
 
+        self._xmean = [5.0, 5.0]
+        self._sigma = 1.0
+
         # recombination weights
         self._weights = [log(self._mu + 0.5) - log(i + 1) for i in range(self._mu)]  
 
@@ -65,7 +71,7 @@ class CMAESSVCR(MMEvolutionStrategy):
   
         # and for rank-mu update
         term_a = 1 - self._c1
-        term_b = 2 * (self._mueff - 2 + 1 / self._mueff) / ((N + 2)**2 + self._mueff)
+        term_b = 2 * (self._mueff - 2 + 1 / self._mueff) / ((N + 2) ** 2 + self._mueff)
         self._cmu = min(term_a, term_b)  
 
         # damping for sigma, usually close to 1
@@ -112,9 +118,32 @@ class CMAESSVCR(MMEvolutionStrategy):
         DSES_infeasibles = 0
         meta_infeasibles = 0
 
-        children = [self.generate_child(population) for child in range(0,l)]
-        next_population = self.select(population, children, m)
+        # ASK part
 
+        # eigendecomposition of C into D and B.
+        self._D, self._B = eigh(self._C)
+        self._D = [d ** 0.5 for d in self._D]  
+
+        invD = diag([1.0/d for d in self._D])
+        self._invsqrtC = self._B * invD * transpose(self._B) 
+
+        children = []
+        while(len(children) < self._lambd):
+            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+            value = self._xmean + transpose(self._sigma * self._B * normals)
+            child = Individual(value.getA1())
+            if(self.is_feasible(child)):
+                children.append(child)
+        
+        # TELL part
+        oldxmean = deepcopy(self._xmean)
+        sorted_children = sorted(children, key=lambda child : self.fitness(child))[:self._mu]
+        
+        self.best_fitness = self.fitness(sorted_children[0])
+        self.best_child = deepcopy(sorted_children[0])
+
+        values = map(lambda child : child.value, self.sorted_children) 
+        
         best_acc = 0.0
         best_parameter_C = 0.0 
         fitness_of_best = self.fitness(next_population[0])
@@ -139,8 +168,15 @@ class CMAESSVCR(MMEvolutionStrategy):
         """ This method initializes the population etc. And starts the 
             recursion. """
        
-        initial_pop = [self.generate_population() for child in range(0, self._lambd)]
-        result = self._run((initial_pop, 0, self._mu, self._lambd, 0))
+        children = []
+        while(len(children) < self._lambd):
+            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+            value = self._xmean + transpose(self._sigma * self._B * normals)
+            child = Individual(value.getA1())
+            if(self.is_feasible(child)):
+                children.append(child)
+ 
+        result = self._run((children, 0, self._mu, self._lambd, 0))
 
         while result != True:
             result = self._run(result)
