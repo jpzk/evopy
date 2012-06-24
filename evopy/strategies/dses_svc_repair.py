@@ -155,7 +155,7 @@ class DSESSVCR(MMEvolutionStrategy):
                    meta_child, self._repair_mode)
                 meta_feasible_children.append(meta_child)
 
-        # Filter by true feasibility with constraind function, here we
+        # Filter by true feasibility with constraint function, here we
         # can update the sliding feasibles and infeasibles.
         feasible_children = []
         infeasible_children = []
