@@ -22,7 +22,8 @@ http://www.lri.fr/~hansen/cmaesintro.html.
 '''
 
 from copy import deepcopy
-from collections import deque 
+from collections import deque
+from math import floor
 
 from numpy import array, mean, log, eye, diag, transpose
 from numpy import identity, matrix, dot, exp, zeros, ones
@@ -32,6 +33,10 @@ from numpy.linalg import eigh, norm
 from evopy.individuals.individual import Individual
 from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
 from mm_evolution_strategy import MMEvolutionStrategy
+
+# @todo DSES_infeasibles in view to constraint_infeasibles
+# @todo refactor reborn for-loops
+# @todo N = self._xmean to self._problem._d
 
 class CMAESSVCR(MMEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
@@ -54,7 +59,7 @@ class CMAESSVCR(MMEvolutionStrategy):
 
         # statistics
         self._statistics_parameter_C_trajectory = []
-        self._statistics_DSES_infeasibles_trajectory = []
+        self._statistics_constraint_infeasibles_trajectory = []
         self._statistics_angles_trajectory = []
         
         # SVC Metamodel
@@ -72,7 +77,7 @@ class CMAESSVCR(MMEvolutionStrategy):
     def _run(self, (population, generation, m, l, lastfitness)):
         """ This method is called every generation. """
 
-        DSES_infeasibles = 0
+        constraint_infeasibles = 0
         meta_infeasibles = 0
 
         # ASK part
@@ -84,25 +89,118 @@ class CMAESSVCR(MMEvolutionStrategy):
         invD = diag([1.0/d for d in self._D])
         self._invsqrtC = self._B * invD * transpose(self._B) 
 
-        children = []
-        while(len(children) < self._lambd):
-            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
-            value = self._xmean + transpose(self._sigma * self._B * normals)
-            child = Individual(value.getA1())
-            if(self.is_feasible(child)):
-                children.append(child)
+        # Filter by checking feasiblity with SVC meta model, the 
+        # meta model might be wrong, so we have to weighten between
+        # the filtern with meta model and filtering with the 
+        # true constraint function.
+        children = [self._generate_child() for child in range(0, self._lambd)]
+        cut = int(floor(self._beta * len(children)))
+        meta_children = children[:cut]
+        constraint_children = children[cut:]
+
+        # check scaled against meta model, BUT the unscaled against 
+        # the constraint function.
+        meta_feasible_children = []
+        for meta_child in meta_children:
+            if(self.is_meta_feasible(self._scaling.scale(meta_child))):
+                meta_feasible_children.append(meta_child)
             else:
-                DSES_infeasibles += 1
-        
+                meta_child = self._meta_model.repair(\
+                    meta_child, self._repair_mode)
+                meta_feasible_children.append(meta_child)
+
+        # Filter by true feasibility with constraint function, here we
+        # can update the sliding feasibles and infeasibles.
+        feasible_children = []
+        infeasible_children = []
+ 
+        for meta_feasible in meta_feasible_children:
+            if(self.is_feasible(meta_feasible)):
+                feasible_children.append(meta_feasible)
+            else:
+                infeasible_children.append(meta_feasible)
+                constraint_infeasibles += 1
+                meta_infeasibles += 1
+                # Because of Death Penalty we need a feasible reborn.
+                reborn = []
+                while(len(reborn) < 1):
+                    generated = self._generate_child()
+                    if(self.is_feasible(generated)):
+                        reborn.append(generated)
+                    else:
+                        constraint_infeasibles += 1
+                feasible_children.extend(reborn)                        
+
+        # Filter the other part of the cut with the true constraint function. 
+        # Using this information to update the meta model.
+        for child in constraint_children:
+            if(self.is_feasible(child)):
+                feasible_children.append(child)
+            else:
+                infeasible_children.append(child) 
+                constraint_infeasibles += 1
+ 
+                # Because of Death Penalty we need a feasible reborn.
+                reborn = []
+                while(len(reborn) < 1):
+                    generated = self._generate_child()       
+                    if(self.is_feasible(generated)):
+                        reborn.append(generated)
+                    else:
+                        constraint_infeasibles += 1
+                feasible_children.extend(reborn)
+
         N = len(self._xmean)
 
         # TELL part
         oldxmean = deepcopy(self._xmean)
         sort_by = lambda child : self.fitness(child)
-        sorted_children = sorted(children, key = sort_by)[:self._mu]
-         
+        sorted_children = sorted(feasible_children, key = sort_by)[:self._mu]
+                
         self._best_fitness = self.fitness(sorted_children[0])
         self._best_child = deepcopy(sorted_children[0])
+
+        # update archive and meta model
+   
+        map(self._sliding_best_infeasibles.append, 
+            self.select([], infeasible_children, self._append_to_window))
+
+        map(self._sliding_best_feasibles.append,
+            self.select([], feasible_children, self._append_to_window))
+
+        sliding_best_infeasibles =\
+            [child for child in self._sliding_best_infeasibles]
+
+        sliding_best_feasibles =\
+            [child for child in self._sliding_best_feasibles]
+
+        # new scaling because sliding windows changes
+        self._scaling.setup(sliding_best_feasibles + sliding_best_infeasibles)
+
+        scaled_best_feasibles = map(\
+            self._scaling.scale, 
+            self._sliding_best_feasibles)
+
+        scaled_best_infeasibles = map(\
+            self._scaling.scale,
+            self._sliding_best_infeasibles)                
+
+        best_parameters = self._crossvalidation.crossvalidate(\
+            scaled_best_feasibles, scaled_best_infeasibles)                    
+
+        training_feasibles = best_parameters[0]
+        training_infeasibles = best_parameters[1]
+        best_parameter_C = best_parameters[2]        
+        best_acc = best_parameters[3]
+
+        self.train_metamodel(\
+            feasible = training_feasibles,
+            infeasible = training_infeasibles,
+            parameter_C = best_parameter_C)
+
+        # prepare inverse rotation matrices
+        hyperplane_normal = self._meta_model.get_normal()
+        self._mutation.prepare_inverse_rotations(hyperplane_normal)
 
         # new xmean
         values = map(lambda child : child.value, sorted_children) 
@@ -137,20 +235,18 @@ class CMAESSVCR(MMEvolutionStrategy):
         self._sigma *= exp(min(0.6, (self._cs / self._damps) *\
             sum(x ** 2 for x in self._ps.getA1())/(N - 1) / 2))
                             
-        best_acc = 0.0
-        best_parameter_C = 0.0 
         fitness_of_best = self._best_fitness
         next_population = sorted_children
        
         self.log(generation, next_population, best_acc,\
-            best_parameter_C, DSES_infeasibles, meta_infeasibles,\
-            [0.0])#self._mutation.get_angles_degree())
+            best_parameter_C, constraint_infeasibles, meta_infeasibles,\
+            self._mutation.get_angles_degree())
 
         self._view.view(generations = generation,\
             best_fitness = fitness_of_best, best_acc = best_acc,\
-            parameter_C = best_parameter_C, DSES_infeasibles = DSES_infeasibles,\
+            parameter_C = best_parameter_C, DSES_infeasibles = constraint_infeasibles,\
             wrong_meta_infeasibles = meta_infeasibles,\
-            angles = [0.0])
+            angles = self._mutation.get_angles_degree())
 
         if(self.termination(generation, fitness_of_best)):
             return True
@@ -161,16 +257,64 @@ class CMAESSVCR(MMEvolutionStrategy):
     def run(self):
         """ This method initializes the population etc. And starts the 
             recursion. """
-       
-        children = []
-        while(len(children) < self._lambd):
-            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
-            value = self._xmean + transpose(self._sigma * self._B * normals)
-            child = Individual(value.getA1())
-            if(self.is_feasible(child)):
-                children.append(child)
- 
-        result = self._run((children, 0, self._mu, self._lambd, 0))
+      
+        feasible_parents = []
+        best_feasibles = []
+        feasibles = []
+        best_infeasibles = []
+        infeasibles = []
+
+        while(len(feasible_parents) < self._mu):
+            parent = self.generate_population() 
+            if(self.is_feasible(parent)):
+                feasible_parents.append(parent)
+                feasibles.append(parent)
+            else:
+                infeasibles.append(parent)
+
+        # just to be sure 
+        while(len(infeasibles) < self._window_size):
+            parent = self.generate_population()
+            if(not self.is_feasible(parent)):
+                infeasibles.append(parent)
+
+        while(len(feasibles) < self._window_size):
+            parent = self.generate_population() 
+            if(self.is_feasible(parent)):
+                feasibles.append(parent)
+      
+        # initial training of the meta model
+        best_feasibles = self.select([], feasibles, self._window_size)
+        best_infeasibles = self.select([], infeasibles, self._window_size)
+
+        # adding to sliding windows
+
+        map(self._sliding_best_feasibles.append, best_feasibles)
+        map(self._sliding_best_infeasibles.append, best_infeasibles)
+
+        # scaling, scaling factors are kept in scaling attribute.
+        self._scaling.setup(best_feasibles + best_infeasibles)
+        scaled_best_feasibles = map(self._scaling.scale, best_feasibles)
+        scaled_best_infeasibles = map(self._scaling.scale, best_infeasibles)
+
+        best_parameters = self._crossvalidation.crossvalidate(\
+            scaled_best_feasibles, scaled_best_infeasibles)                    
+
+        training_feasibles = best_parameters[0]
+        training_infeasibles = best_parameters[1]
+        best_parameter_C = best_parameters[2]        
+        best_acc = best_parameters[3]
+
+        self.train_metamodel(\
+            feasible = training_feasibles,
+            infeasible = training_infeasibles,
+            parameter_C = best_parameter_C)
+
+        # prepare inverse rotation matrices
+        hyperplane_normal = self._meta_model.get_normal()
+        self._mutation.prepare_inverse_rotations(hyperplane_normal)
+
+        result = self._run((feasible_parents, 0, self._mu, self._lambd, 0))
 
         while result != True:
             result = self._run(result)
@@ -222,22 +366,28 @@ class CMAESSVCR(MMEvolutionStrategy):
         # covariance matrix, rotation of mutation ellipsoid
         self._C = identity(N)
         self._invsqrtC = identity(N)  # C^-1/2 
- 
+
+    def _generate_child(self):
+        normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+        value = self._xmean + transpose(self._sigma * self._B * normals)
+        child = Individual(value.getA1())
+        return child       
+
     def log(\
         self, generation, next_population, best_acc, best_parameter_C,\
-        DSES_infeasibles, wrong_meta_infeasibles, angles):
+        constraint_infeasibles, wrong_meta_infeasibles, angles):
         
         super(CMAESSVCR, self).log(generation, next_population, best_acc,\
             wrong_meta_infeasibles) 
 
         self._statistics_parameter_C_trajectory.append(best_parameter_C)
-        self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
+        self._statistics_constraint_infeasibles_trajectory.append(constraint_infeasibles)
         self._statistics_angles_trajectory.append(angles)
 
     def get_statistics(self):
         statistics = {
             "parameter-C" : self._statistics_parameter_C_trajectory,
-            "DSES-infeasibles" : self._statistics_DSES_infeasibles_trajectory,
+            "DSES-infeasibles" : self._statistics_constraint_infeasibles_trajectory,
             "angle": self._statistics_angles_trajectory}
         
         super_statistics = super(CMAESSVCR, self).get_statistics()
