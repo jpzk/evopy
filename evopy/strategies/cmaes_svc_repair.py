@@ -15,10 +15,16 @@ Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
+
+Special thanks to Nikolaus Hansen for providing major part of the CMA-ES code.
+The CMA-ES algorithm is provided in many other languages and advanced versions at 
+http://www.lri.fr/~hansen/cmaesintro.html.
+
 '''
 
-from numpy.linalg import eigh
-from numpy import array, mean, log, eye, diag, transpose, matrix
+from numpy.linalg import eigh, norm
+from numpy import array, mean, log, eye, diag, transpose, matrix, dot, exp, zeros, ones
+from numpy import identity
 from numpy.random import normal, rand
 
 from copy import deepcopy
@@ -78,18 +84,18 @@ class CMAESSVCR(MMEvolutionStrategy):
         self._damps = 2 * self._mueff / self._lambd + 0.3 + self._cs  
         
         # evolution paths for C and sigma
-        self._pc = N * [0]
-        self._ps = N * [0] 
+        self._pc = zeros(N)
+        self._ps = zeros(N)
 
         # B-matrix of eigenvectors, defines the coordinate system
-        self._B = eye(N) 
+        self._B = identity(N)
 
         # diagonal matrix of eigenvalues (sigmas of axes) 
-        self._D = N * [1]  # diagonal D defines the scaling
+        self._D = ones(N)  # diagonal D defines the scaling
 
         # covariance matrix, rotation of mutation ellipsoid
-        self._C = eye(N)   
-        self._invsqrtC = eye(N)  # C^-1/2 
+        self._C = identity(N)
+        self._invsqrtC = identity(N)  # C^-1/2 
 
         # tracking the update of B and D
         self._eigeneval = 0    
@@ -122,7 +128,8 @@ class CMAESSVCR(MMEvolutionStrategy):
 
         # eigendecomposition of C into D and B.
         self._D, self._B = eigh(self._C)
-        self._D = [d ** 0.5 for d in self._D]  
+        self._B = matrix(self._B)
+        self._D = [d ** 0.5 for d in self._D] 
 
         invD = diag([1.0/d for d in self._D])
         self._invsqrtC = self._B * invD * transpose(self._B) 
@@ -134,19 +141,59 @@ class CMAESSVCR(MMEvolutionStrategy):
             child = Individual(value.getA1())
             if(self.is_feasible(child)):
                 children.append(child)
+            else:
+                DSES_infeasibles += 1
         
+        N = len(self._xmean)
+
         # TELL part
         oldxmean = deepcopy(self._xmean)
         sorted_children = sorted(children, key=lambda child : self.fitness(child))[:self._mu]
-        
-        self.best_fitness = self.fitness(sorted_children[0])
-        self.best_child = deepcopy(sorted_children[0])
+         
+        self._best_fitness = self.fitness(sorted_children[0])
+        self._best_child = deepcopy(sorted_children[0])
 
-        values = map(lambda child : child.value, self.sorted_children) 
+        # new xmean
+        values = map(lambda child : child.value, sorted_children) 
+        self._xmean = dot(self._weights, values)
+       
+        # cumulation: update evolution paths
+        y = self._xmean - oldxmean
+        z = dot(self._invsqrtC, y) # C**(-1/2) * (xnew - xold)
+
+        # normalizing coefficient c and evolution path sigma control
+        c = (self._cs * (2 - self._cs) * self._mueff) ** 0.5 / self._sigma
+
+        self._ps = (1 - self._cs) * self._ps + c * z
+
+        # heaviside function
+        #hsig = sum(x**2 for x in self._ps) / (1-(1-self._cs)**(2*
+
+        # normalizing coefficient c and evolution path for rank-one-update
+        # without hsig (!)
+        c = (self._cc * (2 - self._cc) * self._mueff) ** 0.5 / self._sigma
+        self._pc = (1 - self._cc) * self._pc + c * y
         
+        # adapt covariance matrix C
+        # rank one update term
+        term_cov1 = self._c1 * (transpose(matrix(self._pc)) * matrix(self._pc))       
+
+        # ranke mu update term
+        valuesv = [(value - oldxmean)/self._sigma for value in values] 
+        term_covmu = self._cmu *\
+            sum([self._weights[i] * (transpose(matrix(valuesv[i])) * matrix(valuesv[i]))\
+            for i in range(0, self._mu)])
+
+        self._C = (1 - self._c1 - self._cmu) * self._C + term_cov1 + term_covmu
+
+        #update sigma page. 20, equation (30)
+        self._sigma *= exp(min(0.6, (self._cs / self._damps) *\
+            sum(x ** 2 for x in self._ps.getA1())/(N - 1) / 2))
+                            
         best_acc = 0.0
         best_parameter_C = 0.0 
-        fitness_of_best = self.fitness(next_population[0])
+        fitness_of_best = self._best_fitness
+        next_population = sorted_children
        
         self.log(generation, next_population, best_acc,\
             best_parameter_C, DSES_infeasibles, meta_infeasibles,\
