@@ -25,6 +25,9 @@ from collections import deque
 from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
 from mm_evolution_strategy import MMEvolutionStrategy
 
+# @todo DSES_infeasibles to constraint_infeasibles
+# @todo DSES_infeasibles of view
+
 class DSESSVCR(MMEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
         window (between generations) to build a meta model using SVC. """
@@ -189,7 +192,7 @@ class DSESSVCR(MMEvolutionStrategy):
                 # Because of Death Penalty we need a feasible reborn.
                 reborn = []
                 while(len(reborn) < 1):
-                    generated = self.generate_child(population, epsilon)                     
+                    generated = self.generate_child(population, epsilon)               
                     if(self.is_feasible(generated)):
                         reborn.append(generated)
                     else:
