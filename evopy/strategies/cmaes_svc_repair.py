@@ -31,12 +31,11 @@ from numpy.random import normal, rand
 from numpy.linalg import eigh, norm
 
 from evopy.individuals.individual import Individual
-from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
+from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
 from mm_evolution_strategy import MMEvolutionStrategy
 
 # @todo DSES_infeasibles in view to constraint_infeasibles
 # @todo refactor reborn for-loops
-# @todo N = self._xmean to self._problem._d
 
 class CMAESSVCR(MMEvolutionStrategy):
     """ Using the fittest feasible and infeasible individuals in a sliding
@@ -63,7 +62,7 @@ class CMAESSVCR(MMEvolutionStrategy):
         self._statistics_angles_trajectory = []
         
         # SVC Metamodel
-        self._meta_model = SVCLinearMetaModel() 
+        self._meta_model = CMASVCLinearMetaModel() 
         self._beta = beta
         self._append_to_window = append_to_window
         self._window_size = window_size
@@ -150,8 +149,6 @@ class CMAESSVCR(MMEvolutionStrategy):
                         constraint_infeasibles += 1
                 feasible_children.extend(reborn)
 
-        N = len(self._xmean)
-
         # TELL part
         oldxmean = deepcopy(self._xmean)
         sort_by = lambda child : self.fitness(child)
@@ -202,6 +199,9 @@ class CMAESSVCR(MMEvolutionStrategy):
         hyperplane_normal = self._meta_model.get_normal()
         self._mutation.prepare_inverse_rotations(hyperplane_normal)
 
+        # CMA-ES specific code starts here
+        N = self._problem._d
+
         # new xmean
         values = map(lambda child : child.value, sorted_children) 
         self._xmean = dot(self._weights, values)
@@ -241,6 +241,9 @@ class CMAESSVCR(MMEvolutionStrategy):
         self.log(generation, next_population, best_acc,\
             best_parameter_C, constraint_infeasibles, meta_infeasibles,\
             self._mutation.get_angles_degree())
+
+        print self._B
+        print self._mutation.new_basis
 
         self._view.view(generations = generation,\
             best_fitness = fitness_of_best, best_acc = best_acc,\
