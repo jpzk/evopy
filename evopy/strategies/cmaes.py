@@ -19,17 +19,14 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 Special thanks to Nikolaus Hansen for providing major part of the CMA-ES code.
 The CMA-ES algorithm is provided in many other languages and advanced versions at 
 http://www.lri.fr/~hansen/cmaesintro.html.
-
 '''
 
-from numpy.linalg import eigh, norm
-from numpy import array, mean, log, eye, diag, transpose, matrix, dot, exp, zeros, ones
-from numpy import identity
-from numpy.random import normal, rand
-
 from copy import deepcopy
-from math import floor, sqrt
-from collections import deque 
+
+from numpy import array, mean, log, eye, diag, transpose
+from numpy import identity, matrix, dot, exp, zeros, ones
+from numpy.random import normal, rand
+from numpy.linalg import eigh, norm
 
 from evopy.individuals.individual import Individual
 from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
@@ -40,59 +37,17 @@ class CMAES(EvolutionStrategy):
     _strategy_name =\
         "Covariance matrix adaption evolution strategy (CMA-ES)"
 
-    def __init__(\
-        self, problem, mu, lambd, combination, mutation, selection, xmean, sigma, view):
+    def __init__(self, problem, mu, lambd, combination, mutation,\
+        selection, xmean, sigma, view):
 
         super(CMAES, self).__init__(\
             problem, mu, lambd, combination, mutation, selection, view)
 
-        # dimension of objective function
-        N = len(xmean)
-        self._xmean = xmean 
-        self._sigma = sigma
-
-        # recombination weights
-        self._weights = [log(self._mu + 0.5) - log(i + 1) for i in range(self._mu)]  
-
-        # normalize recombination weights array
-        self._weights = [w / sum(self._weights) for w in self._weights]  
-
-        # variance-effectiveness of sum w_i x_i
-        self._mueff = sum(self._weights) ** 2 / sum(w ** 2 for w in self._weights)
-        
-        # time constant for cumulation for C
-        self._cc = (4 + self._mueff / N) / (N + 4 + 2 * self._mueff / N)  
-
-        # t-const for cumulation for sigma control
-        self._cs = (self._mueff + 2) / (N + self._mueff + 5)
-
-        # learning rate for rank-one update of C
-        self._c1 = 2 / ((N + 1.3) ** 2 + self._mueff)
-  
-        # and for rank-mu update
-        term_a = 1 - self._c1
-        term_b = 2 * (self._mueff - 2 + 1 / self._mueff) / ((N + 2) ** 2 + self._mueff)
-        self._cmu = min(term_a, term_b)  
-
-        # damping for sigma, usually close to 1
-        self._damps = 2 * self._mueff / self._lambd + 0.3 + self._cs  
-        
-        # evolution paths for C and sigma
-        self._pc = zeros(N)
-        self._ps = zeros(N)
-
-        # B-matrix of eigenvectors, defines the coordinate system
-        self._B = identity(N)
-
-        # diagonal matrix of eigenvalues (sigmas of axes) 
-        self._D = ones(N)  # diagonal D defines the scaling
-
-        # covariance matrix, rotation of mutation ellipsoid
-        self._C = identity(N)
-        self._invsqrtC = identity(N)  # C^-1/2 
+        # initialize CMA-ES specific strategy parameters
+        self._init_cma_strategy_parameters(xmean, sigma)
 
         # statistics
-        self._statistics_CMAES_infeasibles_trajectory = []
+        self._statistics_CMAES_infeasibles_trajectory = []    
 
     # main evolution 
     def _run(self, (population, generation, m, l, lastfitness)):
@@ -153,7 +108,8 @@ class CMAES(EvolutionStrategy):
         # ranke mu update term
         valuesv = [(value - oldxmean) / self._sigma for value in values] 
         term_covmu = self._cmu *\
-            sum([self._weights[i] * (transpose(matrix(valuesv[i])) * matrix(valuesv[i]))\
+            sum([self._weights[i] * (transpose(matrix(valuesv[i])) *\
+            matrix(valuesv[i]))\
             for i in range(0, self._mu)])
 
         self._C = (1 - self._c1 - self._cmu) * self._C + term_cov1 + term_covmu
@@ -196,6 +152,52 @@ class CMAES(EvolutionStrategy):
 
         return result
 
+    def _init_cma_strategy_parameters(self, xmean, sigma):
+        # dimension of objective function
+        N = self._problem._d
+        self._xmean = xmean 
+        self._sigma = sigma
+
+        # recombination weights
+        self._weights = [log(self._mu + 0.5) - log(i + 1) for i in range(self._mu)]  
+
+        # normalize recombination weights array
+        self._weights = [w / sum(self._weights) for w in self._weights]  
+
+        # variance-effectiveness of sum w_i x_i
+        self._mueff = sum(self._weights) ** 2 / sum(w ** 2 for w in self._weights)
+        
+        # time constant for cumulation for C
+        self._cc = (4 + self._mueff / N) / (N + 4 + 2 * self._mueff / N)  
+
+        # t-const for cumulation for sigma control
+        self._cs = (self._mueff + 2) / (N + self._mueff + 5)
+
+        # learning rate for rank-one update of C
+        self._c1 = 2 / ((N + 1.3) ** 2 + self._mueff)
+  
+        # and for rank-mu update
+        term_a = 1 - self._c1
+        term_b = 2 * (self._mueff - 2 + 1 / self._mueff) / ((N + 2) ** 2 + self._mueff)
+        self._cmu = min(term_a, term_b)  
+
+        # damping for sigma, usually close to 1
+        self._damps = 2 * self._mueff / self._lambd + 0.3 + self._cs  
+        
+        # evolution paths for C and sigma
+        self._pc = zeros(N)
+        self._ps = zeros(N)
+
+        # B-matrix of eigenvectors, defines the coordinate system
+        self._B = identity(N)
+
+        # diagonal matrix of eigenvalues (sigmas of axes) 
+        self._D = ones(N)  # diagonal D defines the scaling
+
+        # covariance matrix, rotation of mutation ellipsoid
+        self._C = identity(N)
+        self._invsqrtC = identity(N)  # C^-1/2 
+ 
     def log(self, generation, next_population, CMAES_infeasibles):
         super(CMAES, self).log(generation, next_population)
         self._statistics_CMAES_infeasibles_trajectory.append(CMAES_infeasibles)
@@ -224,9 +226,4 @@ class CMAES(EvolutionStrategy):
     def mutate(self, child, sigmas):
         self._statistics_mutations += 1
         return self._mutation.mutate(child, sigmas)
-
-    # generate child 
-    def generate_child(self, population):
-        return Individual([5.0]) 
-
 
