@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from sys import path
+path.append("../..")
+
 from sklearn.cross_validation import KFold
 from evopy.problems.simple_sa_sphere_problem import SimpleSASphereProblem
 from evopy.problems.sa_sphere_problem import SASphereProblem
@@ -48,3 +51,7 @@ def get_method():
         view = UniversalView())
      
     return method
+
+if __name__ == "__main__":
+    m = get_method()
+    m.run()

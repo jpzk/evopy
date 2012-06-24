@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from sys import path
+path.append("../..")
+
 from evopy.problems.sa_sphere_problem import SASphereProblem
 from evopy.problems.simple_sa_sphere_problem import SimpleSASphereProblem
 from evopy.operators.mutation.gauss_sigma import GaussSigma
@@ -40,3 +43,6 @@ def get_method():
         view = DSESView(),
         selfadaption = Selfadaption(tau0 = 1.0, tau1 = 0.1))
 
+if __name__ == "__main__":
+    m = get_method()
+    m.run()
