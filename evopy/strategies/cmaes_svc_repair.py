@@ -20,6 +20,7 @@ Special thanks to Nikolaus Hansen for providing major part of the CMA-ES code.
 The CMA-ES algorithm is provided in many other languages and advanced versions at 
 http://www.lri.fr/~hansen/cmaesintro.html.
 '''
+import pdb
 
 from copy import deepcopy
 from collections import deque
@@ -83,6 +84,10 @@ class CMAESSVCR(MMEvolutionStrategy):
         # eigendecomposition of C into D and B.
         self._D, self._B = eigh(self._C)
         self._B = matrix(self._B)
+
+        # blend between B and rotation basis
+        self._B = self._blend_B_with_rotation(self._B, self._mutation.new_basis)
+
         self._D = [d ** 0.5 for d in self._D] 
 
         invD = diag([1.0/d for d in self._D])
@@ -241,10 +246,7 @@ class CMAESSVCR(MMEvolutionStrategy):
         self.log(generation, next_population, best_acc,\
             best_parameter_C, constraint_infeasibles, meta_infeasibles,\
             self._mutation.get_angles_degree())
-
-        print self._B
-        print self._mutation.new_basis
-
+       
         self._view.view(generations = generation,\
             best_fitness = fitness_of_best, best_acc = best_acc,\
             parameter_C = best_parameter_C, DSES_infeasibles = constraint_infeasibles,\
@@ -369,6 +371,50 @@ class CMAESSVCR(MMEvolutionStrategy):
         # covariance matrix, rotation of mutation ellipsoid
         self._C = identity(N)
         self._invsqrtC = identity(N)  # C^-1/2 
+
+    # @todo use arctan2, special case 90 degrees for all vectors
+    # and one vector is <= 0 for each other vector.
+    def _blend_B_with_rotation(self, B, rotation):
+    
+        blend_pairs = []
+        taken = [False for i in range(0, len(rotation.T))]
+
+        simialarity = 0.0
+
+        for i in range(0, len(B.T)):
+            first = True
+            vector_in_b = B.T[i]
+            for j in range(0, len(rotation.T)):
+                vector_in_rot = rotation.T[j].T
+                product = dot(vector_in_b.getA1(), vector_in_rot.getA1())
+                if(not taken[j] and first): 
+                        first = False
+                        closest = vector_in_rot            
+                        closest_product = product
+                        closest_index = j
+                else:
+                    if(not taken[j] and product > closest_product):
+                        closest = vector_in_rot
+                        closest_product = product
+                        closest_index = j
+            simialarity += closest_product                        
+            blend_pairs.append((vector_in_b, closest))
+            taken[j] = True
+
+        simialarity /= 2.0
+        simialarity = max(0.0, simialarity)
+        print "sim", simialarity
+        blended_mat = []
+
+        blend_factor = 1.0 - (simialarity ** 4)
+        #blend_factor = 0.0
+        print "blendfactor", blend_factor
+ 
+        for (b_vec, rot_vec) in blend_pairs:
+            blended_vec = (1.0 - blend_factor) * b_vec + blend_factor * rot_vec.getA1()
+            blended_mat.append(blended_vec.getA1())
+
+        return matrix(blended_mat).T
 
     def _generate_child(self):
         normals = transpose(matrix([normal(0.0, d) for d in self._D]))

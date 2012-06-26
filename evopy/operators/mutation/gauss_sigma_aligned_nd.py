@@ -66,10 +66,14 @@ class GaussSigmaAlignedND():
             angle = arctan2(lnormal_as_list[y], lnormal_as_list[x])
 
             # append angles for info
-            self.angles.append(angle * 180.0/pi)
+            # (2 * pi + angle) for CMA-ES left-hand-coordinates
+            # -angle for DSES right-hand-coordinates
+            self.angles.append((2 * pi + angle) * 180.0/pi)
 
+            # (2 * pi + angle) for CMA-ES left-hand-coordinates
+            # -angle for DSES right-hand-coordinates 
             # embed normal into next axis combination
-            rotation = self.givens(x,y, -angle, d)
+            rotation = self.givens(x,y, 2 * pi + angle, d)
 
             # append embedded normal
             enormals.append(rotation * lnormal)

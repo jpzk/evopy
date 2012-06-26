@@ -49,7 +49,7 @@ def get_method():
         xmean = [5.0, 5.0],
         sigma = 1.0,
         view = UniversalView(),
-        beta = 0.9,
+        beta = 0.90,
         window_size = 25,
         append_to_window = 25,
         scaling = ScalingStandardscore(),
