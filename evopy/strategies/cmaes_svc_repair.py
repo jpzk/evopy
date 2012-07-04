@@ -407,7 +407,7 @@ class CMAESSVCR(MMEvolutionStrategy):
         blended_mat = []
 
         blend_factor = 1.0 - (simialarity ** 4)
-        #blend_factor = 0.0
+        blend_factor = 0.0
         print "blendfactor", blend_factor
  
         for (b_vec, rot_vec) in blend_pairs:

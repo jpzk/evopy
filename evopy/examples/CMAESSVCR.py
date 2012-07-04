@@ -40,8 +40,8 @@ def get_method():
         cv_method = KFold(50, 5))
 
     method = CMAESSVCR(\
-        SASphereProblem(dimensions = 2, accuracy = -4),
-        mu = 15,
+        SASphereProblem(dimensions = 2, accuracy = -12),
+        mu = 50,
         lambd = 100,
         combination = SAIntermediate(),\
         mutation = GaussSigmaAlignedND(),\
@@ -49,7 +49,7 @@ def get_method():
         xmean = [5.0, 5.0],
         sigma = 1.0,
         view = UniversalView(),
-        beta = 0.90,
+        beta = 0.9,
         window_size = 25,
         append_to_window = 25,
         scaling = ScalingStandardscore(),

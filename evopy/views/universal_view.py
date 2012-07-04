@@ -32,7 +32,7 @@ class UniversalView(View):
         if(generations != None):
             line += "gen: %i " % (generations) 
         if(best_fitness != None):
-            line += "bf: %f " % (best_fitness) 
+            line += "bf: %.12f " % (best_fitness) 
         if(best_acc != None):
             line += "ba: %f " % (best_acc) 
         if(parameter_C != None):
@@ -45,7 +45,7 @@ class UniversalView(View):
             line += "m-inf: %i " % (wrong_meta_infeasibles) 
                     
         if(angles != None):
-            line += "\nangles: "
+            line += "svc-angles: "
             for angle in angles:
                 line += "%f " % (angle) 
            
