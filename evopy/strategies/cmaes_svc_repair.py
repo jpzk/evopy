@@ -20,7 +20,10 @@ Special thanks to Nikolaus Hansen for providing major part of the CMA-ES code.
 The CMA-ES algorithm is provided in many other languages and advanced versions at 
 http://www.lri.fr/~hansen/cmaesintro.html.
 '''
+
+# temporary
 import pdb
+import pylab
 
 from copy import deepcopy
 from collections import deque
@@ -29,7 +32,7 @@ from math import floor
 from numpy import array, mean, log, eye, diag, transpose
 from numpy import identity, matrix, dot, exp, zeros, ones
 from numpy.random import normal, rand
-from numpy.linalg import eigh, norm
+from numpy.linalg import eigh, norm, inv
 
 from evopy.individuals.individual import Individual
 from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
@@ -194,6 +197,8 @@ class CMAESSVCR(MMEvolutionStrategy):
         training_infeasibles = best_parameters[1]
         best_parameter_C = best_parameters[2]        
         best_acc = best_parameters[3]
+
+        self._dimension_reduction(sliding_best_feasibles, sliding_best_infeasibles)
 
         self.train_metamodel(\
             feasible = training_feasibles,
@@ -371,6 +376,27 @@ class CMAESSVCR(MMEvolutionStrategy):
         # covariance matrix, rotation of mutation ellipsoid
         self._C = identity(N)
         self._invsqrtC = identity(N)  # C^-1/2 
+
+    # temporary
+    def _dimension_reduction(self, feasible, infeasible):
+        invB = inv(self._B)
+        reducing = lambda child : (invB * matrix(child.value).T).getA1() 
+        unpacking = lambda child : array(child.value) 
+
+        freduced = map(reducing, feasible)
+        funpacked = map(unpacking, feasible)
+        ireduced = map(reducing, infeasible)
+        iunpacked = map(unpacking, infeasible)
+
+        reduce_to_x = lambda child : child[0] 
+        f = map(reduce_to_x, freduced)
+        i = map(reduce_to_x, ireduced)
+    
+        #print "xmean" ,self._xmean
+        #print "feasible mean", array(f).mean(), "feasible std", array(f).std()
+        #print "infeasible mean", array(i).mean(), "infeasible std", array(f).std()
+
+        self._view.plot_datapoints(freduced, funpacked, ireduced, iunpacked)
 
     def _blend_B_with_rotation(self, B, rotation):
     

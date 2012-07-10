@@ -83,8 +83,7 @@ class appGui():
         self.data_axis.grid(True) 
 
         combinations =\
-            [(freduced, "g", "s"), (funpacked, "g", "o"),\
-            (ireduced, "r", "s"), (iunpacked, "r", "o")]
+            [(funpacked, "g", "o"), (iunpacked, "r", "o")]
 
         for (data, color, marker) in combinations:
             x = map(lambda child : child[0], data)
@@ -100,7 +99,7 @@ class appGui():
         combinations = [(map(reduce_to_x,freduced), "g"), (map(reduce_to_x, ireduced), "r")]        
 
         for (data, color) in combinations:
-            self.hist_axis.hist(data, color=color, histtype='step')
+            self.hist_axis.hist(data, color=color)
 
         self.hist_canvas.draw_idle()
 
