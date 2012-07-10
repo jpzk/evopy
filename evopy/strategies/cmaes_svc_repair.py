@@ -372,8 +372,6 @@ class CMAESSVCR(MMEvolutionStrategy):
         self._C = identity(N)
         self._invsqrtC = identity(N)  # C^-1/2 
 
-    # @todo use arctan2, special case 90 degrees for all vectors
-    # and one vector is <= 0 for each other vector.
     def _blend_B_with_rotation(self, B, rotation):
     
         blend_pairs = []
@@ -406,7 +404,7 @@ class CMAESSVCR(MMEvolutionStrategy):
         print "sim", simialarity
         blended_mat = []
 
-        blend_factor = 1.0 - (simialarity ** 4)
+        #blend_factor = 1.0 - simialarity
         blend_factor = 0.0
         print "blendfactor", blend_factor
  
