@@ -26,7 +26,6 @@ import pdb
 import pylab
 
 from copy import deepcopy
-from collections import deque
 from math import floor
 
 from numpy import array, mean, log, eye, diag, transpose
@@ -34,306 +33,41 @@ from numpy import identity, matrix, dot, exp, zeros, ones
 from numpy.random import normal, rand
 from numpy.linalg import eigh, norm, inv
 
+from evolution_strategy import EvolutionStrategy
 from evopy.individuals.individual import Individual
 from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
-from mm_evolution_strategy import MMEvolutionStrategy
 
-# @todo DSES_infeasibles in view to constraint_infeasibles
-# @todo refactor reborn for-loops
-
-class CMAESSVCR(MMEvolutionStrategy):
-    """ Using the fittest feasible and infeasible individuals in a sliding
-        window (between generations) to build a meta model using SVC. """
+class CMAESSVCR(EvolutionStrategy):
  
     _strategy_name =\
         "Covariance matrix adaption evolution strategy (CMA-ES) with linear SVC "\
         "meta model and repair of infeasibles and mutation ellipsoid alignment"
 
-    def __init__(\
-        self, problem, mu, lambd, combination, mutation, selection, xmean, sigma,\
-        view, beta, window_size, append_to_window, scaling,\
-        crossvalidation, repair_mode = 'mirror'):
+    def __init__(self, mu, lambd, xmean, sigma, beta, meta_model):
 
-        super(CMAESSVCR, self).__init__(\
-            problem, mu, lambd, combination, mutation, selection, view)
+        # call super constructor 
+        super(CMAESSVCR, self).__init__(mu, lambd)
 
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xmean, sigma)      
 
         # statistics
-        self._statistics_parameter_C_trajectory = []
         self._statistics_constraint_infeasibles_trajectory = []
-        self._statistics_angles_trajectory = []
-        
+        self._statistics_repaired_trajectory = []        
+        self._count_constraint_infeasibles = 0
+        self._count_repaired = 0
+
         # SVC Metamodel
-        self._meta_model = CMASVCLinearMetaModel() 
+        self._meta_model = meta_model
+        self._meta_model_trained = False
         self._beta = beta
-        self._append_to_window = append_to_window
-        self._window_size = window_size
-        self._scaling = scaling            
-        self._sliding_best_feasibles = deque(maxlen = self._window_size)
-        self._sliding_best_infeasibles = deque(maxlen = self._window_size)
-        self._crossvalidation = crossvalidation
-        self._repair_mode = repair_mode
 
-    # main evolution 
-    def _run(self, (population, generation, m, l, lastfitness)):
-        """ This method is called every generation. """
-
-        constraint_infeasibles = 0
-        meta_infeasibles = 0
-
-        # ASK part
-        # eigendecomposition of C into D and B.
-        self._D, self._B = eigh(self._C)
-        self._B = matrix(self._B)
-
-        # blend between B and rotation basis
-        self._B = self._blend_B_with_rotation(self._B, self._mutation.new_basis)
-
-        self._D = [d ** 0.5 for d in self._D] 
-
-        invD = diag([1.0/d for d in self._D])
-        self._invsqrtC = self._B * invD * transpose(self._B) 
-
-        # Filter by checking feasiblity with SVC meta model, the 
-        # meta model might be wrong, so we have to weighten between
-        # the filtern with meta model and filtering with the 
-        # true constraint function.
-        children = [self._generate_child() for child in range(0, self._lambd)]
-        cut = int(floor(self._beta * len(children)))
-        meta_children = children[:cut]
-        constraint_children = children[cut:]
-
-        # check scaled against meta model, BUT the unscaled against 
-        # the constraint function.
-        meta_feasible_children = []
-        for meta_child in meta_children:
-            if(self.is_meta_feasible(self._scaling.scale(meta_child))):
-                meta_feasible_children.append(meta_child)
-            else:
-                meta_child = self._meta_model.repair(\
-                    meta_child, self._repair_mode)
-                meta_feasible_children.append(meta_child)
-
-        # Filter by true feasibility with constraint function, here we
-        # can update the sliding feasibles and infeasibles.
-        feasible_children = []
-        infeasible_children = []
- 
-        for meta_feasible in meta_feasible_children:
-            if(self.is_feasible(meta_feasible)):
-                feasible_children.append(meta_feasible)
-            else:
-                infeasible_children.append(meta_feasible)
-                constraint_infeasibles += 1
-                meta_infeasibles += 1
-                # Because of Death Penalty we need a feasible reborn.
-                reborn = []
-                while(len(reborn) < 1):
-                    generated = self._generate_child()
-                    if(self.is_feasible(generated)):
-                        reborn.append(generated)
-                    else:
-                        constraint_infeasibles += 1
-                feasible_children.extend(reborn)                        
-
-        # Filter the other part of the cut with the true constraint function. 
-        # Using this information to update the meta model.
-        for child in constraint_children:
-            if(self.is_feasible(child)):
-                feasible_children.append(child)
-            else:
-                infeasible_children.append(child) 
-                constraint_infeasibles += 1
- 
-                # Because of Death Penalty we need a feasible reborn.
-                reborn = []
-                while(len(reborn) < 1):
-                    generated = self._generate_child()       
-                    if(self.is_feasible(generated)):
-                        reborn.append(generated)
-                    else:
-                        constraint_infeasibles += 1
-                feasible_children.extend(reborn)
-
-        # TELL part
-        oldxmean = deepcopy(self._xmean)
-        sort_by = lambda child : self.fitness(child)
-        sorted_children = sorted(feasible_children, key = sort_by)[:self._mu]
-                
-        self._best_fitness = self.fitness(sorted_children[0])
-        self._best_child = deepcopy(sorted_children[0])
-
-        # update archive and meta model
-   
-        map(self._sliding_best_infeasibles.append, 
-            self.select([], infeasible_children, self._append_to_window))
-
-        map(self._sliding_best_feasibles.append,
-            self.select([], feasible_children, self._append_to_window))
-
-        sliding_best_infeasibles =\
-            [child for child in self._sliding_best_infeasibles]
-
-        sliding_best_feasibles =\
-            [child for child in self._sliding_best_feasibles]
-
-        # new scaling because sliding windows changes
-        self._scaling.setup(sliding_best_feasibles + sliding_best_infeasibles)
-
-        scaled_best_feasibles = map(\
-            self._scaling.scale, 
-            self._sliding_best_feasibles)
-
-        scaled_best_infeasibles = map(\
-            self._scaling.scale,
-            self._sliding_best_infeasibles)                
-
-        best_parameters = self._crossvalidation.crossvalidate(\
-            scaled_best_feasibles, scaled_best_infeasibles)                    
-
-        training_feasibles = best_parameters[0]
-        training_infeasibles = best_parameters[1]
-        best_parameter_C = best_parameters[2]        
-        best_acc = best_parameters[3]
-
-        self._dimension_reduction(sliding_best_feasibles, sliding_best_infeasibles)
-
-        self.train_metamodel(\
-            feasible = training_feasibles,
-            infeasible = training_infeasibles,
-            parameter_C = best_parameter_C)
-
-        # prepare inverse rotation matrices
-        hyperplane_normal = self._meta_model.get_normal()
-        self._mutation.prepare_inverse_rotations(hyperplane_normal)
-
-        # CMA-ES specific code starts here
-        N = self._problem._d
-
-        # new xmean
-        values = map(lambda child : child.value, sorted_children) 
-        self._xmean = dot(self._weights, values)
-       
-        # cumulation: update evolution paths
-        y = self._xmean - oldxmean
-        z = dot(self._invsqrtC, y) # C**(-1/2) * (xnew - xold)
-
-        # normalizing coefficient c and evolution path sigma control
-        c = (self._cs * (2 - self._cs) * self._mueff) ** 0.5 / self._sigma
-        self._ps = (1 - self._cs) * self._ps + c * z
-
-        # normalizing coefficient c and evolution path for rank-one-update
-        # without hsig (!)
-        c = (self._cc * (2 - self._cc) * self._mueff) ** 0.5 / self._sigma
-        self._pc = (1 - self._cc) * self._pc + c * y
-        
-        # adapt covariance matrix C
-        # rank one update term
-        term_cov1 = self._c1 * (transpose(matrix(self._pc)) * matrix(self._pc))       
-
-        # ranke mu update term
-        valuesv = [(value - oldxmean) / self._sigma for value in values]        
-        term_covmu = self._cmu *\
-            sum([self._weights[i] * (transpose(matrix(valuesv[i])) * matrix(valuesv[i]))\
-            for i in range(0, self._mu)])
-
-        self._C = (1 - self._c1 - self._cmu) * self._C + term_cov1 + term_covmu
-
-        #update sigma page. 20, equation (30)
-        self._sigma *= exp(min(0.6, (self._cs / self._damps) *\
-            sum(x ** 2 for x in self._ps.getA1())/(N - 1) / 2))
-                            
-        fitness_of_best = self._best_fitness
-        next_population = sorted_children
-       
-        self.log(generation, next_population, best_acc,\
-            best_parameter_C, constraint_infeasibles, meta_infeasibles,\
-            self._mutation.get_angles_degree())
-       
-        self._view.view(generations = generation,\
-            best_fitness = fitness_of_best, best_acc = best_acc,\
-            parameter_C = best_parameter_C, DSES_infeasibles = constraint_infeasibles,\
-            wrong_meta_infeasibles = meta_infeasibles,\
-            angles = self._mutation.get_angles_degree())
-
-        if(self.termination(generation, fitness_of_best)):
-            return True
-        else:
-            return (next_population, generation + 1, m,\
-            l, fitness_of_best)
-
-    def run(self):
-        """ This method initializes the population etc. And starts the 
-            recursion. """
-      
-        feasible_parents = []
-        best_feasibles = []
-        feasibles = []
-        best_infeasibles = []
-        infeasibles = []
-
-        while(len(feasible_parents) < self._mu):
-            parent = self.generate_population() 
-            if(self.is_feasible(parent)):
-                feasible_parents.append(parent)
-                feasibles.append(parent)
-            else:
-                infeasibles.append(parent)
-
-        # just to be sure 
-        while(len(infeasibles) < self._window_size):
-            parent = self.generate_population()
-            if(not self.is_feasible(parent)):
-                infeasibles.append(parent)
-
-        while(len(feasibles) < self._window_size):
-            parent = self.generate_population() 
-            if(self.is_feasible(parent)):
-                feasibles.append(parent)
-      
-        # initial training of the meta model
-        best_feasibles = self.select([], feasibles, self._window_size)
-        best_infeasibles = self.select([], infeasibles, self._window_size)
-
-        # adding to sliding windows
-
-        map(self._sliding_best_feasibles.append, best_feasibles)
-        map(self._sliding_best_infeasibles.append, best_infeasibles)
-
-        # scaling, scaling factors are kept in scaling attribute.
-        self._scaling.setup(best_feasibles + best_infeasibles)
-        scaled_best_feasibles = map(self._scaling.scale, best_feasibles)
-        scaled_best_infeasibles = map(self._scaling.scale, best_infeasibles)
-
-        best_parameters = self._crossvalidation.crossvalidate(\
-            scaled_best_feasibles, scaled_best_infeasibles)                    
-
-        training_feasibles = best_parameters[0]
-        training_infeasibles = best_parameters[1]
-        best_parameter_C = best_parameters[2]        
-        best_acc = best_parameters[3]
-
-        self.train_metamodel(\
-            feasible = training_feasibles,
-            infeasible = training_infeasibles,
-            parameter_C = best_parameter_C)
-
-        # prepare inverse rotation matrices
-        hyperplane_normal = self._meta_model.get_normal()
-        self._mutation.prepare_inverse_rotations(hyperplane_normal)
-
-        result = self._run((feasible_parents, 0, self._mu, self._lambd, 0))
-
-        while result != True:
-            result = self._run(result)
-
-        return result
+        # valid solutions
+        self._valid_solutions = []
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
         # dimension of objective function
-        N = self._problem._d
+        N = len(xmean) 
         self._xmean = xmean 
         self._sigma = sigma
 
@@ -376,6 +110,154 @@ class CMAESSVCR(MMEvolutionStrategy):
         # covariance matrix, rotation of mutation ellipsoid
         self._C = identity(N)
         self._invsqrtC = identity(N)  # C^-1/2 
+
+        ### FIRST RUN
+        self._D, self._B = eigh(self._C)
+        self._B = matrix(self._B)
+        self._D = [d ** 0.5 for d in self._D] 
+
+        invD = diag([1.0/d for d in self._D])
+        self._invsqrtC = self._B * invD * transpose(self._B) 
+
+    def ask_pending_solutions(self):
+        """ ask pending solutions; solutions which need a checking for true 
+            feasibility """
+
+        # testing beta percent of generated children on meta model first.
+        pending_meta_feasible = []
+        pending_solutions = []
+
+        difference = self._lambd - len(self._valid_solutions)
+
+        if(self._meta_model_trained):
+            max_amount_meta_feasible = int(floor(self._beta * difference))
+            max_amount_pending_solutions = difference - max_amount_meta_feasible        
+
+            while(len(pending_meta_feasible) < max_amount_meta_feasible):
+                normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+                value = self._xmean + transpose(self._sigma * self._B * normals)
+                individual = Individual(value.getA1()) 
+
+                if(self._meta_model.check_feasibility(individual)):
+                    pending_meta_feasible.append(individual)
+                else:                    
+                    repaired = self._meta_model.repair(individual)
+                    self._count_repaired += 1
+                    pending_meta_feasible.append(repaired)
+        else: 
+            max_amount_pending_solutions = difference
+
+        while(len(pending_solutions) < max_amount_pending_solutions):
+            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+            value = self._xmean + transpose(self._sigma * self._B * normals)
+            pending_solutions.append(Individual(value.getA1()))
+
+        return pending_meta_feasible + pending_solutions            
+
+    def tell_feasibility(self, feasibility_information):
+        """ tell feasibilty; return True if there are no pending solutions, 
+            otherwise False """
+
+        for (child, feasibility) in feasibility_information:
+            if(feasibility):
+                self._valid_solutions.append(child)
+            else:
+                self._count_constraint_infeasibles += 1
+                self._meta_model.add_infeasible(child)
+
+        if(len(self._valid_solutions) < self._lambd):
+            return False
+        else:            
+           return True
+
+    def ask_valid_solutions(self):
+        return self._valid_solutions
+
+    def tell_fitness(self, fitnesses):
+        """ tell fitness; update all strategy specific attributes """       
+
+        N = len(self._xmean)
+        oldxmean = deepcopy(self._xmean)
+
+        fitness = lambda (child, fitness) : fitness
+        child = lambda (child, fitness) : child
+
+        sorted_fitnesses = sorted(fitnesses, key = fitness)
+        sorted_children = map(child, sorted_fitnesses)
+
+        # update meta model sort self._valid_solutions by fitness and 
+        # unsorted self._sliding_infeasibles
+        self._meta_model.add_sorted_feasibles(sorted_children)       
+        trained = self._meta_model.train()
+
+        if(trained):
+            self._meta_model_trained = True
+        
+        # new xmean
+        values = map(lambda child : child.value, sorted_children[:self._mu]) 
+        self._xmean = dot(self._weights, values)
+       
+        # cumulation: update evolution paths
+        y = self._xmean - oldxmean
+        z = dot(self._invsqrtC, y) # C**(-1/2) * (xnew - xold)
+
+        # normalizing coefficient c and evolution path sigma control
+        c = (self._cs * (2 - self._cs) * self._mueff) ** 0.5 / self._sigma
+        self._ps = (1 - self._cs) * self._ps + c * z
+
+        # normalizing coefficient c and evolution path for rank-one-update
+        # without hsig (!)
+        c = (self._cc * (2 - self._cc) * self._mueff) ** 0.5 / self._sigma
+        self._pc = (1 - self._cc) * self._pc + c * y
+        
+        # adapt covariance matrix C
+        # rank one update term
+        term_cov1 = self._c1 * (transpose(matrix(self._pc)) * matrix(self._pc))       
+
+        # ranke mu update term
+        valuesv = [(value - oldxmean) / self._sigma for value in values] 
+        term_covmu = self._cmu *\
+            sum([self._weights[i] * (transpose(matrix(valuesv[i])) *\
+            matrix(valuesv[i]))\
+            for i in range(0, self._mu)])
+
+        self._C = (1 - self._c1 - self._cmu) * self._C + term_cov1 + term_covmu
+
+        #update sigma page. 20, equation (30)
+        self._sigma *= exp(min(0.6, (self._cs / self._damps) *\
+            sum(x ** 2 for x in self._ps.getA1())/(N - 1) / 2))
+
+        ### UPDATE FOR NEXT ITERATION
+        self._valid_solutions = []
+
+        ### STATISTICS
+        self._statistics_constraint_infeasibles_trajectory.append(\
+            self._count_constraint_infeasibles)        
+        self._count_constraint_infeasibles = 0                
+
+        self._statistics_repaired_trajectory.append(\
+            self._count_repaired)
+        self._count_repaired = 0            
+ 
+        # update best child, best fitness
+        best_child, best_fitness = sorted_fitnesses[0]
+        worst_child, worst_fitness = sorted_fitnesses[-1]        
+
+        fitnesses = map(fitness, sorted_fitnesses)
+        mean_fitness = array(fitnesses).mean()
+
+        self._statistics_best_fitness_trajectory.append(best_fitness)
+        self._statistics_worst_fitness_trajectory.append(worst_fitness)
+        self._statistics_mean_fitness_trajectory.append(mean_fitness)
+
+        self._D, self._B = eigh(self._C)
+        self._B = matrix(self._B)
+        self._D = [d ** 0.5 for d in self._D] 
+
+        invD = diag([1.0/d for d in self._D])
+        self._invsqrtC = self._B * invD * transpose(self._B) 
+
+        return best_child, best_fitness
 
     # temporary
     def _dimension_reduction(self, feasible, infeasible):
@@ -440,47 +322,24 @@ class CMAESSVCR(MMEvolutionStrategy):
 
         return matrix(blended_mat).T
 
-    def _generate_child(self):
-        normals = transpose(matrix([normal(0.0, d) for d in self._D]))
-        value = self._xmean + transpose(self._sigma * self._B * normals)
-        child = Individual(value.getA1())
-        return child       
-
-    def log(\
-        self, generation, next_population, best_acc, best_parameter_C,\
-        constraint_infeasibles, wrong_meta_infeasibles, angles):
-        
-        super(CMAESSVCR, self).log(generation, next_population, best_acc,\
-            wrong_meta_infeasibles) 
-
-        self._statistics_parameter_C_trajectory.append(best_parameter_C)
-        self._statistics_constraint_infeasibles_trajectory.append(constraint_infeasibles)
-        self._statistics_angles_trajectory.append(angles)
-
     def get_statistics(self):
         statistics = {
-            "parameter-C" : self._statistics_parameter_C_trajectory,
-            "DSES-infeasibles" : self._statistics_constraint_infeasibles_trajectory,
-            "angle": self._statistics_angles_trajectory}
-        
+            "infeasibles" : self._statistics_constraint_infeasibles_trajectory,
+            "repaired": self._statistics_repaired_trajectory}
+       
         super_statistics = super(CMAESSVCR, self).get_statistics()
         for k in super_statistics:
             statistics[k] = super_statistics[k]
-        
+
         return statistics
 
-    # return true if solution is feasible in meta model, otherwise false.
-    def is_meta_feasible(self, x):
-        self._count_is_meta_feasible += 1
-        return self._meta_model.check_feasibility(x)
+    def get_last_statistics(self):
+        statistics = {
+            "infeasibles" : self._statistics_constraint_infeasibles_trajectory[-1],
+            "repaired": self._statistics_repaired_trajectory[-1]}
+ 
+        super_statistics = super(CMAESSVCR, self).get_last_statistics()
+        for k in super_statistics:
+            statistics[k] = super_statistics[k]
 
-    # train the metamodel with given points
-    def train_metamodel(self, feasible, infeasible, parameter_C):
-        self._count_train_metamodel += 1
-        self._meta_model.train(feasible, infeasible, parameter_C)
-
-    # mutate child with gauss devriation 
-    def mutate(self, child, sigmas):
-        self._statistics_mutations += 1
-        return self._mutation.mutate(child, sigmas)
-
+        return statistics

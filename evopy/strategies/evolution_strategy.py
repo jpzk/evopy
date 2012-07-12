@@ -21,23 +21,13 @@ from numpy import array
 
 class EvolutionStrategy(object):
    
-    def __init__(self, mu, lambd, \
-        combination, mutation, selection, sigmas = None):
-
+    def __init__(self, mu, lambd):
         self._mu = mu
         self._lambd = lambd
-        self._sigmas = sigmas
-        self._mutation = mutation
-        self._combination = combination
-        self._selection = selection
 
-        self._statistics_is_feasible = 0
-        self._statistics_fitness = 0
-        self._statistics_generations = 0
-        self._statistics_mutations = 0
         self._statistics_best_fitness_trajectory = []
         self._statistics_worst_fitness_trajectory = []
-        self._statistics_average_fitness_trajectory = []
+        self._statistics_mean_fitness_trajectory = []
 
     def log(self, generation, next_population):
         self._statistics_generations += 1
@@ -46,30 +36,15 @@ class EvolutionStrategy(object):
         #self._statistics_average_fitness_trajectory.append(fitnesses.mean())
         #self._statistics_best_fitness_trajectory.append(fitnesses.min())
 
+    def get_last_statistics(self):
+        return {
+            "best-fitness": self._statistics_best_fitness_trajectory[-1],
+            "worst-fitness": self._statistics_worst_fitness_trajectory[-1],
+            "avg-fitness": self._statistics_mean_fitness_trajectory[-1]}
+   
     def get_statistics(self):
         return {
-            "generations" : self._statistics_generations,
-            "constraint-calls" : self._statistics_is_feasible,
-            "fitness-function-calls" : self._statistics_fitness,
-            "mutation-calls" : self._statistics_mutations,
             "best-fitness": self._statistics_best_fitness_trajectory,
             "worst-fitness": self._statistics_worst_fitness_trajectory,
-            "avg-fitness": self._statistics_average_fitness_trajectory}
-
-    # return success_probabilty (rechenberg)
-    def success_probability(self, children, success_fitness):
-        return len(filter(
-            lambda child: self.fitness(child) <= success_fitness, 
-            children)) / len(children)
-
-    def combine(self, population):
-        return self._combination.combine(population)
-
-    # mutate child with gauss devriation 
-    def mutate(self, child, sigmas):
-        self._statistics_mutations += 1
-        return self._mutation.mutate(child, sigmas)
-      
-    def select(self, population, children, mu):
-        return self._selection.select(self.fitness, population, children, mu)
+            "avg-fitness": self._statistics_mean_fitness_trajectory}
 

@@ -48,7 +48,4 @@ class SVCCVSkGridLinear():
         clf.fit(X, y)
         best_accuracy = clf.best_score_
 
-        return (feasible,
-            infeasible,
-            clf.best_estimator_.C,
-            best_accuracy)
+        return feasible, infeasible, clf.best_estimator_.C, best_accuracy

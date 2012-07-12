@@ -20,7 +20,8 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from sys import path
 path.append("../..")
 
-multiprocessing = False 
+# @todo spawn two processes and avoid playdoh map
+multiprocessing = False
 
 if(multiprocessing):
     from multiprocessing import cpu_count

@@ -21,43 +21,35 @@ from sys import path
 path.append("../..")
 
 from sklearn.cross_validation import KFold
-from evopy.problems.simple_sa_sphere_problem import SimpleSASphereProblem
-from evopy.problems.sa_sphere_problem import SASphereProblem
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
-from evopy.operators.mutation.gauss_sigma_aligned_nd import GaussSigmaAlignedND
-from evopy.operators.combination.sa_intermediate import SAIntermediate
-from evopy.operators.selection.smallest_fitness import SmallestFitness
-from evopy.operators.selfadaption.selfadaption import Selfadaption
-from evopy.views.universal_view import UniversalView
-from evopy.views.cv_ds_linear_view import CVDSLinearView
-from evopy.views.cv_ds_r_linear_view import CVDSRLinearView
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.strategies.cmaes_svc_repair import CMAESSVCR
+from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
+from evopy.problems.tr_problem import TRProblem
+from evopy.simulators.simulator import Simulator
 
 def get_method():
+
     sklearn_cv = SVCCVSkGridLinear(\
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(50, 5))
 
+    meta_model = CMASVCLinearMetaModel(\
+        window_size = 25,
+        scaling = ScalingStandardscore(),
+        crossvalidation = sklearn_cv,
+        repair_mode = 'mirror')
+
     method = CMAESSVCR(\
-        SASphereProblem(dimensions = 2, accuracy = -12),
         mu = 50,
         lambd = 100,
-        combination = SAIntermediate(),\
-        mutation = GaussSigmaAlignedND(),\
-        selection = SmallestFitness(),
         xmean = [5.0, 5.0],
         sigma = 1.0,
-        view = UniversalView(),
         beta = 0.9,
-        window_size = 25,
-        append_to_window = 25,
-        scaling = ScalingStandardscore(),
-        crossvalidation = sklearn_cv, 
-        repair_mode = 'mirror')
-     
+        meta_model = meta_model) 
+
     return method
 
 if __name__ == "__main__":
-    m = get_method()
-    m.run()
+    sim = Simulator(get_method(), TRProblem(), pow(10, -12))
+    sim.simulate()

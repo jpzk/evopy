@@ -32,8 +32,8 @@ from evopy.views.universal_view import UniversalView
 from evopy.views.cv_ds_linear_view import CVDSLinearView
 from evopy.views.cv_ds_r_linear_view import CVDSRLinearView
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
-from evopy.strategies.cmaes import CMAES
 
+from evopy.strategies.cmaes import CMAES
 from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
 
@@ -45,13 +45,9 @@ def get_method():
     method = CMAES(\
         mu = 15,
         lambd = 100,
-        combination = SAIntermediate(),\
-        mutation = GaussSigmaAlignedND(),\
-        selection = SmallestFitness(),
         xmean = [5.0, 5.0],
-        sigma = 1.0,
-        view = UniversalView())
-     
+        sigma = 1.0)
+
     return method
 
 if __name__ == "__main__":
