@@ -40,6 +40,7 @@ class CMASVCLinearMetaModel:
         self._crossvalidation = crossvalidation
         self._repair_mode = repair_mode
 
+        self._statistics_angles_trajectory = []
         self._statistics_best_parameter_C_trajectory = []
         self._statistics_best_accuracy_trajectory = []
 
@@ -69,6 +70,7 @@ class CMASVCLinearMetaModel:
         if(len(self._training_infeasibles) < self._window_size):
             self._statistics_best_parameter_C_trajectory.append(0.0)
             self._statistics_best_accuracy_trajectory.append(0.0)
+            self._statistics_angles_trajectory.append([0.0])             
             return False
 
         cv_feasibles = self._training_feasibles[:self._window_size]
@@ -92,14 +94,15 @@ class CMASVCLinearMetaModel:
         labels = [-1] * len(ivalues) + [1] * len(fvalues) 
 
         self._clf = svm.SVC(kernel = 'linear', C = best_parameter_C, tol = 1.0)
-        self._clf.fit(points, labels)       
+        self._clf.fit(points, labels)  
 
         # Update new basis of meta model
         self._prepare_inverse_rotations(self.get_normal())
 
         self._statistics_best_parameter_C_trajectory.append(best_parameter_C)
         self._statistics_best_accuracy_trajectory.append(best_acc)
- 
+        self._statistics_angles_trajectory.append(self.angles)             
+
         return True
 
     def givens(self, i, j, alpha, d):
@@ -149,6 +152,7 @@ class CMASVCLinearMetaModel:
 
             # append rotation
             rotations.append(rotation)
+
         rotations.reverse()            
         return rotations
    
@@ -211,6 +215,7 @@ class CMASVCLinearMetaModel:
 
     def get_last_statistics(self):
         statistics = {
+            "angles" : self._statistics_angles_trajectory[-1],
             "best_parameter_C" : self._statistics_best_parameter_C_trajectory[-1],
             "best_acc": self._statistics_best_accuracy_trajectory[-1]}
         
@@ -218,6 +223,7 @@ class CMASVCLinearMetaModel:
 
     def get_statistics(self):
         statistics = {
+            "angles" : self._statistics_angles_trajectory,
             "best_parameter_C" : self._statistics_best_parameter_C_trajectory,
             "best_acc": self._statistics_best_accuracy_trajectory}
         
