@@ -45,9 +45,6 @@ class CMAES(EvolutionStrategy):
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xmean, sigma)
 
-        # statistics
-        self._statistics_CMAES_infeasibles_trajectory = [] 
-
         # valid solutions
         self._valid_solutions = []
 
@@ -200,16 +197,3 @@ class CMAES(EvolutionStrategy):
 
         return best_child, best_fitness
 
-    def log(self, generation, next_population, CMAES_infeasibles):
-        super(CMAES, self).log(generation, next_population)
-        self._statistics_CMAES_infeasibles_trajectory.append(CMAES_infeasibles)
-
-    def get_statistics(self):
-        statistics = {
-            "DSES-infeasibles" : self._statistics_CMAES_infeasibles_trajectory}       
-
-        super_statistics = super(CMAES, self).get_statistics()
-        for k in super_statistics:
-            statistics[k] = super_statistics[k]
-        
-        return statistics
