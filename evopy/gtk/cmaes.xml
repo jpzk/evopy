@@ -1,9 +1,53 @@
 <?xml version="1.0"?>
 <!--*- mode: xml -*-->
 <interface>
+  <object class="GtkUIManager" id="uimanager1">
+    <child>
+      <object class="GtkActionGroup" id="actiongroup1">
+        <child>
+          <object class="GtkAction" id="menuitem1">
+            <property name="name">menuitem1</property>
+            <property name="label" translatable="yes">_File</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="quit1">
+            <property name="stock_id">gtk-quit</property>
+            <property name="name">quit1</property>
+            <signal handler="on_destroy" last_modification_time="Thu, 12 Jul 2012 18:28:10 GMT" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menuitem4">
+            <property name="name">menuitem4</property>
+            <property name="label" translatable="yes">_Help</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="about1">
+            <property name="name">about1</property>
+            <property name="label" translatable="yes">_About</property>
+            <signal handler="on_about1_activate" last_modification_time="Thu, 12 Jul 2012 18:27:11 GMT" name="activate"/>
+          </object>
+        </child>
+      </object>
+    </child>
+    <ui>
+      <menubar name="menubar1">
+        <menu action="menuitem1">
+          <menuitem action="quit1"/>
+        </menu>
+        <menu action="menuitem4">
+          <menuitem action="about1"/>
+        </menu>
+      </menubar>
+    </ui>
+  </object>
   <object class="GtkWindow" id="window1">
+    <property name="width_request">800</property>
+    <property name="height_request">600</property>
     <property name="visible">True</property>
-    <property name="title" translatable="yes">evopy</property>
+    <property name="title" translatable="yes">evopy GUI simulator</property>
     <property name="type">GTK_WINDOW_TOPLEVEL</property>
     <property name="window_position">GTK_WIN_POS_NONE</property>
     <property name="modal">False</property>
@@ -17,18 +61,198 @@
     <property name="focus_on_map">True</property>
     <property name="urgency_hint">False</property>
     <child>
-      <object class="GtkVBox" id="vbox1">
+      <object class="GtkVBox" id="mainvbox">
         <property name="visible">True</property>
         <property name="homogeneous">False</property>
         <property name="spacing">0</property>
         <child>
-          <placeholder/>
+          <object class="GtkMenuBar" constructor="uimanager1" id="menubar1">
+            <property name="visible">True</property>
+            <property name="pack_direction">GTK_PACK_DIRECTION_LTR</property>
+            <property name="child_pack_direction">GTK_PACK_DIRECTION_LTR</property>
+          </object>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+          </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkToolbar" id="toolbar1">
+            <property name="visible">True</property>
+            <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+            <property name="toolbar_style">GTK_TOOLBAR_BOTH_HORIZ</property>
+            <property name="tooltips">True</property>
+            <property name="show_arrow">True</property>
+            <child>
+              <object class="GtkToolItem" id="toolitem2">
+                <property name="visible">True</property>
+                <property name="visible_horizontal">True</property>
+                <property name="visible_vertical">True</property>
+                <property name="is_important">False</property>
+                <child>
+                  <object class="GtkComboBox" id="optimizer_pulldown">
+                    <property name="visible">True</property>
+                    <property name="add_tearoffs">False</property>
+                    <property name="focus_on_click">True</property>
+                    <signal handler="on_optimizer_pulldown_changed" last_modification_time="Thu, 12 Jul 2012 18:56:25 GMT" name="changed"/>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="reset_button">
+                <property name="visible">True</property>
+                <property name="tooltip-text" translatable="yes">Restart the simulation</property>
+                <property name="stock_id">gtk-media-rewind</property>
+                <property name="visible_horizontal">True</property>
+                <property name="visible_vertical">True</property>
+                <property name="is_important">False</property>
+                <signal handler="on_reset_button_clicked" last_modification_time="Thu, 12 Jul 2012 18:45:46 GMT" name="clicked"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="play_button">
+                <property name="visible">True</property>
+                <property name="tooltip-text" translatable="yes">Start the simulation</property>
+                <property name="stock_id">gtk-media-play</property>
+                <property name="visible_horizontal">True</property>
+                <property name="visible_vertical">True</property>
+                <property name="is_important">False</property>
+                <signal handler="on_play_button_clicked" last_modification_time="Thu, 12 Jul 2012 18:45:57 GMT" name="clicked"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="pause_button">
+                <property name="visible">True</property>
+                <property name="tooltip-text" translatable="yes">Pause the simulation</property>
+                <property name="stock_id">gtk-media-pause</property>
+                <property name="visible_horizontal">True</property>
+                <property name="visible_vertical">True</property>
+                <property name="is_important">False</property>
+                <signal handler="on_pause_button_clicked" last_modification_time="Thu, 12 Jul 2012 18:46:02 GMT" name="clicked"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+          </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkNotebook" id="notebook1">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="show_tabs">True</property>
+            <property name="show_border">True</property>
+            <property name="tab_pos">GTK_POS_TOP</property>
+            <property name="scrollable">False</property>
+            <property name="enable_popup">False</property>
+            <signal handler="on_notebook1_change_current_page" last_modification_time="Thu, 12 Jul 2012 19:23:05 GMT" name="change_current_page"/>
+            <signal handler="on_notebook1_select_page" last_modification_time="Thu, 12 Jul 2012 19:23:15 GMT" name="select_page"/>
+            <child>
+              <object class="GtkVBox" id="vbox1">
+                <property name="visible">True</property>
+                <property name="homogeneous">False</property>
+                <property name="spacing">0</property>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="tab_expand">False</property>
+                <property name="tab_fill">True</property>
+              </packing>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="searchspace_tab">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Search space</property>
+                <property name="use_underline">False</property>
+                <property name="use_markup">False</property>
+                <property name="justify">GTK_JUSTIFY_LEFT</property>
+                <property name="wrap">False</property>
+                <property name="selectable">False</property>
+                <property name="xalign">0.5</property>
+                <property name="yalign">0.5</property>
+                <property name="xpad">0</property>
+                <property name="ypad">0</property>
+                <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
+                <property name="width_chars">-1</property>
+                <property name="single_line_mode">False</property>
+                <property name="angle">0</property>
+              </object>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="constraints_tab">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Constraints</property>
+                <property name="use_underline">False</property>
+                <property name="use_markup">False</property>
+                <property name="justify">GTK_JUSTIFY_LEFT</property>
+                <property name="wrap">False</property>
+                <property name="selectable">False</property>
+                <property name="xalign">0.5</property>
+                <property name="yalign">0.5</property>
+                <property name="xpad">0</property>
+                <property name="ypad">0</property>
+                <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
+                <property name="width_chars">-1</property>
+                <property name="single_line_mode">False</property>
+                <property name="angle">0</property>
+              </object>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child type="tab">
+              <object class="GtkLabel" id="metamodel_tab">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Meta model</property>
+                <property name="use_underline">False</property>
+                <property name="use_markup">False</property>
+                <property name="justify">GTK_JUSTIFY_LEFT</property>
+                <property name="wrap">False</property>
+                <property name="selectable">False</property>
+                <property name="xalign">0.5</property>
+                <property name="yalign">0.5</property>
+                <property name="xpad">0</property>
+                <property name="ypad">0</property>
+                <property name="ellipsize">PANGO_ELLIPSIZE_NONE</property>
+                <property name="width_chars">-1</property>
+                <property name="single_line_mode">False</property>
+                <property name="angle">0</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="padding">0</property>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+          </packing>
         </child>
       </object>
     </child>

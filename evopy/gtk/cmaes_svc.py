@@ -28,6 +28,7 @@ pygtk.require('2.0')
 
 import gtk
 import gtk.glade
+import gobject
 import time
 
 from sys import path
@@ -113,7 +114,6 @@ class appGui():
                 if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):
                     break
 
-    
     def plot_datapoints(self, values):
 
         self.hist_axis.cla()
@@ -127,13 +127,14 @@ class appGui():
         self.hist_axis.scatter(X,Y, color='green')
         self.hist_canvas.draw_idle()
 
+    def on_optimizer_pulldown_show(self, a):
+        return 
 
-    def destroy(self, a):
+    def on_destroy(self, a):
         self.evopy.gui_closed = True
         gtk.main_quit()
 
     def update_fitness(self, best, average, worst):
-        self.evopy.gui_locking = True
 
         self.best_fitness_trajectory.append(best)
         self.average_fitness_trajectory.append(average)
@@ -141,7 +142,8 @@ class appGui():
         
         generations = range(0, len(self.best_fitness_trajectory))
         self.data_axis.cla()
-        self.data_axis.plot(generations[-10:], self.best_fitness_trajectory[-10:], color='green')
+        self.data_axis.grid(True)
+        self.data_axis.plot(generations[-10:], self.best_fitness_trajectory[-10:], color='green', marker="o")
         #self.data_axis.plot(generations[-10:], self.worst_fitness_trajectory[-10:], color='blue')
         #self.data_axis.plot(generations[-10:], self.average_fitness_trajectory[-10:], color='black')
         self.data_canvas.draw_idle()
@@ -152,16 +154,27 @@ class appGui():
         builder.add_from_file(gladefile)
         self.window = builder.get_object("window1")
         builder.connect_signals(self)
-        self.window.connect("destroy", self.destroy)
+        self.window.connect("destroy", self.on_destroy)
 
-        self.data_figure = matplotlib.figure.Figure()
+        self.optimizer_pulldown = builder.get_object("optimizer_pulldown")
+        self.optimizer_pulldown.set_title("optimizer")
+
+        liststore = gtk.ListStore(str)
+        self.optimizer_pulldown.set_model(liststore)
+        cell = gtk.CellRendererText()
+        self.optimizer_pulldown.pack_start(cell, True)
+        self.optimizer_pulldown.add_attribute(cell, 'text', 0) 
+        self.optimizer_pulldown.append_text("CMA-ES-SVC")
+        self.optimizer_pulldown.set_active(0)
+
+        self.data_figure = matplotlib.figure.Figure(dpi=75, facecolor='#e1e1e1')
         self.data_figure.suptitle('fitness', fontsize=12)
         self.data_axis = self.data_figure.add_subplot(111)
         self.data_axis.grid(True)
         self.data_canvas = FigureCanvasGTK(self.data_figure)
         self.data_canvas.show()
 
-        self.hist_figure = matplotlib.figure.Figure()
+        self.hist_figure = matplotlib.figure.Figure(dpi=75, facecolor='#e1e1e1')
         self.hist_figure.suptitle('selected children', fontsize=12)
         self.hist_axis = self.hist_figure.add_subplot(111)
         self.hist_axis.grid(True)
