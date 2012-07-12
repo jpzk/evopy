@@ -238,7 +238,9 @@ class CMAESSVCR(EvolutionStrategy):
         self._statistics_repaired_trajectory.append(\
             self._count_repaired)
         self._count_repaired = 0            
- 
+
+        self._statistics_selected_children_trajectory.append(values)
+
         # update best child, best fitness
         best_child, best_fitness = sorted_fitnesses[0]
         worst_child, worst_fitness = sorted_fitnesses[-1]        

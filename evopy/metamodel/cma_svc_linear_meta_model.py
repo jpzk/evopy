@@ -43,6 +43,7 @@ class CMASVCLinearMetaModel:
         self._statistics_angles_trajectory = []
         self._statistics_best_parameter_C_trajectory = []
         self._statistics_best_accuracy_trajectory = []
+        self._statistics_infeasibles_trajectory = []
 
     def is_trained():
         return self._trained

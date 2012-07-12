@@ -28,6 +28,7 @@ pygtk.require('2.0')
 
 import gtk
 import gtk.glade
+import time
 
 from sys import path
 path.append("../..")
@@ -45,73 +46,105 @@ from evopy.views.cv_ds_linear_view import CVDSLinearView
 from evopy.views.cv_ds_r_linear_view import CVDSRLinearView
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.strategies.cmaes_svc_repair import CMAESSVCR
+from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
+from evopy.problems.tr_problem import TRProblem
 
 class appGui():
    
     class Evopy(threading.Thread):
 
-        def run(self):
+        def run(self):                  
             sklearn_cv = SVCCVSkGridLinear(\
-                C_range = [2 ** i for i in range(-5, 15, 2)],
-                cv_method = KFold(50, 5))
+            C_range = [2 ** i for i in range(-5, 15, 2)],
+            cv_method = KFold(50, 5))
 
-            method = CMAESSVCR(\
-                SASphereProblem(dimensions = 2, accuracy = -12),
+            meta_model = CMASVCLinearMetaModel(\
+                window_size = 25,
+                scaling = ScalingStandardscore(),
+                crossvalidation = sklearn_cv,
+                repair_mode = 'mirror')
+
+            self.problem = TRProblem()
+            self.accuracy = pow(10, -12)
+
+            self.optimizer = CMAESSVCR(\
                 mu = 50,
                 lambd = 100,
-                combination = SAIntermediate(),\
-                mutation = GaussSigmaAlignedND(),\
-                selection = SmallestFitness(),
                 xmean = [5.0, 5.0],
                 sigma = 1.0,
-                view = self.view,
                 beta = 0.9,
-                window_size = 25,
-                append_to_window = 25,
-                scaling = ScalingStandardscore(),
-                crossvalidation = sklearn_cv, 
-                repair_mode = 'mirror')             
-           
-            method.run()
+                meta_model = meta_model) 
 
-    generations = 0
-    best_fitness = []
+            self.gui_closed = False
+            while(not self.gui_closed):
+                # Simulator and optimizer handling constraints
+                all_feasible = False
+                while(not all_feasible):
+                    # ASK for solutions (feasbile and infeasible) 
+                    solutions = self.optimizer.ask_pending_solutions()
 
-    def plot_datapoints(self, freduced, funpacked, ireduced, iunpacked):
+                    # CHECK solutions for feasibility 
+                    feasibility = lambda solution : (solution, self.problem.is_feasible(solution))
+                    feasibility_information = map(feasibility, solutions)
 
-        self.data_axis.cla()
-        self.data_axis.grid(True) 
+                    # TELL feasibility, returns True if all feasible, returns False if extra checks
+                    all_feasible = self.optimizer.tell_feasibility(feasibility_information)
 
-        combinations =\
-            [(funpacked, "g", "o"), (iunpacked, "r", "o")]
+                # ASK for valid solutions (feasible)
+                valid_solutions = self.optimizer.ask_valid_solutions()
 
-        for (data, color, marker) in combinations:
-            x = map(lambda child : child[0], data)
-            y = map(lambda child : child[1], data)
-            self.data_axis.scatter(x,y, c=color, marker=marker)
+                # CHECK fitness
+                fitness = lambda solution : (solution, self.problem.fitness(solution))
+                fitnesses = map(fitness, valid_solutions)
 
-        self.data_canvas.draw_idle()
+                # TELL fitness, return optimum
+                optimum, optimum_fitness = self.optimizer.tell_fitness(fitnesses)
+
+                # GUI update
+                stats = self.optimizer.get_last_statistics()
+                self.gui.update_fitness(\
+                    stats['best_fitness'], stats['avg_fitness'], stats['worst_fitness'])
+ 
+                self.gui.plot_datapoints(stats['selected_children'])
+                                           
+                time.sleep(0.5)
+
+                # TERMINATION
+                if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):
+                    break
+
+    
+    def plot_datapoints(self, values):
 
         self.hist_axis.cla()
-        self.data_axis.grid(True)
+        self.hist_axis.grid(True) 
 
-        reduce_to_x = lambda child : child[0]
-        combinations = [(map(reduce_to_x,freduced), "g"), (map(reduce_to_x, ireduced), "r")]        
+        xv = lambda value : value[0]
+        yv = lambda value : value[1]
+        X = map(xv, values)
+        Y = map(yv, values)
 
-        for (data, color) in combinations:
-            self.hist_axis.hist(data, color=color)
-
+        self.hist_axis.scatter(X,Y, color='green')
         self.hist_canvas.draw_idle()
 
-    def view(\
-        self, generations = None, best_fitness = None, best_acc = None,\
-        parameter_C = None, epsilon = None, DSES_infeasibles = None,\
-        wrong_meta_infeasibles = None, angles = None, sigmasmean = None):
-        return
 
-    def on_quit1_activate(self, a):
+    def destroy(self, a):
+        self.evopy.gui_closed = True
         gtk.main_quit()
-        sys.exit()
+
+    def update_fitness(self, best, average, worst):
+        self.evopy.gui_locking = True
+
+        self.best_fitness_trajectory.append(best)
+        self.average_fitness_trajectory.append(average)
+        self.worst_fitness_trajectory.append(worst)
+        
+        generations = range(0, len(self.best_fitness_trajectory))
+        self.data_axis.cla()
+        self.data_axis.plot(generations[-10:], self.best_fitness_trajectory[-10:], color='green')
+        #self.data_axis.plot(generations[-10:], self.worst_fitness_trajectory[-10:], color='blue')
+        #self.data_axis.plot(generations[-10:], self.average_fitness_trajectory[-10:], color='black')
+        self.data_canvas.draw_idle()
 
     def __init__(self):
         gladefile = "cmaes.xml"
@@ -119,14 +152,17 @@ class appGui():
         builder.add_from_file(gladefile)
         self.window = builder.get_object("window1")
         builder.connect_signals(self)
+        self.window.connect("destroy", self.destroy)
 
         self.data_figure = matplotlib.figure.Figure()
+        self.data_figure.suptitle('fitness', fontsize=12)
         self.data_axis = self.data_figure.add_subplot(111)
         self.data_axis.grid(True)
         self.data_canvas = FigureCanvasGTK(self.data_figure)
         self.data_canvas.show()
 
         self.hist_figure = matplotlib.figure.Figure()
+        self.hist_figure.suptitle('selected children', fontsize=12)
         self.hist_axis = self.hist_figure.add_subplot(111)
         self.hist_axis.grid(True)
         self.hist_canvas = FigureCanvasGTK(self.hist_figure)
@@ -136,14 +172,21 @@ class appGui():
         self.vbox.pack_start(self.data_canvas, True, True)
         self.vbox.pack_start(self.hist_canvas, True, True)
 
+        self.best_fitness_trajectory = []
+        self.average_fitness_trajectory = []
+        self.worst_fitness_trajectory = []
+
     def main(self):
         self.window.show()
         self.evopy = self.Evopy()
-        self.evopy.view = self
+        self.evopy.gui = self
         self.evopy.start()
         gtk.main()
 
 if __name__ == "__main__":
-    gtk.threads_init()
+    gtk.gdk.threads_init()
     app = appGui()   
+
+    gtk.gdk.threads_enter()
     app.main() 
+    gtk.gdk.threads_leave()

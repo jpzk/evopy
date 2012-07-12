@@ -28,6 +28,7 @@ class EvolutionStrategy(object):
         self._statistics_best_fitness_trajectory = []
         self._statistics_worst_fitness_trajectory = []
         self._statistics_mean_fitness_trajectory = []
+        self._statistics_selected_children_trajectory = []
 
     def log(self, generation, next_population):
         self._statistics_generations += 1
@@ -38,13 +39,15 @@ class EvolutionStrategy(object):
 
     def get_last_statistics(self):
         return {
-            "best-fitness": self._statistics_best_fitness_trajectory[-1],
-            "worst-fitness": self._statistics_worst_fitness_trajectory[-1],
-            "avg-fitness": self._statistics_mean_fitness_trajectory[-1]}
+            "best_fitness": self._statistics_best_fitness_trajectory[-1],
+            "worst_fitness": self._statistics_worst_fitness_trajectory[-1],
+            "avg_fitness": self._statistics_mean_fitness_trajectory[-1],
+            "selected_children": self._statistics_selected_children_trajectory[-1]}
    
     def get_statistics(self):
         return {
-            "best-fitness": self._statistics_best_fitness_trajectory,
-            "worst-fitness": self._statistics_worst_fitness_trajectory,
-            "avg-fitness": self._statistics_mean_fitness_trajectory}
+            "best_fitness": self._statistics_best_fitness_trajectory,
+            "worst_fitness": self._statistics_worst_fitness_trajectory,
+            "avg_fitness": self._statistics_mean_fitness_trajectory,
+            "selected_children": self._statistics_selected_children_trajectory}
 
