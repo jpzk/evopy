@@ -22,11 +22,11 @@ from evolution_strategy import EvolutionStrategy
 
 class MMEvolutionStrategy(EvolutionStrategy):
 
-    def __init__(self, problem, mu, lambd, combination, mutation,\
+    def __init__(self, mu, lambd, combination, mutation,\
         selection, view):
 
         super(MMEvolutionStrategy, self).__init__(\
-            problem, mu, lambd, combination, mutation, selection, view)
+            mu, lambd, combination, mutation, selection, view)
 
         self._count_is_meta_feasible = 0
         self._count_train_metamodel = 0

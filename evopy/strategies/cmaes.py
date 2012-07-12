@@ -35,126 +35,26 @@ from evolution_strategy import EvolutionStrategy
 class CMAES(EvolutionStrategy):
  
     _strategy_name =\
-        "Covariance matrix adaption evolution strategy (CMA-ES)"
+        "Covariance matrix adaption evolution strategy (CMA-ES)"    
 
-    def __init__(self, problem, mu, lambd, combination, mutation,\
+    def __init__(self, mu, lambd, combination, mutation,\
         selection, xmean, sigma, view):
 
         super(CMAES, self).__init__(\
-            problem, mu, lambd, combination, mutation, selection, view)
+            mu, lambd, combination, mutation, selection, view)
 
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xmean, sigma)
 
         # statistics
-        self._statistics_CMAES_infeasibles_trajectory = []    
+        self._statistics_CMAES_infeasibles_trajectory = [] 
 
-    # main evolution 
-    def _run(self, (population, generation, m, l, lastfitness)):
-        """ This method is called every generation. """
-
-        CMAES_infeasibles = 0
-
-        # ASK part
-        # eigendecomposition of C into D and B.
-        self._D, self._B = eigh(self._C)
-        self._B = matrix(self._B)
-        self._D = [d ** 0.5 for d in self._D] 
-
-        invD = diag([1.0/d for d in self._D])
-        self._invsqrtC = self._B * invD * transpose(self._B) 
-
-        children = []
-        while(len(children) < self._lambd):
-            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
-            value = self._xmean + transpose(self._sigma * self._B * normals)
-            child = Individual(value.getA1())
-            if(self.is_feasible(child)):
-                children.append(child)
-            else:
-                CMAES_infeasibles += 1
-        
-        N = len(self._xmean)
-
-        # TELL part
-        oldxmean = deepcopy(self._xmean)
-        sort_by = lambda child : self.fitness(child)
-        sorted_children = sorted(children, key = sort_by)[:self._mu]
-         
-        self._best_fitness = self.fitness(sorted_children[0])
-        self._best_child = deepcopy(sorted_children[0])
-
-        # new xmean
-        values = map(lambda child : child.value, sorted_children) 
-        self._xmean = dot(self._weights, values)
-       
-        # cumulation: update evolution paths
-        y = self._xmean - oldxmean
-        z = dot(self._invsqrtC, y) # C**(-1/2) * (xnew - xold)
-
-        # normalizing coefficient c and evolution path sigma control
-        c = (self._cs * (2 - self._cs) * self._mueff) ** 0.5 / self._sigma
-        self._ps = (1 - self._cs) * self._ps + c * z
-
-        # normalizing coefficient c and evolution path for rank-one-update
-        # without hsig (!)
-        c = (self._cc * (2 - self._cc) * self._mueff) ** 0.5 / self._sigma
-        self._pc = (1 - self._cc) * self._pc + c * y
-        
-        # adapt covariance matrix C
-        # rank one update term
-        term_cov1 = self._c1 * (transpose(matrix(self._pc)) * matrix(self._pc))       
-
-        # ranke mu update term
-        valuesv = [(value - oldxmean) / self._sigma for value in values] 
-        term_covmu = self._cmu *\
-            sum([self._weights[i] * (transpose(matrix(valuesv[i])) *\
-            matrix(valuesv[i]))\
-            for i in range(0, self._mu)])
-
-        self._C = (1 - self._c1 - self._cmu) * self._C + term_cov1 + term_covmu
-
-        #update sigma page. 20, equation (30)
-        self._sigma *= exp(min(0.6, (self._cs / self._damps) *\
-            sum(x ** 2 for x in self._ps.getA1())/(N - 1) / 2))
-                            
-        fitness_of_best = self._best_fitness
-        next_population = sorted_children
-       
-        self.log(generation, next_population, CMAES_infeasibles) 
-        self._view.view(
-            generations = generation,\
-            best_fitness = fitness_of_best,\
-            DSES_infeasibles = CMAES_infeasibles)
-
-        if(self.termination(generation, fitness_of_best)):
-            return True
-        else:
-            return (next_population, generation + 1, m,\
-            l, fitness_of_best)
-
-    def run(self):
-        """ This method initializes the population etc. And starts the 
-            recursion. """
-       
-        children = []
-        while(len(children) < self._lambd):
-            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
-            value = self._xmean + transpose(self._sigma * self._B * normals)
-            child = Individual(value.getA1())
-            if(self.is_feasible(child)):
-                children.append(child)
- 
-        result = self._run((children, 0, self._mu, self._lambd, 0))
-
-        while result != True:
-            result = self._run(result)
-
-        return result
+        # valid solutions
+        self._valid_solutions = []
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
         # dimension of objective function
-        N = self._problem._d
+        N = len(xmean)
         self._xmean = xmean 
         self._sigma = sigma
 
@@ -197,7 +97,104 @@ class CMAES(EvolutionStrategy):
         # covariance matrix, rotation of mutation ellipsoid
         self._C = identity(N)
         self._invsqrtC = identity(N)  # C^-1/2 
- 
+
+        ### FIRST RUN
+        self._D, self._B = eigh(self._C)
+        self._B = matrix(self._B)
+        self._D = [d ** 0.5 for d in self._D] 
+
+        invD = diag([1.0/d for d in self._D])
+        self._invsqrtC = self._B * invD * transpose(self._B) 
+
+    def ask_pending_solutions(self):
+        """ ask pending solutions; solutions which need a checking for true feasibility """        
+
+        pending_solutions = []
+        while(len(pending_solutions) < (self._lambd - len(self._valid_solutions))):
+            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+            value = self._xmean + transpose(self._sigma * self._B * normals)
+            pending_solutions.append(Individual(value.getA1()))
+
+        return pending_solutions            
+
+    def tell_feasibility(self, feasibility_information):
+        """ tell feasibilty; return True if there are no pending solutions, otherwise False """
+
+        for (child, feasibility) in feasibility_information:
+            if(feasibility):
+                self._valid_solutions.append(child)
+        if(len(self._valid_solutions) < self._lambd):
+            return False
+        else:
+            return True
+     
+    def ask_valid_solutions(self):
+        return self._valid_solutions
+
+    def tell_fitness(self, fitnesses):
+        """ tell fitness; update all strategy specific attributes """        
+
+        N = len(self._xmean)
+        oldxmean = deepcopy(self._xmean)
+
+        fitness = lambda (child, fitness) : fitness
+        child = lambda (child, fitness) : child
+
+        sorted_fitnesses = sorted(fitnesses, key = fitness)[:self._mu]
+        sorted_children = map(child, sorted_fitnesses)
+        
+        self._best_child, self._best_fitness = sorted_fitnesses[0]
+
+        # new xmean
+        values = map(lambda child : child.value, sorted_children) 
+        self._xmean = dot(self._weights, values)
+       
+        # cumulation: update evolution paths
+        y = self._xmean - oldxmean
+        z = dot(self._invsqrtC, y) # C**(-1/2) * (xnew - xold)
+
+        # normalizing coefficient c and evolution path sigma control
+        c = (self._cs * (2 - self._cs) * self._mueff) ** 0.5 / self._sigma
+        self._ps = (1 - self._cs) * self._ps + c * z
+
+        # normalizing coefficient c and evolution path for rank-one-update
+        # without hsig (!)
+        c = (self._cc * (2 - self._cc) * self._mueff) ** 0.5 / self._sigma
+        self._pc = (1 - self._cc) * self._pc + c * y
+        
+        # adapt covariance matrix C
+        # rank one update term
+        term_cov1 = self._c1 * (transpose(matrix(self._pc)) * matrix(self._pc))       
+
+        # ranke mu update term
+        valuesv = [(value - oldxmean) / self._sigma for value in values] 
+        term_covmu = self._cmu *\
+            sum([self._weights[i] * (transpose(matrix(valuesv[i])) *\
+            matrix(valuesv[i]))\
+            for i in range(0, self._mu)])
+
+        self._C = (1 - self._c1 - self._cmu) * self._C + term_cov1 + term_covmu
+
+        #update sigma page. 20, equation (30)
+        self._sigma *= exp(min(0.6, (self._cs / self._damps) *\
+            sum(x ** 2 for x in self._ps.getA1())/(N - 1) / 2))
+
+        ### UPDATE FOR NEXT ITERATION
+        self._valid_solutions = []
+
+        self._D, self._B = eigh(self._C)
+        self._B = matrix(self._B)
+        self._D = [d ** 0.5 for d in self._D] 
+
+        invD = diag([1.0/d for d in self._D])
+        self._invsqrtC = self._B * invD * transpose(self._B) 
+
+        fitness_of_best = self._best_fitness
+        next_population = sorted_children        
+        #self.log(generation, next_population, CMAES_infeasibles)
+
+        return self._best_child, self._best_fitness
+
     def log(self, generation, next_population, CMAES_infeasibles):
         super(CMAES, self).log(generation, next_population)
         self._statistics_CMAES_infeasibles_trajectory.append(CMAES_infeasibles)
@@ -211,19 +208,3 @@ class CMAES(EvolutionStrategy):
             statistics[k] = super_statistics[k]
         
         return statistics
-
-    # return true if solution is feasible in meta model, otherwise false.
-    def is_meta_feasible(self, x):
-        self._count_is_meta_feasible += 1
-        return self._meta_model.check_feasibility(x)
-
-    # train the metamodel with given points
-    def train_metamodel(self, feasible, infeasible, parameter_C):
-        self._count_train_metamodel += 1
-        self._meta_model.train(feasible, infeasible, parameter_C)
-
-    # mutate child with gauss devriation 
-    def mutate(self, child, sigmas):
-        self._statistics_mutations += 1
-        return self._mutation.mutate(child, sigmas)
-

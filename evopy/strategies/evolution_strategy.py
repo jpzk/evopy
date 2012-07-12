@@ -21,17 +21,15 @@ from numpy import array
 
 class EvolutionStrategy(object):
    
-    def __init__(self, problem, mu, lambd, \
-        combination, mutation, selection, view, sigmas = None):
+    def __init__(self, mu, lambd, \
+        combination, mutation, selection, sigmas = None):
 
-        self._problem = problem
         self._mu = mu
         self._lambd = lambd
         self._sigmas = sigmas
         self._mutation = mutation
         self._combination = combination
         self._selection = selection
-        self._view = view
 
         self._statistics_is_feasible = 0
         self._statistics_fitness = 0
@@ -43,10 +41,10 @@ class EvolutionStrategy(object):
 
     def log(self, generation, next_population):
         self._statistics_generations += 1
-        fitnesses = array(map(self._problem.fitness, next_population))
-        self._statistics_worst_fitness_trajectory.append(fitnesses.max())
-        self._statistics_average_fitness_trajectory.append(fitnesses.mean())
-        self._statistics_best_fitness_trajectory.append(fitnesses.min())
+        #fitnesses = array(map(self._problem.fitness, next_population))
+        #self._statistics_worst_fitness_trajectory.append(fitnesses.max())
+        #self._statistics_average_fitness_trajectory.append(fitnesses.mean())
+        #self._statistics_best_fitness_trajectory.append(fitnesses.min())
 
     def get_statistics(self):
         return {
@@ -58,26 +56,11 @@ class EvolutionStrategy(object):
             "worst-fitness": self._statistics_worst_fitness_trajectory,
             "avg-fitness": self._statistics_average_fitness_trajectory}
 
-    def termination(self, generations, fitness_of_best):
-        return self._problem.termination(generations, fitness_of_best)
-
     # return success_probabilty (rechenberg)
     def success_probability(self, children, success_fitness):
         return len(filter(
             lambda child: self.fitness(child) <= success_fitness, 
             children)) / len(children)
-
-    # return true if solution is valid, otherwise false.
-    def is_feasible(self, x):
-        self._statistics_is_feasible += 1
-        return self._problem.is_feasible(x) 
-
-    def fitness(self, x):
-        self._statistics_fitness += 1
-        return self._problem.fitness(x)
-
-    def view(self, generation, next_population):
-        self._view.view(generation, next_population, self._problem.fitness)
 
     def combine(self, population):
         return self._combination.combine(population)
@@ -89,8 +72,4 @@ class EvolutionStrategy(object):
       
     def select(self, population, children, mu):
         return self._selection.select(self.fitness, population, children, mu)
-
-    def generate_population(self):
-        generator = self._problem.population_generator() 
-        return generator.next()
 

@@ -34,13 +34,15 @@ from evopy.views.cv_ds_r_linear_view import CVDSRLinearView
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.strategies.cmaes import CMAES
 
+from evopy.problems.tr_problem import TRProblem
+from evopy.simulators.simulator import Simulator
+
 def get_method():
     sklearn_cv = SVCCVSkGridLinear(\
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(50, 5))
 
     method = CMAES(\
-        SASphereProblem(dimensions = 2, accuracy = -4),
         mu = 15,
         lambd = 100,
         combination = SAIntermediate(),\
@@ -53,5 +55,5 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    m = get_method()
-    m.run()
+    sim = Simulator(get_method(), TRProblem(), pow(10, -12))
+    sim.simulate()
