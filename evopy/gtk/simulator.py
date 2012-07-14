@@ -17,25 +17,22 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from sys import path
-path.append("../..")
+import time
+import threading
 
-# @todo spawn two processes and avoid playdoh map
-multiprocessing = False
+class Simulator(threading.Thread):
+    """ This class represents the simulator thread """           
 
-if(multiprocessing):
-    from multiprocessing import cpu_count
-    from evopy.external.playdoh import map
-
-class Simulator():
-    def __init__(self, optimizer, problem, accuracy):
+    def configure(self, optimizer, problem, accuracy):
         self.optimizer = optimizer
         self.problem = problem
-        self.accuracy = accuracy 
+        self.accuracy = accuracy
 
-    def simulate(self):
-        while(True):
+    def run(self):                  
+        self.gui_closed = False
+        self.stop = False
 
+        while(not self.gui_closed and not self.stop):
             # Simulator and optimizer handling constraints
             all_feasible = False
             while(not all_feasible):
@@ -46,12 +43,7 @@ class Simulator():
                 feasibility =\
                     lambda solution : (solution, self.problem.is_feasible(solution))
 
-                if(multiprocessing):
-                    feasibility_information =\
-                        map(feasibility, solutions, cpu = cpu_count())
-                else:
-                    feasibility_information =\
-                        map(feasibility, solutions)
+                feasibility_information = map(feasibility, solutions)
 
                 # TELL feasibility, returns True if all feasible, 
                 # returns False if extra checks
@@ -62,16 +54,18 @@ class Simulator():
             valid_solutions = self.optimizer.ask_valid_solutions()
 
             # CHECK fitness
-            fitness = lambda solution : (solution, self.problem.fitness(solution))
-
-            if(multiprocessing):
-                fitnesses = map(fitness, valid_solutions, cpu = cpu_count())
-            else:
-                fitnesses = map(fitness, valid_solutions)
+            fitness =\
+                lambda solution : (solution, self.problem.fitness(solution))
+            fitnesses = map(fitness, valid_solutions)
 
             # TELL fitness, return optimum
             optimum, optimum_fitness = self.optimizer.tell_fitness(fitnesses)
-            print optimum_fitness
+
+            # GUI update
+            stats = self.optimizer.get_last_statistics()
+            self.gui.on_update_plots(stats)
+                                  
+            time.sleep(0.5)
 
             # TERMINATION
             if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):
