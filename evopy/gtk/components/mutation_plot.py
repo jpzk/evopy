@@ -62,6 +62,33 @@ class MutationPlot(FigureCanvasGTK):
         self.axHisty.grid(True)
         self.draw_idle()
 
+    def on_draw(self):
+        self.axScatter.cla()
+        self.axHistx.cla()
+        self.axHisty.cla()
+        self.axScatter.grid(True)
+        self.axHistx.grid(True)
+        self.axHisty.grid(True)
+        self.draw_idle()
+
+        binwidth = 0.25
+        xymax = max( [max(fabs(self.X)), max(fabs(self.Y))] )
+        lim = ( int(xymax/binwidth) + 1) * binwidth
+
+        self.axScatter.set_xlim( (-lim, lim) )
+        self.axScatter.set_ylim( (-lim, lim) )
+
+        bins = arange(-lim, lim + binwidth, binwidth)
+        self.axHistx.hist(self.X, bins=bins, color='green')
+        self.axHisty.hist(self.Y, bins=bins, orientation='horizontal',\
+            color='green')
+
+        self.axHistx.set_xlim( self.axScatter.get_xlim() )
+        self.axHisty.set_ylim( self.axScatter.get_ylim() )
+
+        self.axScatter.scatter(self.X, self.Y, color='green')
+        self.draw_idle()
+
     def on_update(self, stats):  
         values = stats['selected_children']
     
@@ -84,31 +111,7 @@ class MutationPlot(FigureCanvasGTK):
 
         xv = lambda value : value[0]
         yv = lambda value : value[1]
-        X = map(xv, scaled_values)
-        Y = map(yv, scaled_values)
+        self.X = map(xv, scaled_values)
+        self.Y = map(yv, scaled_values)
 
-        self.axScatter.cla()
-        self.axHistx.cla()
-        self.axHisty.cla()
-        self.axScatter.grid(True)
-        self.axHistx.grid(True)
-        self.axHisty.grid(True)
-        self.draw_idle()
-
-        binwidth = 0.25
-        xymax = max( [max(fabs(X)), max(fabs(Y))] )
-        lim = ( int(xymax/binwidth) + 1) * binwidth
-
-        self.axScatter.set_xlim( (-lim, lim) )
-        self.axScatter.set_ylim( (-lim, lim) )
-
-        bins = arange(-lim, lim + binwidth, binwidth)
-        self.axHistx.hist(X, bins=bins, color='green')
-        self.axHisty.hist(Y, bins=bins, orientation='horizontal', color='green')
-
-        self.axHistx.set_xlim( self.axScatter.get_xlim() )
-        self.axHisty.set_ylim( self.axScatter.get_ylim() )
-
-        self.axScatter.scatter(X, Y, color='green')
-        self.draw_idle()
 

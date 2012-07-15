@@ -36,12 +36,16 @@ path.append("../..")
 import evopy.examples.CMAESSVCR as CMAESSVCR
 from evopy.problems.tr_problem import TRProblem
 
-from evopy.gtk.metamodel_combobox import MetamodelComboBox
-from evopy.gtk.problem_combobox import ProblemComboBox
-from evopy.gtk.optimizer_combobox import OptimizerComboBox
-from evopy.gtk.mutation_plot import MutationPlot
-from evopy.gtk.fitness_plot import FitnessPlot
-from evopy.gtk.searchspace_plot import SearchspacePlot
+from evopy.gtk.components.parameter_C_plot import ParameterCPlot
+from evopy.gtk.components.accuracy_plot import AccuracyPlot
+from evopy.gtk.components.metamodel_combobox import MetamodelComboBox
+from evopy.gtk.components.problem_combobox import ProblemComboBox
+from evopy.gtk.components.optimizer_combobox import OptimizerComboBox
+from evopy.gtk.components.mutation_plot import MutationPlot
+from evopy.gtk.components.infeasibles_plot import InfeasiblesPlot
+from evopy.gtk.components.cumulated_infeasibles_plot import CumulatedInfeasiblesPlot
+from evopy.gtk.components.fitness_plot import FitnessPlot
+from evopy.gtk.components.searchspace_plot import SearchspacePlot
 from evopy.gtk.simulator import Simulator
 
 class appGui():
@@ -50,8 +54,9 @@ class appGui():
 
         self.pages = ['configuration', 'search_space', 'fitness', 'mutation',\
             'constraints', 'metamodel']
-
         self.notebook_pages, self.notebook_plots = {}, {}
+        self.optimizer_plots, self.metamodel_plots = [],[]
+
         for index, page in enumerate(self.pages):
             self.notebook_pages[page] = index
             self.notebook_plots[page] = []
@@ -88,8 +93,39 @@ class appGui():
  
         problem_config_table.attach(self.problem_combobox, 1, 2, 0, 1)
 
+        self.accuracy_plot = AccuracyPlot()
+        self.metamodel_plots.append(self.accuracy_plot)
+        self.notebook_plots['metamodel'].append(\
+            self.accuracy_plot)
+        self.accuracy_plot.show()
+        self.vbox = builder.get_object("metamodel_vbox")
+        self.vbox.pack_start(self.accuracy_plot, True, True)
+
+        self.parameter_C_plot = ParameterCPlot()
+        self.metamodel_plots.append(self.parameter_C_plot)
+        self.notebook_plots['metamodel'].append(\
+            self.parameter_C_plot)
+        self.parameter_C_plot.show()
+        self.vbox = builder.get_object("metamodel_vbox")
+        self.vbox.pack_start(self.parameter_C_plot, True, True)
+
+        self.cumulated_infeasibles_plot = CumulatedInfeasiblesPlot()
+        self.optimizer_plots.append(self.cumulated_infeasibles_plot)
+        self.notebook_plots['constraints'].append(\
+            self.cumulated_infeasibles_plot)
+        self.cumulated_infeasibles_plot.show()
+        self.vbox = builder.get_object("constraint_vbox")
+        self.vbox.pack_start(self.cumulated_infeasibles_plot, True, True)
+
+        self.infeasibles_plot = InfeasiblesPlot() 
+        self.optimizer_plots.append(self.infeasibles_plot)
+        self.notebook_plots['constraints'].append(self.infeasibles_plot)
+        self.infeasibles_plot.show()
+        self.vbox = builder.get_object("constraint_vbox")
+        self.vbox.pack_start(self.infeasibles_plot, True, True)
+
         self.fitness_plot = FitnessPlot() 
-        self.plots.append(self.fitness_plot)
+        self.optimizer_plots.append(self.fitness_plot)
         self.notebook_plots['fitness'].append(self.fitness_plot)
         self.fitness_plot.show()
         self.vbox = builder.get_object("fitness_vbox")
@@ -97,21 +133,28 @@ class appGui():
        
         self.searchspace_plot = SearchspacePlot()
         self.notebook_plots['search_space'].append(self.searchspace_plot)
-        self.plots.append(self.searchspace_plot)
+        self.optimizer_plots.append(self.searchspace_plot)
         self.searchspace_plot.show()
         self.searchspace_vbox = builder.get_object("searchspace_vbox")
         self.searchspace_vbox.pack_start(self.searchspace_plot, True, True)
 
         self.mutation_plot = MutationPlot()
-        self.plots.append(self.mutation_plot)
+        self.optimizer_plots.append(self.mutation_plot)
         self.mutation_plot.show()
         self.notebook_plots['mutation'].append(self.mutation_plot)
         self.mutation_vbox = builder.get_object("mutation_vbox")
         self.mutation_vbox.pack_start(self.mutation_plot, True, True)
 
-    def on_update_plots(self, stats):        
-        for plot in self.plots:
-            plot.on_update(stats)
+    def on_update_plots(self, optimizer_stats, metamodel_stats):                 
+        current_page = self.notebook.get_current_page()
+        draw_page = self.notebook_plots[self.pages[current_page]]
+
+        for plot in self.optimizer_plots:
+            plot.on_update(optimizer_stats)
+        for plot in self.metamodel_plots:
+            plot.on_update(metamodel_stats)
+        for plot in draw_page:
+            plot.on_draw()
 
     def on_mutation_activate(self, widget):
         self.notebook.set_current_page(\
@@ -142,8 +185,11 @@ class appGui():
 
     def on_reset_button_clicked(self, widget):
         self.simulator.stop = True
-        for plot in self.plots:
+        for plot in self.optimizer_plots:
             plot.on_reset()
+        for plot in self.metamodel_plots:
+            plot.on_reset()
+
 
         self.play_button.set_sensitive(True)
         self.pause_button.set_sensitive(False)

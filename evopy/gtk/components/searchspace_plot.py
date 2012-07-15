@@ -20,32 +20,28 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk import FigureCanvasGTK, NavigationToolbar
 
-class FitnessPlot(FigureCanvasGTK):
+class SearchspacePlot(FigureCanvasGTK):
     def __init__(self):
-        self.best_fitness_trajectory = []
         self.figure = Figure(dpi=75, facecolor='#e1e1e1')
-        self.figure.suptitle('average fitness', fontsize=12)
+        self.figure.suptitle('selected children', fontsize=12)
         self.axis = self.figure.add_subplot(111)
         self.axis.grid(True)
+        super(SearchspacePlot, self).__init__(self.figure)
 
-        super(FitnessPlot, self).__init__(self.figure)            
-
-    def on_reset(self):
-        self.best_fitness_trajectory = []
+    def on_reset(self):       
         self.axis.cla()
         self.axis.grid(True)
         self.draw_idle()
 
-    def on_update(self, stats):
-        best = stats['best_fitness']
-        average = stats['avg_fitness']
-        worst = stats['worst_fitness']
-
-        self.best_fitness_trajectory.append(best)
-        
-        generations = range(0, len(self.best_fitness_trajectory))
+    def on_draw(self):
         self.axis.cla()
-        self.axis.grid(True)
-        self.axis.plot(generations[-10:], self.best_fitness_trajectory[-10:], color='green', marker="o")
+        self.axis.grid(True) 
+        self.axis.scatter(self.X,self.Y, color='green')
         self.draw_idle()
 
+    def on_update(self, stats):  
+        values = stats['selected_children']
+        xv = lambda value : value[0]
+        yv = lambda value : value[1]
+        self.X = map(xv, values)
+        self.Y = map(yv, values)

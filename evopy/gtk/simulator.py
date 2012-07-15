@@ -62,8 +62,9 @@ class Simulator(threading.Thread):
             optimum, optimum_fitness = self.optimizer.tell_fitness(fitnesses)
 
             # GUI update
-            stats = self.optimizer.get_last_statistics()
-            self.gui.on_update_plots(stats)
+            optimizer_stats = self.optimizer.get_last_statistics()
+            metamodel_stats = self.optimizer._meta_model.get_last_statistics()
+            self.gui.on_update_plots(optimizer_stats, metamodel_stats)
                                   
             time.sleep(0.5)
 
