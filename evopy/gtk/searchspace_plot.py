@@ -30,6 +30,7 @@ class SearchspacePlot(FigureCanvasGTK):
 
     def on_reset(self):       
         self.axis.cla()
+        self.axis.grid(True)
         self.draw_idle()
 
     def on_update(self, stats):  

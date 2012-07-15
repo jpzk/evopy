@@ -24,7 +24,7 @@ class FitnessPlot(FigureCanvasGTK):
     def __init__(self):
         self.best_fitness_trajectory = []
         self.figure = Figure(dpi=75, facecolor='#e1e1e1')
-        self.figure.suptitle('fitness', fontsize=12)
+        self.figure.suptitle('average fitness', fontsize=12)
         self.axis = self.figure.add_subplot(111)
         self.axis.grid(True)
 
@@ -33,6 +33,7 @@ class FitnessPlot(FigureCanvasGTK):
     def on_reset(self):
         self.best_fitness_trajectory = []
         self.axis.cla()
+        self.axis.grid(True)
         self.draw_idle()
 
     def on_update(self, stats):

@@ -36,22 +36,130 @@ path.append("../..")
 import evopy.examples.CMAESSVCR as CMAESSVCR
 from evopy.problems.tr_problem import TRProblem
 
+from evopy.gtk.metamodel_combobox import MetamodelComboBox
+from evopy.gtk.problem_combobox import ProblemComboBox
+from evopy.gtk.optimizer_combobox import OptimizerComboBox
+from evopy.gtk.mutation_plot import MutationPlot
 from evopy.gtk.fitness_plot import FitnessPlot
 from evopy.gtk.searchspace_plot import SearchspacePlot
 from evopy.gtk.simulator import Simulator
 
 class appGui():
-      
-    def on_update_plots(self, stats):
+     
+    def __init__(self):
+
+        self.pages = ['configuration', 'search_space', 'fitness', 'mutation',\
+            'constraints', 'metamodel']
+
+        self.notebook_pages, self.notebook_plots = {}, {}
+        for index, page in enumerate(self.pages):
+            self.notebook_pages[page] = index
+            self.notebook_plots[page] = []
+
+        gladefile = "gui.xml"
+        builder = gtk.Builder()
+        builder.add_from_file(gladefile)
+
+        self.window = builder.get_object("window1")
+        self.pause_button = builder.get_object("pause_button")
+        self.play_button = builder.get_object("play_button")
+        self.reset_button = builder.get_object("reset_button")
+        self.notebook = builder.get_object("tabs")
+
+        optimizer_config_table = builder.get_object("optimizer_config_table")
+        problem_config_table = builder.get_object("problem_config_table")
+
+        builder.connect_signals(self)
+
+        self.plots = []
+        self.window.connect("destroy", self.on_destroy)
+        
+        self.optimizer_combobox = OptimizerComboBox()
+        self.optimizer_combobox.show()
+
+        self.metamodel_combobox = MetamodelComboBox()
+        self.metamodel_combobox.show()
+
+        optimizer_config_table.attach(self.optimizer_combobox, 1, 2, 0, 1)
+        optimizer_config_table.attach(self.metamodel_combobox, 1, 2, 1, 2)
+        
+        self.problem_combobox = ProblemComboBox()
+        self.problem_combobox.show()
+ 
+        problem_config_table.attach(self.problem_combobox, 1, 2, 0, 1)
+
+        self.fitness_plot = FitnessPlot() 
+        self.plots.append(self.fitness_plot)
+        self.notebook_plots['fitness'].append(self.fitness_plot)
+        self.fitness_plot.show()
+        self.vbox = builder.get_object("fitness_vbox")
+        self.vbox.pack_start(self.fitness_plot, True, True)
+       
+        self.searchspace_plot = SearchspacePlot()
+        self.notebook_plots['search_space'].append(self.searchspace_plot)
+        self.plots.append(self.searchspace_plot)
+        self.searchspace_plot.show()
+        self.searchspace_vbox = builder.get_object("searchspace_vbox")
+        self.searchspace_vbox.pack_start(self.searchspace_plot, True, True)
+
+        self.mutation_plot = MutationPlot()
+        self.plots.append(self.mutation_plot)
+        self.mutation_plot.show()
+        self.notebook_plots['mutation'].append(self.mutation_plot)
+        self.mutation_vbox = builder.get_object("mutation_vbox")
+        self.mutation_vbox.pack_start(self.mutation_plot, True, True)
+
+    def on_update_plots(self, stats):        
         for plot in self.plots:
             plot.on_update(stats)
+
+    def on_mutation_activate(self, widget):
+        self.notebook.set_current_page(\
+            self.notebook_pages['mutation'])
+ 
+    def on_meta_model_activate(self, widget):
+        self.notebook.set_current_page(\
+            self.notebook_pages['metamodel'])
+            
+    def on_constraints_activate(self, widget):
+        self.notebook.set_current_page(\
+            self.notebook_pages['constraints'])
+ 
+    def on_fitness_activate(self, widget):
+        self.notebook.set_current_page(\
+            self.notebook_pages['fitness'])    
+
+    def on_search_space_activate(self, widget):
+        self.notebook.set_current_page(\
+            self.notebook_pages['search_space'])
+
+    def on_configuration_activate(self, widget):
+        self.notebook.set_current_page(\
+            self.notebook_pages['configuration'])
 
     def on_optimizer_pulldown_show(self, a):
         return 
 
     def on_reset_button_clicked(self, widget):
         self.simulator.stop = True
-        
+        for plot in self.plots:
+            plot.on_reset()
+
+        self.play_button.set_sensitive(True)
+        self.pause_button.set_sensitive(False)
+        self.reset_button.set_sensitive(False)          
+
+    def on_pause_button_clicked(self, widget):
+        self.play_button.set_sensitive(True)
+        self.pause_button.set_sensitive(False)
+        self.reset_button.set_sensitive(True)          
+
+        return
+
+    def on_config_button_clicked(self, widget):
+        self.notebook.set_current_page(\
+            self.notebook_pages['configuration'])
+
     def on_play_button_clicked(self, widget):
         
         optimizer = CMAESSVCR.get_method()
@@ -60,47 +168,22 @@ class appGui():
 
         self.simulator = Simulator()
         self.simulator.configure(optimizer, problem, accuracy)            
-
         self.simulator.gui = self
         self.simulator.start()
+
+        self.play_button.set_sensitive(False)
+        self.pause_button.set_sensitive(True)
+        self.reset_button.set_sensitive(True)
+
+        if(self.notebook.get_current_page() ==\
+            self.notebook_pages['configuration']):
+            self.notebook.set_current_page(\
+                self.notebook_pages['search_space'])
 
     def on_destroy(self, a):
         self.simulator.gui_closed = True
         gtk.main_quit()
 
-    def __init__(self):
-        gladefile = "gui.xml"
-        builder = gtk.Builder()
-        builder.add_from_file(gladefile)
-        self.window = builder.get_object("window1")
-        builder.connect_signals(self)
-
-        self.plots = []
-
-        self.window.connect("destroy", self.on_destroy)
-        self.optimizer_pulldown = builder.get_object("optimizer_pulldown")
-        self.optimizer_pulldown.set_title("optimizer")
-
-        liststore = gtk.ListStore(str)
-        self.optimizer_pulldown.set_model(liststore)
-        cell = gtk.CellRendererText()
-
-        self.optimizer_pulldown.pack_start(cell, True)
-        self.optimizer_pulldown.add_attribute(cell, 'text', 0) 
-        self.optimizer_pulldown.append_text("CMA-ES-SVC")
-        self.optimizer_pulldown.set_active(0)
-
-        self.fitness_plot = FitnessPlot() 
-        self.plots.append(self.fitness_plot)
-        self.fitness_plot.show()
-        
-        self.searchspace_plot = SearchspacePlot()
-        self.plots.append(self.searchspace_plot)
-        self.searchspace_plot.show()
-
-        self.vbox = builder.get_object("vbox1")
-        self.vbox.pack_start(self.fitness_plot, True, True)
-        self.vbox.pack_start(self.searchspace_plot, True, True)
 
     def main(self):
         self.window.show()
