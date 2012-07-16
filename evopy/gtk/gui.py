@@ -33,9 +33,12 @@ import time
 from sys import path
 path.append("../..")
 
+import evopy.examples.CMAES as CMAES
 import evopy.examples.CMAESSVCRDR as CMAESSVCRDR
 from evopy.problems.tr_problem import TRProblem
 
+from evopy.gtk.components.cfc_plot import CFCPlot
+from evopy.gtk.components.cumulated_cfc_plot import CumulatedCFCPlot
 from evopy.gtk.components.parameter_C_plot import ParameterCPlot
 from evopy.gtk.components.accuracy_plot import AccuracyPlot
 from evopy.gtk.components.metamodel_combobox import MetamodelComboBox
@@ -53,9 +56,11 @@ class appGui():
     def __init__(self):
 
         self.pages = ['configuration', 'search_space', 'fitness', 'mutation',\
-            'constraints', 'metamodel']
+            'constraints', 'constraint_calls', 'metamodel']
+
         self.notebook_pages, self.notebook_plots = {}, {}
-        self.optimizer_plots, self.metamodel_plots = [],[]
+        self.optimizer_plots, self.metamodel_plots, self.simulator_plots =\
+            [],[],[]
 
         for index, page in enumerate(self.pages):
             self.notebook_pages[page] = index
@@ -145,14 +150,36 @@ class appGui():
         self.mutation_vbox = builder.get_object("mutation_vbox")
         self.mutation_vbox.pack_start(self.mutation_plot, True, True)
 
-    def on_update_plots(self, optimizer_stats, metamodel_stats):                 
+        self.cumulated_cfc_plot = CumulatedCFCPlot()
+        self.simulator_plots.append(self.cumulated_cfc_plot)
+        self.cumulated_cfc_plot.show()
+        self.notebook_plots['constraint_calls'].append(self.cumulated_cfc_plot)
+        self.constraint_calls_vbox = builder.get_object("constraint_calls_vbox")
+        self.constraint_calls_vbox.pack_start(self.cumulated_cfc_plot, True, True)
+
+        self.cfc_plot = CFCPlot()
+        self.simulator_plots.append(self.cfc_plot)
+        self.cfc_plot.show()
+        self.notebook_plots['constraint_calls'].append(self.cfc_plot)
+        self.constraint_calls_vbox = builder.get_object("constraint_calls_vbox")
+        self.constraint_calls_vbox.pack_start(self.cfc_plot, True, True)
+
+    def on_update_plots(self, optimizer_stats, simulator_stats,\
+        metamodel_stats=False):
+
         current_page = self.notebook.get_current_page()
         draw_page = self.notebook_plots[self.pages[current_page]]
 
         for plot in self.optimizer_plots:
             plot.on_update(optimizer_stats)
-        for plot in self.metamodel_plots:
-            plot.on_update(metamodel_stats)
+
+        for plot in self.simulator_plots:
+            plot.on_update(simulator_stats)
+
+        if(metamodel_stats != False):
+            for plot in self.metamodel_plots:
+                plot.on_update(metamodel_stats)
+
         for plot in draw_page:
             plot.on_draw()
 
@@ -189,7 +216,6 @@ class appGui():
             plot.on_reset()
         for plot in self.metamodel_plots:
             plot.on_reset()
-
 
         self.play_button.set_sensitive(True)
         self.pause_button.set_sensitive(False)

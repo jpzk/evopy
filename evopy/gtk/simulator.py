@@ -21,9 +21,12 @@ import time
 import threading
 
 class Simulator(threading.Thread):
-    """ This class represents the simulator thread """           
-
+    """ This class represents the simulator thread """   
     def configure(self, optimizer, problem, accuracy):
+
+        self._count_cfc = 0
+        self._statistics_cfc_trajectory = []
+
         self.optimizer = optimizer
         self.problem = problem
         self.accuracy = accuracy
@@ -42,9 +45,12 @@ class Simulator(threading.Thread):
                 # CHECK solutions for feasibility 
                 feasibility =\
                     lambda solution : (solution, self.problem.is_feasible(solution))
-
-                feasibility_information = map(feasibility, solutions)
-
+                
+                feasibility_information = []                   
+                for solution in solutions:
+                    self._count_cfc += 1 
+                    feasibility_information.append(feasibility(solution))
+                    
                 # TELL feasibility, returns True if all feasible, 
                 # returns False if extra checks
                 all_feasible =\
@@ -60,11 +66,17 @@ class Simulator(threading.Thread):
 
             # TELL fitness, return optimum
             optimum, optimum_fitness = self.optimizer.tell_fitness(fitnesses)
+            print "%.12f" % optimum_fitness
+            # UPDATE OWN STATS
+            self._statistics_cfc_trajectory.append(self._count_cfc)
+            self._count_cfc = 0           
 
             # GUI update
             optimizer_stats = self.optimizer.get_last_statistics()
-            metamodel_stats = self.optimizer._meta_model.get_last_statistics()
-            self.gui.on_update_plots(optimizer_stats, metamodel_stats)
+            simulator_stats = self.get_last_statistics()
+
+            #metamodel_stats = self.optimizer._meta_model.get_last_statistics()
+            self.gui.on_update_plots(optimizer_stats, simulator_stats)
                                   
             time.sleep(0.5)
 
@@ -72,3 +84,12 @@ class Simulator(threading.Thread):
             if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):
                 break
 
+    def get_statistics(self):
+        statistics = {
+            "cfc" : self._statistics_cfc_trajectory}
+        return statistics
+
+    def get_last_statistics(self):
+        statistics = {
+            "cfc" : self._statistics_cfc_trajectory[-1]}
+        return statistics

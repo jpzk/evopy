@@ -31,7 +31,7 @@ from evopy.simulators.simulator import Simulator
 def get_method():
 
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-5, 5, 2)],
         cv_method = KFold(50, 5))
 
     meta_model = CMASVCLinearMetaModel(\

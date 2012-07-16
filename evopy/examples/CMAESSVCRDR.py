@@ -33,7 +33,7 @@ def get_method():
 
     sklearn_cv = SVCCVSkGridLinear(\
         C_range = [2 ** i for i in range(-5, 15, 2)],
-        cv_method = KFold(50, 5))
+        cv_method = KFold(50, 10))
 
     meta_model = CMASVCLinearMetaModel(\
         window_size = 25,
@@ -42,13 +42,13 @@ def get_method():
         repair_mode = 'mirror')
 
     meta_model_dr = SVCLinearMetaModel(\
-        window_size = 100,
+        window_size = 25,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
         repair_mode = 'project')
 
     method = CMAESSVCRDR(\
-        mu = 50,
+        mu = 15,
         lambd = 100,
         xmean = [5.0, 5.0],
         sigma = 1.0,

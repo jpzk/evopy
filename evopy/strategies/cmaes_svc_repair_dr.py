@@ -151,10 +151,10 @@ class CMAESSVCRDR(EvolutionStrategy):
 
                 if(self._meta_model_dr.check_feasibility(self._reduce(individual))):
                     pending_meta_feasible.append(individual)
-                #else:
-                #    repaired = self._unreduce(self._meta_model_dr.repair(self._reduce(individual)))
-                #    self._count_repaired += 1
-                #    pending_meta_feasible.append(repaired)
+                else:
+                    repaired = self._unreduce(self._meta_model_dr.repair(self._reduce(individual)))
+                    self._count_repaired += 1
+                    pending_meta_feasible.append(repaired)
         else:
             max_amount_pending_solutions = difference
         
@@ -353,6 +353,9 @@ class CMAESSVCRDR(EvolutionStrategy):
         self._B = matrix(self._B)
         self._D = [d ** 0.5 for d in self._D] 
 
+        if(self._used_meta_model == self._meta_model_id and self._meta_model_trained):
+            self._B = self._blend_B_with_rotation(self._B, self._meta_model.new_basis)
+
         invD = diag([1.0/d for d in self._D])
         self._invsqrtC = self._B * invD * transpose(self._B) 
 
@@ -411,8 +414,8 @@ class CMAESSVCRDR(EvolutionStrategy):
         print "sim", simialarity
         blended_mat = []
 
-        #blend_factor = 1.0 - simialarity
-        blend_factor = 0.0
+        blend_factor = 1.0 - simialarity 
+        #blend_factor = 0.0
         print "blendfactor", blend_factor
  
         for (b_vec, rot_vec) in blend_pairs:
