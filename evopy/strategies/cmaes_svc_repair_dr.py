@@ -32,16 +32,16 @@ from numpy.linalg import eigh, norm, inv
 from evolution_strategy import EvolutionStrategy
 from evopy.individuals.individual import Individual
 
-class CMAESSVCR(EvolutionStrategy):
+class CMAESSVCRDR(EvolutionStrategy):
  
     _strategy_name =\
         "Covariance matrix adaption evolution strategy (CMA-ES) with linear SVC "\
         "meta model and repair of infeasibles and mutation ellipsoid alignment"
-
-    def __init__(self, mu, lambd, xmean, sigma, beta, meta_model):
+   
+    def __init__(self, mu, lambd, xmean, sigma, alpha, beta, meta_model, meta_model_dr):
 
         # call super constructor 
-        super(CMAESSVCR, self).__init__(mu, lambd)
+        super(CMAESSVCRDR, self).__init__(mu, lambd)
 
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xmean, sigma)      
@@ -52,10 +52,14 @@ class CMAESSVCR(EvolutionStrategy):
         self._count_constraint_infeasibles = 0
         self._count_repaired = 0
 
-        # SVC Metamodel
-        self._meta_model = meta_model
+        # SVC meta model
+        self._meta_model, self._meta_model_id = meta_model, 0
+        self._meta_model_dr, self._meta_model_dr_id = meta_model_dr, 1
         self._meta_model_trained = False
+        self._meta_model_dr_trained = False
+        self._alpha = alpha
         self._beta = beta
+        self._used_meta_model = self._meta_model_id
 
         # valid solutions
         self._valid_solutions = []
@@ -114,7 +118,49 @@ class CMAESSVCR(EvolutionStrategy):
         invD = diag([1.0/d for d in self._D])
         self._invsqrtC = self._B * invD * transpose(self._B) 
 
-    def ask_pending_solutions(self):
+    def _reduce(self, individual):
+        invB = inv(self._B)
+        reducing = lambda child : (invB * matrix(child.value).T).getA1()
+        reduced_value = reducing(individual)
+        return Individual(reduced_value[0])
+
+    # @todo extract generation of individuals
+    def ask_pending_solutions_dr(self):
+        """ ask pending solutions; solutions which need a checking for true 
+            feasibility """
+
+        # testing beta percent of generated children on meta model first.
+        pending_meta_feasible = []
+        pending_solutions = []
+
+        difference = self._lambd - len(self._valid_solutions)
+
+        if(self._meta_model_dr_trained):
+            max_amount_meta_feasible = int(floor(self._alpha * difference))
+            max_amount_pending_solutions = difference - max_amount_meta_feasible
+
+            while(len(pending_meta_feasible) < max_amount_meta_feasible):
+                normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+                value = self._xmean + transpose(self._sigma * self._B * normals)
+                individual = Individual(value.getA1())
+
+                if(self._meta_model_dr.check_feasibility(_reduce(individual))):
+                    pending_meta_feasible.append(individual)
+                #else:
+                #    repaired = _unreduce(self._meta_model_dr.repair(_reduce(individual)))
+                #    self._count_repaired += 1
+                #    pending_meta_feasible.append(repaired)
+        else:
+            max_amount_pending_solutions = difference
+        
+        while(len(pending_solutions) < max_amount_pending_solutions):
+            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+            value = self._xmean + transpose(self._sigma * self._B * normals)
+            pending_solutions.append(Individual(value.getA1()))
+
+        return pending_meta_feasible + pending_solutions
+
+    def ask_pending_solutions_mm(self):
         """ ask pending solutions; solutions which need a checking for true 
             feasibility """
 
@@ -126,7 +172,7 @@ class CMAESSVCR(EvolutionStrategy):
 
         if(self._meta_model_trained):
             max_amount_meta_feasible = int(floor(self._beta * difference))
-            max_amount_pending_solutions = difference - max_amount_meta_feasible        
+            max_amount_pending_solutions = difference - max_amount_meta_feasible 
 
             while(len(pending_meta_feasible) < max_amount_meta_feasible):
                 normals = transpose(matrix([normal(0.0, d) for d in self._D]))
@@ -149,7 +195,22 @@ class CMAESSVCR(EvolutionStrategy):
 
         return pending_meta_feasible + pending_solutions            
 
+    def ask_pending_solutions(self):
+        if(self._used_meta_model == self._meta_model_id):
+            return self.ask_pending_solutions_mm()
+        if(self._used_meta_model == self._meta_model_dr_id):
+            return self.ask_pending_solutions_dr()
+
     def tell_feasibility(self, feasibility_information):
+        """ tell feasibilty; return True if there are no pending solutions, 
+            otherwise False """
+
+        if(self._used_meta_model == self._meta_model_id):
+            return self.tell_feasibility_mm(feasibility_information)
+        if(self._used_meta_model == self._meta_model_dr_id):
+            return self.tell_feasibility_dr(feasibility_information)
+
+    def tell_feasibility_mm(self, feasibility_information):
         """ tell feasibilty; return True if there are no pending solutions, 
             otherwise False """
 
@@ -165,8 +226,50 @@ class CMAESSVCR(EvolutionStrategy):
         else:            
            return True
 
+    def tell_feasibility_dr(self, feasibility_information):
+        """ tell feasibilty; return True if there are no pending solutions, 
+            otherwise False """
+
+        for (child, feasibility) in feasibility_information:
+            if(feasibility):
+                self._valid_solutions.append(child)
+            else:
+                self._count_constraint_infeasibles += 1
+                self._meta_model_dr.add_infeasible(self._reduce(child))
+
+        if(len(self._valid_solutions) < self._lambd):
+            return False
+        else:            
+           return True
+
     def ask_valid_solutions(self):
         return self._valid_solutions
+
+    def _train_meta_model(self, sorted_children):
+        if(self._used_meta_model == self._meta_model_id):
+            return self._train_meta_model_mm(sorted_children)
+        if(self._used_meta_model == self._meta_model_dr_id):
+            return self._train_meta_model_dr(sorted_children)
+
+    def _train_meta_model_mm(self, sorted_children):
+        # update meta model sort self._valid_solutions by fitness and 
+        # unsorted self._sliding_infeasibles
+        self._meta_model.add_sorted_feasibles(sorted_children)       
+        trained = self._meta_model.train()
+        self._meta_model_trained = trained 
+
+        # if accuracy drops under 50 percent, use dr meta model
+        meta_model_stats = self._meta_model.get_last_statistics()
+        if(meta_model_stats['best_acc'] < 0.50 and trained):
+            self._used_meta_model = self._meta_model_dr_id 
+
+    def _train_meta_model_dr(self, sorted_children):
+        # update meta model sort self._valid_solutions by fitness and 
+        # unsorted self._sliding_infeasibles
+        reduced_sorted_children = map(self._reduce, sorted_children)
+        self._meta_model_dr.add_sorted_feasibles(reduced_sorted_children)       
+        trained = self._meta_model_dr.train()
+        self._meta_model_dr_trained = trained 
 
     def tell_fitness(self, fitnesses):
         """ tell fitness; update all strategy specific attributes """       
@@ -179,15 +282,9 @@ class CMAESSVCR(EvolutionStrategy):
 
         sorted_fitnesses = sorted(fitnesses, key = fitness)
         sorted_children = map(child, sorted_fitnesses)
-
-        # update meta model sort self._valid_solutions by fitness and 
-        # unsorted self._sliding_infeasibles
-        self._meta_model.add_sorted_feasibles(sorted_children)       
-        trained = self._meta_model.train()
-
-        if(trained):
-            self._meta_model_trained = True
-        
+      
+        self._train_meta_model(sorted_children) 
+       
         # new xmean
         values = map(lambda child : child.value, sorted_children[:self._mu]) 
         self._xmean = dot(self._weights, values)
@@ -324,7 +421,7 @@ class CMAESSVCR(EvolutionStrategy):
             "infeasibles" : self._statistics_constraint_infeasibles_trajectory,
             "repaired": self._statistics_repaired_trajectory}
        
-        super_statistics = super(CMAESSVCR, self).get_statistics()
+        super_statistics = super(CMAESSVCRDR, self).get_statistics()
         for k in super_statistics:
             statistics[k] = super_statistics[k]
 
@@ -335,7 +432,7 @@ class CMAESSVCR(EvolutionStrategy):
             "infeasibles" : self._statistics_constraint_infeasibles_trajectory[-1],
             "repaired": self._statistics_repaired_trajectory[-1]}
  
-        super_statistics = super(CMAESSVCR, self).get_last_statistics()
+        super_statistics = super(CMAESSVCRDR, self).get_last_statistics()
         for k in super_statistics:
             statistics[k] = super_statistics[k]
 

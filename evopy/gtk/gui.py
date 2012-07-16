@@ -33,7 +33,7 @@ import time
 from sys import path
 path.append("../..")
 
-import evopy.examples.CMAESSVCR as CMAESSVCR
+import evopy.examples.CMAESSVCRDR as CMAESSVCRDR
 from evopy.problems.tr_problem import TRProblem
 
 from evopy.gtk.components.parameter_C_plot import ParameterCPlot
@@ -208,7 +208,7 @@ class appGui():
 
     def on_play_button_clicked(self, widget):
         
-        optimizer = CMAESSVCR.get_method()
+        optimizer = CMAESSVCRDR.get_method()
         problem = TRProblem()
         accuracy = pow(10, -12)
 

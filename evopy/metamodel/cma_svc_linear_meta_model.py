@@ -31,7 +31,10 @@ from numpy.linalg import inv
 
 class CMASVCLinearMetaModel:
     """ CMA SVC meta model which classfies feasible and infeasible points """
- 
+
+    can_repair_infeasibles = True
+    can_predict_alignment = True
+
     def __init__(self, window_size, scaling, crossvalidation, repair_mode):
 
         self._window_size = window_size
