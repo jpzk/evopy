@@ -48,6 +48,9 @@ class CMAES(EvolutionStrategy):
         # valid solutions
         self._valid_solutions = []
 
+        self._statistics_constraint_infeasibles_trajectory = []
+        self._count_constraint_infeasibles = 0
+
     def _init_cma_strategy_parameters(self, xmean, sigma):
 
         # dimension of objective function
@@ -104,7 +107,8 @@ class CMAES(EvolutionStrategy):
         self._invsqrtC = self._B * invD * transpose(self._B) 
 
     def ask_pending_solutions(self):
-        """ ask pending solutions; solutions which need a checking for true feasibility """        
+        """ ask pending solutions; solutions which need a checking for 
+            true feasibility """        
 
         pending_solutions = []
         while(len(pending_solutions) < (self._lambd - len(self._valid_solutions))):
@@ -115,11 +119,15 @@ class CMAES(EvolutionStrategy):
         return pending_solutions            
 
     def tell_feasibility(self, feasibility_information):
-        """ tell feasibilty; return True if there are no pending solutions, otherwise False """
+        """ tell feasibilty; return True if there are no pending solutions, 
+            otherwise False """
 
         for (child, feasibility) in feasibility_information:
             if(feasibility):
-                self._valid_solutions.append(child)                
+                self._valid_solutions.append(child)
+            else:
+                self._count_constraint_infeasibles += 1
+
         if(len(self._valid_solutions) < self._lambd):
             return False
         else:
@@ -177,6 +185,13 @@ class CMAES(EvolutionStrategy):
         ### UPDATE FOR NEXT ITERATION
         self._valid_solutions = []
 
+        ### STATISTICS
+        self._statistics_constraint_infeasibles_trajectory.append(\
+            self._count_constraint_infeasibles)        
+        self._count_constraint_infeasibles = 0                
+
+        self._statistics_selected_children_trajectory.append(values)
+
         # update best child, best fitness
         best_child, best_fitness = sorted_fitnesses[0]
         worst_child, worst_fitness = sorted_fitnesses[-1]        
@@ -197,3 +212,22 @@ class CMAES(EvolutionStrategy):
 
         return best_child, best_fitness
 
+    def get_statistics(self):
+        statistics = {
+            "infeasibles" : self._statistics_constraint_infeasibles_trajectory}
+       
+        super_statistics = super(CMAES, self).get_statistics()
+        for k in super_statistics:
+            statistics[k] = super_statistics[k]
+
+        return statistics
+
+    def get_last_statistics(self):
+        statistics = {
+            "infeasibles" : self._statistics_constraint_infeasibles_trajectory[-1]}
+
+        super_statistics = super(CMAES, self).get_last_statistics()
+        for k in super_statistics:
+            statistics[k] = super_statistics[k]
+
+        return statistics
