@@ -122,7 +122,12 @@ class CMAESSVCRDR(EvolutionStrategy):
         invB = inv(self._B)
         reducing = lambda child : (invB * matrix(child.value).T).getA1()
         reduced_value = reducing(individual)
-        return Individual(reduced_value[0])
+        return Individual(reduced_value)
+        
+    def _unreduce(self, individual):
+	unreducing = lambda child : (self._B * matrix(child.value).T).getA1()
+	unreduced_value = unreducing(individual)
+	return Individual(unreduced_value)
 
     # @todo extract generation of individuals
     def ask_pending_solutions_dr(self):
@@ -144,10 +149,10 @@ class CMAESSVCRDR(EvolutionStrategy):
                 value = self._xmean + transpose(self._sigma * self._B * normals)
                 individual = Individual(value.getA1())
 
-                if(self._meta_model_dr.check_feasibility(_reduce(individual))):
+                if(self._meta_model_dr.check_feasibility(self._reduce(individual))):
                     pending_meta_feasible.append(individual)
                 #else:
-                #    repaired = _unreduce(self._meta_model_dr.repair(_reduce(individual)))
+                #    repaired = self._unreduce(self._meta_model_dr.repair(self._reduce(individual)))
                 #    self._count_repaired += 1
                 #    pending_meta_feasible.append(repaired)
         else:

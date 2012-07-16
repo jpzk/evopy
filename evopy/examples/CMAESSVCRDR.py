@@ -42,10 +42,10 @@ def get_method():
         repair_mode = 'mirror')
 
     meta_model_dr = SVCLinearMetaModel(\
-        window_size = 25,
+        window_size = 100,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'project')
 
     method = CMAESSVCRDR(\
         mu = 50,

@@ -18,6 +18,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from collections import deque
+from copy import deepcopy
 
 from sklearn import svm
 from sklearn import __version__ as sklearn_version
@@ -49,15 +50,25 @@ class SVCLinearMetaModel:
         return self._trained
 
     def add_sorted_feasibles(self, feasibles):
-        self._training_feasibles = feasibles
+	reduced_infeasibles = []
+	for feasible in feasibles:
+	    copied_individual = deepcopy(feasible)
+	    copied_individual.value = [feasible.value[0]]
+	    reduced_infeasibles.append(copied_individual)	    
+	    
+        self._training_feasibles = reduced_infeasibles
 
     def add_infeasible(self, infeasible):
-        self._training_infeasibles.append(infeasible)
+	copied_individual = deepcopy(infeasible)
+	copied_individual.value = [infeasible.value[0]]
+        self._training_infeasibles.append(copied_individual)
 
     def check_feasibility(self, individual):
         """ Check the feasibility with meta model """
-
-        scaled_individual = self._scaling.scale(individual)
+	copied_individual = deepcopy(individual)
+	copied_individual.value = [individual.value[0]]
+	
+        scaled_individual = self._scaling.scale(copied_individual)
         prediction = self._clf.predict(scaled_individual.value)
 
         encode = lambda distance : False if distance < 0 else True
@@ -98,11 +109,11 @@ class SVCLinearMetaModel:
         self._clf.fit(points, labels)  
 
         # Update new basis of meta model
-        self._prepare_inverse_rotations(self.get_normal())
+        #self._prepare_inverse_rotations(self.get_normal())
 
         self._statistics_best_parameter_C_trajectory.append(best_parameter_C)
         self._statistics_best_accuracy_trajectory.append(best_acc)
-        self._statistics_angles_trajectory.append(self.angles)             
+#        self._statistics_angles_trajectory.append(self.angles)             
 
         return True
 
@@ -191,11 +202,12 @@ class SVCLinearMetaModel:
     def repair(self, individual):
 
         repair_mode = self._repair_mode
-        x = individual.value
+        val = individual.value
+	x = val[0]
 
         w = self._clf.coef_[0]
         nw = self.get_normal()
-        b = self._clf.intercept_[0] / w[1]
+        #b = self._clf.intercept_[0] / w[1]
       
         to_hp = (self._clf.decision_function(x) * (1/sqrt(sum(w ** 2))))
         if repair_mode == 'mirror':
@@ -211,7 +223,7 @@ class SVCLinearMetaModel:
 
         nx = x + (nw * s)
         
-        individual.value = nx[0]
+        individual.value[0] = nx
         return individual
 
     def get_last_statistics(self):

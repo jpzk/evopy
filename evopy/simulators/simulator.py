@@ -32,6 +32,7 @@ class Simulator():
         self.optimizer = optimizer
         self.problem = problem
         self.accuracy = accuracy 
+	self.infeasibles = 0
 
     def simulate(self):
         while(True):
@@ -71,7 +72,13 @@ class Simulator():
 
             # TELL fitness, return optimum
             optimum, optimum_fitness = self.optimizer.tell_fitness(fitnesses)
-            print optimum_fitness
+            
+            #dd = self.optimizer._meta_model.get_last_statistics()
+            #mm_accuracy = mm_stats['best_acc']
+            stats = self.optimizer.get_last_statistics()
+            self.infeasibles += stats['infeasibles']
+            
+            print optimum_fitness, self.infeasibles
 
             # TERMINATION
             if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):
