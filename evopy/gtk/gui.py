@@ -234,7 +234,7 @@ class appGui():
 
     def on_play_button_clicked(self, widget):
         
-        optimizer = CMAESSVCRDR.get_method()
+        optimizer = CMAES.get_method()
         problem = TRProblem()
         accuracy = pow(10, -12)
 

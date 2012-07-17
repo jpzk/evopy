@@ -59,7 +59,7 @@ class CMAESSVCRDR(EvolutionStrategy):
         self._meta_model_dr_trained = False
         self._alpha = alpha
         self._beta = beta
-        self._used_meta_model = self._meta_model_id
+        self._used_meta_model = self._meta_model_dr_id
 
         # valid solutions
         self._valid_solutions = []
@@ -414,8 +414,7 @@ class CMAESSVCRDR(EvolutionStrategy):
         print "sim", simialarity
         blended_mat = []
 
-        blend_factor = 1.0 - simialarity 
-        #blend_factor = 0.0
+        blend_factor = 0.0
         print "blendfactor", blend_factor
  
         for (b_vec, rot_vec) in blend_pairs:
