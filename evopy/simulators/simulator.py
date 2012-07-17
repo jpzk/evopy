@@ -20,23 +20,17 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from sys import path
 path.append("../..")
 
-# @todo spawn two processes and avoid playdoh map
-multiprocessing = False
-
-if(multiprocessing):
-    from multiprocessing import cpu_count
-    from evopy.external.playdoh import map
-
 class Simulator():
     def __init__(self, optimizer, problem, accuracy):
         self.optimizer = optimizer
         self.problem = problem
-        self.accuracy = accuracy 
-	self.infeasibles = 0
+        self.accuracy = accuracy
+        self._count_cfc = 0
+        self._statistics_cfc_trajectory = []
+        self.infeasibles = 0
 
     def simulate(self):
         while(True):
-
             # Simulator and optimizer handling constraints
             all_feasible = False
             while(not all_feasible):
@@ -47,13 +41,11 @@ class Simulator():
                 feasibility =\
                     lambda solution : (solution, self.problem.is_feasible(solution))
 
-                if(multiprocessing):
-                    feasibility_information =\
-                        map(feasibility, solutions, cpu = cpu_count())
-                else:
-                    feasibility_information =\
-                        map(feasibility, solutions)
-
+                feasibility_information = []                   
+                for solution in solutions:
+                    self._count_cfc += 1 
+                    feasibility_information.append(feasibility(solution))
+ 
                 # TELL feasibility, returns True if all feasible, 
                 # returns False if extra checks
                 all_feasible =\
@@ -64,23 +56,28 @@ class Simulator():
 
             # CHECK fitness
             fitness = lambda solution : (solution, self.problem.fitness(solution))
-
-            if(multiprocessing):
-                fitnesses = map(fitness, valid_solutions, cpu = cpu_count())
-            else:
-                fitnesses = map(fitness, valid_solutions)
+            fitnesses = map(fitness, valid_solutions)
 
             # TELL fitness, return optimum
             optimum, optimum_fitness = self.optimizer.tell_fitness(fitnesses)
-            
-            #dd = self.optimizer._meta_model.get_last_statistics()
-            #mm_accuracy = mm_stats['best_acc']
-            stats = self.optimizer.get_last_statistics()
-            self.infeasibles += stats['infeasibles']
-            
-            print optimum_fitness, self.infeasibles
+ 
+            # UPDATE OWN STATS                                   
+            self._statistics_cfc_trajectory.append(self._count_cfc)
+            self._count_cfc = 0
+           
+            print optimum_fitness, self._statistics_cfc_trajectory[-1]            
 
             # TERMINATION
             if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):
+                print sum(self._statistics_cfc_trajectory)
                 break
 
+    def get_statistics(self):
+        statistics = {
+            "cfc" : self._statistics_cfc_trajectory}
+        return statistics
+
+    def get_last_statistics(self):
+        statistics = {
+            "cfc" : self._statistics_cfc_trajectory[-1]}
+        return statistics

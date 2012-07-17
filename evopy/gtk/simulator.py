@@ -66,7 +66,7 @@ class Simulator(threading.Thread):
 
             # TELL fitness, return optimum
             optimum, optimum_fitness = self.optimizer.tell_fitness(fitnesses)
-            print "%.12f" % optimum_fitness
+
             # UPDATE OWN STATS
             self._statistics_cfc_trajectory.append(self._count_cfc)
             self._count_cfc = 0           

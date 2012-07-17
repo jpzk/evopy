@@ -35,6 +35,7 @@ path.append("../..")
 
 import evopy.examples.CMAES as CMAES
 import evopy.examples.CMAESSVCRDR as CMAESSVCRDR
+
 from evopy.problems.tr_problem import TRProblem
 
 from evopy.gtk.components.cfc_plot import CFCPlot
