@@ -26,7 +26,7 @@ class CFCPlot(FigureCanvasGTK):
         self.figure = Figure(dpi=75, facecolor='#e1e1e1')
         self.figure.suptitle('constraint function calls', fontsize=12)
         self.axis = self.figure.add_subplot(111)
-        self.axis.grid(True)
+        self._setup()
 
         super(CFCPlot, self).__init__(self.figure)            
 
@@ -36,9 +36,14 @@ class CFCPlot(FigureCanvasGTK):
         self.axis.grid(True)
         self.draw_idle()
 
-    def on_draw(self):
+    def _setup(self):
         self.axis.cla()
+        self.axis.set_xlabel("generations")
+        self.axis.set_ylabel("constraint calls per gen.") 
         self.axis.grid(True)
+
+    def on_draw(self):
+        self._setup() 
         self.axis.plot(self.generations, 
             self.cfc_trajectory, color='green', marker="o")
         self.draw_idle()

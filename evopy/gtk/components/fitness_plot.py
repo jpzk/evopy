@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from numpy import log10
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk import FigureCanvasGTK, NavigationToolbar
 
@@ -39,12 +40,12 @@ class FitnessPlot(FigureCanvasGTK):
     def on_draw(self):
         self.axis.cla()
         self.axis.grid(True)
-        self.axis.plot(self.generations[-10:], 
-            self.best_fitness_trajectory[-10:], color='green', marker="o")
+        self.axis.plot(self.generations, 
+            self.best_fitness_trajectory, color='green', marker="o")
         self.draw_idle()
 
     def on_update(self, stats):
         best = stats['best_fitness']
 
-        self.best_fitness_trajectory.append(best)       
+        self.best_fitness_trajectory.append(log10(best-2.0))       
         self.generations = range(0, len(self.best_fitness_trajectory))

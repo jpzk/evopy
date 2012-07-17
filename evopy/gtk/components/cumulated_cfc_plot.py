@@ -27,23 +27,25 @@ class CumulatedCFCPlot(FigureCanvasGTK):
         self.cumulated_cfc_trajectory = []
         self.figure = Figure(dpi=75, facecolor='#e1e1e1')
         self.figure.suptitle('cumulated constraint function calls', fontsize=12)
-        self.axis = self.figure.add_subplot(111)
-        self.axis.grid(True)
+        self.axis = self.figure.add_subplot(111)        
+        self._setup()
 
         super(CumulatedCFCPlot, self).__init__(self.figure)            
+
+    def _setup(self):
+        self.axis.cla()
+        self.axis.set_xlabel("generations")
+        self.axis.set_ylabel("cum. constraint calls") 
+        self.axis.grid(True)
 
     def on_reset(self):
         self.cumulated = 0
         self.generations = 0
         self.cumulated_cfc_trajectory = []
-        self.axis.cla()
-        self.axis.grid(True)
         self.draw_idle()
 
     def on_draw(self):
-        self.axis.cla()
-        self.axis.grid(True)
-
+        self._setup()
         generations = range(0, self.generations)
         self.axis.plot(generations, 
             self.cumulated_cfc_trajectory, color='green', marker="o")
