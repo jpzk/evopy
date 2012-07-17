@@ -183,11 +183,8 @@ class CMAESSVCR(EvolutionStrategy):
         # update meta model sort self._valid_solutions by fitness and 
         # unsorted self._sliding_infeasibles
         self._meta_model.add_sorted_feasibles(sorted_children)       
-        trained = self._meta_model.train()
+        self._meta_model_trained = self._meta_model.train()
 
-        if(trained):
-            self._meta_model_trained = True
-        
         # new xmean
         values = map(lambda child : child.value, sorted_children[:self._mu]) 
         self._xmean = dot(self._weights, values)
@@ -255,27 +252,6 @@ class CMAESSVCR(EvolutionStrategy):
         self._invsqrtC = self._B * invD * transpose(self._B) 
 
         return best_child, best_fitness
-
-    # temporary
-    def _dimension_reduction(self, feasible, infeasible):
-        invB = inv(self._B)
-        reducing = lambda child : (invB * matrix(child.value).T).getA1() 
-        unpacking = lambda child : array(child.value) 
-
-        freduced = map(reducing, feasible)
-        funpacked = map(unpacking, feasible)
-        ireduced = map(reducing, infeasible)
-        iunpacked = map(unpacking, infeasible)
-
-        reduce_to_x = lambda child : child[0] 
-        f = map(reduce_to_x, freduced)
-        i = map(reduce_to_x, ireduced)
-    
-        #print "xmean" ,self._xmean
-        #print "feasible mean", array(f).mean(), "feasible std", array(f).std()
-        #print "infeasible mean", array(i).mean(), "infeasible std", array(f).std()
-
-        self._view.plot_datapoints(freduced, funpacked, ireduced, iunpacked)
 
     def _blend_B_with_rotation(self, B, rotation):
     
