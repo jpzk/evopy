@@ -27,6 +27,7 @@ from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
+from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
 
 from evopy.simulators.csv_writer import CSVWriter
 from evopy.simulators.experiment_simulator import ExperimentSimulator
@@ -39,7 +40,7 @@ def get_cmaes_rsvc_method():
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(20, 5))
 
-    meta_model = CMASVCLinearMetaModel(\
+    meta_model = SVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
