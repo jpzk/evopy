@@ -32,16 +32,18 @@ from numpy.linalg import eigh, norm, inv
 from evolution_strategy import EvolutionStrategy
 from evopy.individuals.individual import Individual
 
-class CMAESSVCRReduced(EvolutionStrategy):
+class CMAESRSVC(EvolutionStrategy):
  
-    _strategy_name =\
+    description =\
         "Covariance matrix adaption evolution strategy (CMA-ES) with linear SVC "\
         "meta model and repair of infeasibles and mutation ellipsoid alignment"
+
+    description_short = "CMA-ES with RSVC"
 
     def __init__(self, mu, lambd, xmean, sigma, beta, meta_model):
 
         # call super constructor 
-        super(CMAESSVCRReduced, self).__init__(mu, lambd)
+        super(CMAESRSVC, self).__init__(mu, lambd)
 
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xmean, sigma)      
@@ -277,7 +279,7 @@ class CMAESSVCRReduced(EvolutionStrategy):
             "infeasibles" : self._statistics_constraint_infeasibles_trajectory,
             "repaired": self._statistics_repaired_trajectory}
        
-        super_statistics = super(CMAESSVCRReduced, self).get_statistics()
+        super_statistics = super(CMAESRSVC, self).get_statistics()
         for k in super_statistics:
             statistics[k] = super_statistics[k]
 
@@ -288,7 +290,7 @@ class CMAESSVCRReduced(EvolutionStrategy):
             "infeasibles" : self._statistics_constraint_infeasibles_trajectory[-1],
             "repaired": self._statistics_repaired_trajectory[-1]}
  
-        super_statistics = super(CMAESSVCRReduced, self).get_last_statistics()
+        super_statistics = super(CMAESRSVC, self).get_last_statistics()
         for k in super_statistics:
             statistics[k] = super_statistics[k]
 

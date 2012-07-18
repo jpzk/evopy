@@ -20,17 +20,21 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from sys import path
 path.append("../..")
 
+from multiprocessing import cpu_count
+from evopy.external.playdoh import map as pmap
+
 from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
-from evopy.strategies.cmaes_rsvc import CMAESRSVC
 from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
-from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
+
+from evopy.simulators.csv_writer import CSVWriter
+from evopy.simulators.experiment_simulator import ExperimentSimulator
+from evopy.strategies.cmaes_rsvc import CMAESRSVC
+from evopy.strategies.cmaes import CMAES
 from evopy.problems.tr_problem import TRProblem
-from evopy.simulators.simulator import Simulator
 
-def get_method():
-
+def get_cmaes_rsvc_method():
     sklearn_cv = SVCCVSkGridLinear(\
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(20, 5))
@@ -51,6 +55,26 @@ def get_method():
 
     return method
 
-if __name__ == "__main__":
-    sim = Simulator(get_method(), TRProblem(), pow(10, -12))
-    sim.simulate()
+def get_cmaes_method():
+    method = CMAES(\
+        mu = 15,
+        lambd = 100,
+        xmean = [5.0, 5.0],
+        sigma = 1.0)
+
+    return method
+
+writer = CSVWriter("test")
+
+def process(simulator):
+    writer.write(simulator.simulate())
+
+simulators = []
+for i in range(0, 50):
+    simulator1 = ExperimentSimulator(get_cmaes_rsvc_method(), TRProblem(), 10**-12)
+    simulator2 = ExperimentSimulator(get_cmaes_method(), TRProblem(), 10**-12)
+    simulators.append(simulator1)
+    simulators.append(simulator2)
+
+pmap(process, simulators, cpu = cpu_count)
+#map(process, simulators)

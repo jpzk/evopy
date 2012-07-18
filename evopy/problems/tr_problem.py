@@ -21,6 +21,9 @@ from random import random, sample, gauss
 
 class TRProblem():
 
+    description = "Sphere function with tangent restriction"
+    description_short = "TR"
+
     def __init__(self, dimensions = 2, size = 10):
         self._d = dimensions
         self._size = 10

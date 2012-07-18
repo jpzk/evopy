@@ -34,8 +34,10 @@ from evolution_strategy import EvolutionStrategy
 
 class CMAES(EvolutionStrategy):
  
-    _strategy_name =\
+    description =\
         "Covariance matrix adaption evolution strategy (CMA-ES)"    
+
+    description_short = "CMA-ES"        
 
     def __init__(self, mu, lambd, xmean, sigma):
 
@@ -48,6 +50,7 @@ class CMAES(EvolutionStrategy):
         # valid solutions
         self._valid_solutions = []
 
+        # statistics
         self._statistics_constraint_infeasibles_trajectory = []
         self._count_constraint_infeasibles = 0
 

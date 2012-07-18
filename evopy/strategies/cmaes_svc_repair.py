@@ -34,9 +34,11 @@ from evopy.individuals.individual import Individual
 
 class CMAESSVCR(EvolutionStrategy):
  
-    _strategy_name =\
+    description =\
         "Covariance matrix adaption evolution strategy (CMA-ES) with linear SVC "\
         "meta model and repair of infeasibles and mutation ellipsoid alignment"
+
+    description_short = "CMA-ES with SVC"        
 
     def __init__(self, mu, lambd, xmean, sigma, beta, meta_model):
 
