@@ -64,10 +64,8 @@ def get_cmaes_method():
 
     return method
 
-writer = CSVWriter("test")
-
 def process(simulator):
-    writer.write(simulator.simulate())
+    return simulator.simulate()
 
 simulators = []
 for i in range(0, 50):
@@ -76,5 +74,9 @@ for i in range(0, 50):
     simulators.append(simulator1)
     simulators.append(simulator2)
 
-pmap(process, simulators, cpu = cpu_count)
-#map(process, simulators)
+writer = CSVWriter("test")
+results = pmap(process, simulators, cpu = cpu_count)
+
+for result in results:
+    writer.write(result)
+
