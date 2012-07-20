@@ -49,11 +49,11 @@ class CMAESRSVC(EvolutionStrategy):
         self._init_cma_strategy_parameters(xmean, sigma)      
 
         # statistics
-        self._statistics_constraint_infeasibles_trajectory = []
-        self._statistics_repaired_trajectory = []        
-        self._count_constraint_infeasibles = 0
-        self._count_repaired = 0
-
+        self.logger.add_binding('_D', 'D')
+        self.logger.add_binding('_C', 'C')
+        self.logger.add_binding('_B', 'B')
+        self.logger.add_binding('_count_repaired', 'repaired')
+        
         # SVC Metamodel
         self._meta_model = meta_model
         self._meta_model_trained = False
@@ -129,7 +129,11 @@ class CMAESRSVC(EvolutionStrategy):
     	unreduced_value = unreducing(individual)
     	return Individual(unreduced_value)
 
-    # @todo extract generation of individuals
+    def _generate_individual(self):
+        normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+        value = self._xmean + transpose(self._sigma * self._B * normals)
+        return Individual(value.getA1()) 
+
     def ask_pending_solutions(self):
         """ ask pending solutions; solutions which need a checking for true 
             feasibility """
@@ -145,10 +149,8 @@ class CMAESRSVC(EvolutionStrategy):
             max_amount_pending_solutions = difference - max_amount_meta_feasible        
 
             while(len(pending_meta_feasible) < max_amount_meta_feasible):
-                normals = transpose(matrix([normal(0.0, d) for d in self._D]))
-                value = self._xmean + transpose(self._sigma * self._B * normals)
-                individual = Individual(value.getA1()) 
 
+                individual = self._generate_individual()
                 # reducing individual, back rotation to standard basis
                 reduced_individual = self._reduce(individual)
 
@@ -163,9 +165,8 @@ class CMAESRSVC(EvolutionStrategy):
             max_amount_pending_solutions = difference
 
         while(len(pending_solutions) < max_amount_pending_solutions):
-            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
-            value = self._xmean + transpose(self._sigma * self._B * normals)
-            pending_solutions.append(Individual(value.getA1()))
+            individual = self._generate_individual()
+            pending_solutions.append(individual)
 
         return pending_meta_feasible + pending_solutions            
 
@@ -201,7 +202,8 @@ class CMAESRSVC(EvolutionStrategy):
 
         sorted_fitnesses = sorted(fitnesses, key = fitness)
         sorted_children = map(child, sorted_fitnesses)
-        
+        self._selected_children = sorted_children[:self._mu]
+
         reduced_sorted_children = map(self._reduce, sorted_children)
         self._meta_model.add_sorted_feasibles(reduced_sorted_children)
         self._meta_model_trained = self._meta_model.train()
@@ -244,26 +246,15 @@ class CMAESRSVC(EvolutionStrategy):
         self._valid_solutions = []
 
         ### STATISTICS
-        self._statistics_constraint_infeasibles_trajectory.append(\
-            self._count_constraint_infeasibles)        
-        self._count_constraint_infeasibles = 0                
-
-        self._statistics_repaired_trajectory.append(\
-            self._count_repaired)
-        self._count_repaired = 0            
-
-        self._statistics_selected_children_trajectory.append(values)
-
-        # update best child, best fitness
-        best_child, best_fitness = sorted_fitnesses[0]
-        worst_child, worst_fitness = sorted_fitnesses[-1]        
-
+        self._best_child, self._best_fitness = sorted_fitnesses[0]
+        self._worst_child, self._worst_fitness = sorted_fitnesses[-1]        
         fitnesses = map(fitness, sorted_fitnesses)
-        mean_fitness = array(fitnesses).mean()
-
-        self._statistics_best_fitness_trajectory.append(best_fitness)
-        self._statistics_worst_fitness_trajectory.append(worst_fitness)
-        self._statistics_mean_fitness_trajectory.append(mean_fitness)
+        self._mean_fitness = array(fitnesses).mean()
+        
+        # log all bindings
+        self.logger.log()
+        self._count_constraint_infeasibles = 0                
+        self._count_repaired = 0
 
         self._D, self._B = eigh(self._C)
         self._B = matrix(self._B)
@@ -272,26 +263,5 @@ class CMAESRSVC(EvolutionStrategy):
         invD = diag([1.0/d for d in self._D])
         self._invsqrtC = self._B * invD * transpose(self._B) 
 
-        return best_child, best_fitness
+        return self._best_child, self._best_fitness
 
-    def get_statistics(self):
-        statistics = {
-            "infeasibles" : self._statistics_constraint_infeasibles_trajectory,
-            "repaired": self._statistics_repaired_trajectory}
-       
-        super_statistics = super(CMAESRSVC, self).get_statistics()
-        for k in super_statistics:
-            statistics[k] = super_statistics[k]
-
-        return statistics
-
-    def get_last_statistics(self):
-        statistics = {
-            "infeasibles" : self._statistics_constraint_infeasibles_trajectory[-1],
-            "repaired": self._statistics_repaired_trajectory[-1]}
- 
-        super_statistics = super(CMAESRSVC, self).get_last_statistics()
-        for k in super_statistics:
-            statistics[k] = super_statistics[k]
-
-        return statistics

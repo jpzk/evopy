@@ -1,4 +1,5 @@
 import CMAES
-import CMAESSVCR
+import CMAESRSVC
+import CMAESSVC
 import DSES
 import DSESSVCR

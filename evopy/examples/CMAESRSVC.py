@@ -44,7 +44,7 @@ def get_method():
     method = CMAESRSVC(\
         mu = 15,
         lambd = 100,
-        xmean = [5.0, 5.0, 5.0, 5.0, 5.0],
+        xmean = [5.0, 5.0],
         sigma = 1.0,
         beta = 0.80,
         meta_model = meta_model)
@@ -52,5 +52,5 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), TRProblem(dimensions=5), pow(10, -12))
+    sim = Simulator(get_method(), TRProblem(dimensions=2), pow(10, -12))
     sim.simulate()

@@ -17,54 +17,111 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from random import sample
+
 from evolution_strategy import EvolutionStrategy
+from evopy.individuals.selfadaptive_individual import SelfadaptiveIndividual
 
 class DPES(EvolutionStrategy): 
 
-    _strategy_name = "Death Penalty"
+    description = "Death Penalty Evolution Strategy (DP-ES)"
+    description_short = "DP-ES"
 
-    def __init__(self, problem, mu, lambd, sigmas,\
-        combination, mutation, selection, view):
-
-        super(DPES, self).\
-            __init__(problem, mu, lambd, \
-            combination, mutation, selection, view, sigmas = sigmas) 
-
-    def _run(self, (population, generation, m, l, lastfitness,\
-        alpha, sigmas):
-
-        feasible_children = []
-        while(len(feasible_children) < l): 
-            combined_child = self.combine(population)
-            child = self.mutate(combined_child, sigmas)
-            
-            if(self.is_feasible(child)):
-                feasible_children.append(child)
+    def __init__(self, mu, lambd, sigmas):
+        super(DPES, self).__init__(problem, mu, lambd) 
         
-        next_population = self.select(population, feasible_children, m)
-        fitness_of_best = self.fitness(next_population[0])
+        self.current_population = []
 
-        self.log(generation, next_population)
-        self.view(generation, next_population)         
+        # valid solutions
+        self._valid_solutions = []
 
-        if(self.termination(generation, fitness_of_best)):
-            return True
+        # statistics
+        self._statistics_constraint_infeasibles_trajectory = []
+        self._count_constraint_infeasibles = 0
+
+    def ask_pending_solutions(self):
+        """ ask pending solutions; solutions which need a checking for 
+            true feasibility """        
+
+        pending_solutions = []
+        while(len(pending_solutions) < (self._lambd - len(self._valid_solutions))):
+
+            # recombination
+            father, mother = sample(self.current_population, 2)
+            combination = lambda fv, mv : (fv + mv) / 2.0
+            sigmas_combination = lambda fs, ms : (fs + ms) / 2.0
+            new_value = map(combination, father.value, mother.value)
+            new_sigmas = map(sigmas_combination, father.sigmas, mother.sigmas)
+            child =  SelfadaptiveIndividual(new_value, new_sigmas)
+
+            # mutation
+            x = child.value
+            new_x = map(lambda (xi, sigma): xi + gauss(0, sigma), zip(x, sigmas))
+            child.value = new_x
+
+            pending_solutions.append(child)
+ 
+        return pending_solutions            
+
+    def tell_feasibility(self, feasibility_information):
+        """ tell feasibilty; return True if there are no pending solutions, 
+            otherwise False """
+
+         for (child, feasibility) in feasibility_information:
+            if(feasibility):
+                self._valid_solutions.append(child)
+            else:
+                self._count_constraint_infeasibles += 1
+
+        # @todo shorten: return expression
+        if(len(self._valid_solutions) < self._lambd):
+            return False
         else:
-            return (next_population, generation + 1, m,\
-            l, fitness_of_best, alpha, sigmas)
+            return True
 
-    def run(self):
-        feasible_parents = []
-        while(len(feasible_parents) < self._mu):
-            parent = self.generate_population() 
-            if(self.is_feasible(parent)):
-                feasible_parents.append(parent)
+    def ask_valid_solutions(self):
+        return self._valid_solutions
 
-        result = self._run((\
-            feasible_parents, 0, self._mu, self._lambd, 0, 
-            self._alpha, self._sigmas))
+    def tell_fitness(self, fitnesses):
+        """ tell fitness; update all strategy specific attributes """        
 
-        while result != True:
-            result = self._run(result)
+        fitness = lambda (child, fitness) : fitness
+        child = lambda (child, fitness) : child
 
-        return result
+        sorted_fitnesses = sorted(fitnesses, key = fitness)[:self._mu]
+        self.current_population = map(child, sorted_fitnesses)
+
+        ### UPDATE FOR NEXT ITERATION
+        self._valid_solutions = []
+
+        ### STATISTICS
+        self._statistics_constraint_infeasibles_trajectory.append(\
+            self._count_constraint_infeasibles)        
+        self._count_constraint_infeasibles = 0                
+
+        self._statistics_selected_children_trajectory.append(values)
+
+        fitnesses = map(fitness, sorted_fitnesses)
+        mean_fitness = array(fitnesses).mean()
+
+        self._statistics_best_fitness_trajectory.append(best_fitness)
+        self._statistics_worst_fitness_trajectory.append(worst_fitness)
+        self._statistics_mean_fitness_trajectory.append(mean_fitness)
+
+        # update best child, best fitness
+        best_child, best_fitness = sorted_fitnesses[0]
+        worst_child, worst_fitness = sorted_fitnesses[-1]        
+
+        return best_child, best_fitness
+
+    def get_statistics(self, only_last = False):
+        select = lambda stats : stats[-1] if only_last else stats
+        
+        statistics = {}
+
+        super_statistics = super(CMAES, self).get_statistics(only_last = only_last)
+        for k in super_statistics:
+            statistics[k] = super_statistics[k]
+
+        return statistics
+

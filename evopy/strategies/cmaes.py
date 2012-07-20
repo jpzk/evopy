@@ -51,8 +51,10 @@ class CMAES(EvolutionStrategy):
         self._valid_solutions = []
 
         # statistics
-        self._statistics_constraint_infeasibles_trajectory = []
-        self._count_constraint_infeasibles = 0
+        self._statistics_C_trajectory = []
+        self._statistics_B_trajectory = []
+        self._statistics_D_trajectory = []
+        self._statistics_sigma_trajectory = []
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
 
@@ -131,6 +133,7 @@ class CMAES(EvolutionStrategy):
             else:
                 self._count_constraint_infeasibles += 1
 
+        # @todo shorten: return expression
         if(len(self._valid_solutions) < self._lambd):
             return False
         else:
@@ -205,6 +208,9 @@ class CMAES(EvolutionStrategy):
         self._statistics_best_fitness_trajectory.append(best_fitness)
         self._statistics_worst_fitness_trajectory.append(worst_fitness)
         self._statistics_mean_fitness_trajectory.append(mean_fitness)
+        self._statistics_C_trajectory.append(self._C)
+        self._statistics_B_trajectory.append(self._B)
+        self._statistics_D_trajectory.append(self._D)
 
         self._D, self._B = eigh(self._C)
         self._B = matrix(self._B)
@@ -215,21 +221,15 @@ class CMAES(EvolutionStrategy):
 
         return best_child, best_fitness
 
-    def get_statistics(self):
+    def get_statistics(self, only_last = False):
+        select = lambda stats : stats[-1] if only_last else stats
+ 
         statistics = {
-            "infeasibles" : self._statistics_constraint_infeasibles_trajectory}
-       
-        super_statistics = super(CMAES, self).get_statistics()
-        for k in super_statistics:
-            statistics[k] = super_statistics[k]
+            "C" : select(self._statistics_C_trajectory),
+            "B" : select(self._statistics_B_trajectory),
+            "D" : select(self._statistics_D_trajectory)}
 
-        return statistics
-
-    def get_last_statistics(self):
-        statistics = {
-            "infeasibles" : self._statistics_constraint_infeasibles_trajectory[-1]}
-
-        super_statistics = super(CMAES, self).get_last_statistics()
+        super_statistics = super(CMAES, self).get_statistics(only_last = only_last)
         for k in super_statistics:
             statistics[k] = super_statistics[k]
 

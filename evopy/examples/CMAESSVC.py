@@ -23,7 +23,7 @@ path.append("../..")
 from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
-from evopy.strategies.cmaes_svc_repair import CMAESSVCR
+from evopy.strategies.cmaes_svc import CMAESSVC
 from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
 from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
@@ -40,7 +40,7 @@ def get_method():
         crossvalidation = sklearn_cv,
         repair_mode = 'mirror')
 
-    method = CMAESSVCR(\
+    method = CMAESSVC(\
         mu = 50,
         lambd = 100,
         xmean = [5.0, 5.0],

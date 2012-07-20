@@ -72,12 +72,8 @@ class Simulator():
                 print sum(self._statistics_cfc_trajectory)
                 break
 
-    def get_statistics(self):
-        statistics = {
-            "cfc" : self._statistics_cfc_trajectory}
-        return statistics
+    def get_statistics(self, only_last = False):
+        select = lambda stats : stats[-1] if only_last else stats
 
-    def get_last_statistics(self):
-        statistics = {
-            "cfc" : self._statistics_cfc_trajectory[-1]}
+        statistics = {"cfc" : select(self._statistics_cfc_trajectory)}
         return statistics

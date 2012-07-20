@@ -32,27 +32,28 @@ from numpy.linalg import eigh, norm, inv
 from evolution_strategy import EvolutionStrategy
 from evopy.individuals.individual import Individual
 
-class CMAESSVCR(EvolutionStrategy):
+class CMAESSVC(EvolutionStrategy):
  
     description =\
         "Covariance matrix adaption evolution strategy (CMA-ES) with linear SVC "\
-        "meta model and repair of infeasibles and mutation ellipsoid alignment"
+        "meta model and repair of infeasibles"
 
     description_short = "CMA-ES with SVC"        
 
     def __init__(self, mu, lambd, xmean, sigma, beta, meta_model):
 
         # call super constructor 
-        super(CMAESSVCR, self).__init__(mu, lambd)
+        super(CMAESSVC, self).__init__(mu, lambd)
 
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xmean, sigma)      
 
         # statistics
-        self._statistics_constraint_infeasibles_trajectory = []
-        self._statistics_repaired_trajectory = []        
-        self._count_constraint_infeasibles = 0
-        self._count_repaired = 0
+        self._statistics_repaired_trajectory = []
+        self._statistics_C_trajectory = []
+        self._statistics_B_trajectory = []
+        self._statistics_D_trajectory = []
+        self._statistics_sigma_trajectory = []
 
         # SVC Metamodel
         self._meta_model = meta_model
@@ -116,6 +117,11 @@ class CMAESSVCR(EvolutionStrategy):
         invD = diag([1.0/d for d in self._D])
         self._invsqrtC = self._B * invD * transpose(self._B) 
 
+    def _generate_individual(self):
+        normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+        value = self._xmean + transpose(self._sigma * self._B * normals)
+        return Individual(value.getA1()) 
+
     def ask_pending_solutions(self):
         """ ask pending solutions; solutions which need a checking for true 
             feasibility """
@@ -131,9 +137,7 @@ class CMAESSVCR(EvolutionStrategy):
             max_amount_pending_solutions = difference - max_amount_meta_feasible        
 
             while(len(pending_meta_feasible) < max_amount_meta_feasible):
-                normals = transpose(matrix([normal(0.0, d) for d in self._D]))
-                value = self._xmean + transpose(self._sigma * self._B * normals)
-                individual = Individual(value.getA1()) 
+                individual = self._generate_individual() 
 
                 if(self._meta_model.check_feasibility(individual)):
                     pending_meta_feasible.append(individual)
@@ -145,9 +149,8 @@ class CMAESSVCR(EvolutionStrategy):
             max_amount_pending_solutions = difference
 
         while(len(pending_solutions) < max_amount_pending_solutions):
-            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
-            value = self._xmean + transpose(self._sigma * self._B * normals)
-            pending_solutions.append(Individual(value.getA1()))
+            individual = self._generate_individual()
+            pending_solutions.append(individual)
 
         return pending_meta_feasible + pending_solutions            
 
@@ -245,6 +248,9 @@ class CMAESSVCR(EvolutionStrategy):
         self._statistics_best_fitness_trajectory.append(best_fitness)
         self._statistics_worst_fitness_trajectory.append(worst_fitness)
         self._statistics_mean_fitness_trajectory.append(mean_fitness)
+        self._statistics_C_trajectory.append(self._C)
+        self._statistics_B_trajectory.append(self._B)
+        self._statistics_D_trajectory.append(self._D)
 
         self._D, self._B = eigh(self._C)
         self._B = matrix(self._B)
@@ -297,24 +303,18 @@ class CMAESSVCR(EvolutionStrategy):
 
         return matrix(blended_mat).T
 
-    def get_statistics(self):
+    def get_statistics(self, only_last = False):
+        select = lambda stats : stats[-1] if only_last else stats
+
         statistics = {
-            "infeasibles" : self._statistics_constraint_infeasibles_trajectory,
-            "repaired": self._statistics_repaired_trajectory}
-       
-        super_statistics = super(CMAESSVCR, self).get_statistics()
+            "repaired" : select(self._statistics_repaired_trajectory),
+            "C" : select(self._statistics_C_trajectory),
+            "B" : select(self._statistics_B_trajectory),
+            "D" : select(self._statistics_D_trajectory)}
+    
+        super_statistics = super(CMAESSVC, self).get_statistics(only_last = only_last)
         for k in super_statistics:
             statistics[k] = super_statistics[k]
 
         return statistics
 
-    def get_last_statistics(self):
-        statistics = {
-            "infeasibles" : self._statistics_constraint_infeasibles_trajectory[-1],
-            "repaired": self._statistics_repaired_trajectory[-1]}
- 
-        super_statistics = super(CMAESSVCR, self).get_last_statistics()
-        for k in super_statistics:
-            statistics[k] = super_statistics[k]
-
-        return statistics

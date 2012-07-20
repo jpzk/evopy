@@ -20,34 +20,40 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from numpy import array
 
 class EvolutionStrategy(object):
-   
+
+    class Logger():
+        def __init__(self, scope):
+            self.bindings = {}
+            self.logs = {}
+            self.scope = scope
+
+        def add_binding(self, var_name, name):
+            self.bindings[name] = var_name
+            self.logs[name] = []
+
+        def log(self):
+            for k, v in self.bindings.iteritems():
+                self.logs[k].append(self.scope.__getattribute__(v))                
+
     def __init__(self, mu, lambd):
         self._mu = mu
         self._lambd = lambd
+    
+        self.logger = self.Logger(self)      
+        self.logger.add_binding('_best_fitness', 'best_fitness')
+        self.logger.add_binding('_worst_fitness', 'worst_fitness')
+        self.logger.add_binding('_mean_fitness', 'mean_fitness')
+        self.logger.add_binding('_selected_children', 'selected_children')
+        self.logger.add_binding('_count_constraint_infeasibles', 'infeasibles')
 
-        self._statistics_best_fitness_trajectory = []
-        self._statistics_worst_fitness_trajectory = []
-        self._statistics_mean_fitness_trajectory = []
-        self._statistics_selected_children_trajectory = []
+        self._count_constraint_infeasibles = 0
+        self._count_repaired = 0
 
-    def log(self, generation, next_population):
-        self._statistics_generations += 1
-        #fitnesses = array(map(self._problem.fitness, next_population))
-        #self._statistics_worst_fitness_trajectory.append(fitnesses.max())
-        #self._statistics_average_fitness_trajectory.append(fitnesses.mean())
-        #self._statistics_best_fitness_trajectory.append(fitnesses.min())
+    def get_statistics(self, only_last = False):
+        select = lambda stats : stats[-1] if only_last else stats
 
-    def get_last_statistics(self):
-        return {
-            "best_fitness": self._statistics_best_fitness_trajectory[-1],
-            "worst_fitness": self._statistics_worst_fitness_trajectory[-1],
-            "avg_fitness": self._statistics_mean_fitness_trajectory[-1],
-            "selected_children": self._statistics_selected_children_trajectory[-1]}
-   
-    def get_statistics(self):
-        return {
-            "best_fitness": self._statistics_best_fitness_trajectory,
-            "worst_fitness": self._statistics_worst_fitness_trajectory,
-            "avg_fitness": self._statistics_mean_fitness_trajectory,
-            "selected_children": self._statistics_selected_children_trajectory}
+        statistics = {}
+        for name, trajectory in self.logger.logs.iteritems():
+            statistics[name] = select(trajectory)
 
+        return statistics
