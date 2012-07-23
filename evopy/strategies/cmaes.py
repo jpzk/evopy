@@ -51,10 +51,10 @@ class CMAES(EvolutionStrategy):
         self._valid_solutions = []
 
         # statistics
-        self._statistics_C_trajectory = []
-        self._statistics_B_trajectory = []
-        self._statistics_D_trajectory = []
-        self._statistics_sigma_trajectory = []
+        self.logger.add_binding('_D', 'D')
+        self.logger.add_binding('_C', 'C')
+        self.logger.add_binding('_B', 'B')
+        self.logger.add_binding('_count_repaired', 'repaired')
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
 
@@ -192,25 +192,17 @@ class CMAES(EvolutionStrategy):
         self._valid_solutions = []
 
         ### STATISTICS
-        self._statistics_constraint_infeasibles_trajectory.append(\
-            self._count_constraint_infeasibles)        
-        self._count_constraint_infeasibles = 0                
-
-        self._statistics_selected_children_trajectory.append(values)
-
-        # update best child, best fitness
-        best_child, best_fitness = sorted_fitnesses[0]
-        worst_child, worst_fitness = sorted_fitnesses[-1]        
+        self._selected_children = values
+        self._best_child, self._best_fitness = sorted_fitnesses[0]
+        self._worst_child, self._worst_fitness = sorted_fitnesses[-1]        
 
         fitnesses = map(fitness, sorted_fitnesses)
-        mean_fitness = array(fitnesses).mean()
+        self._mean_fitness = array(fitnesses).mean()
 
-        self._statistics_best_fitness_trajectory.append(best_fitness)
-        self._statistics_worst_fitness_trajectory.append(worst_fitness)
-        self._statistics_mean_fitness_trajectory.append(mean_fitness)
-        self._statistics_C_trajectory.append(self._C)
-        self._statistics_B_trajectory.append(self._B)
-        self._statistics_D_trajectory.append(self._D)
+        # log all bindings
+        self.logger.log()
+        self._count_constraint_infeasibles = 0                
+        self._count_repaired = 0
 
         self._D, self._B = eigh(self._C)
         self._B = matrix(self._B)
@@ -219,18 +211,4 @@ class CMAES(EvolutionStrategy):
         invD = diag([1.0/d for d in self._D])
         self._invsqrtC = self._B * invD * transpose(self._B) 
 
-        return best_child, best_fitness
-
-    def get_statistics(self, only_last = False):
-        select = lambda stats : stats[-1] if only_last else stats
- 
-        statistics = {
-            "C" : select(self._statistics_C_trajectory),
-            "B" : select(self._statistics_B_trajectory),
-            "D" : select(self._statistics_D_trajectory)}
-
-        super_statistics = super(CMAES, self).get_statistics(only_last = only_last)
-        for k in super_statistics:
-            statistics[k] = super_statistics[k]
-
-        return statistics
+        return self._best_child, self._best_fitness

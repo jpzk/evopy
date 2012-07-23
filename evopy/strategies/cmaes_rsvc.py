@@ -202,7 +202,6 @@ class CMAESRSVC(EvolutionStrategy):
 
         sorted_fitnesses = sorted(fitnesses, key = fitness)
         sorted_children = map(child, sorted_fitnesses)
-        self._selected_children = sorted_children[:self._mu]
 
         reduced_sorted_children = map(self._reduce, sorted_children)
         self._meta_model.add_sorted_feasibles(reduced_sorted_children)
@@ -246,8 +245,10 @@ class CMAESRSVC(EvolutionStrategy):
         self._valid_solutions = []
 
         ### STATISTICS
+        self._selected_children = values
         self._best_child, self._best_fitness = sorted_fitnesses[0]
-        self._worst_child, self._worst_fitness = sorted_fitnesses[-1]        
+        self._worst_child, self._worst_fitness = sorted_fitnesses[-1] 
+
         fitnesses = map(fitness, sorted_fitnesses)
         self._mean_fitness = array(fitnesses).mean()
         
