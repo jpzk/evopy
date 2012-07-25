@@ -1,6 +1,8 @@
 from sys import path
 path.append("../..")
 
+from numpy import mean
+
 from multiprocessing import cpu_count
 from evopy.external.playdoh import map as pmap
 from evopy.simulators.csv_writer import CSVWriter
@@ -13,6 +15,9 @@ from evopy.strategies.cmaes_rsvc import CMAESRSVC
 from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
 from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
 from evopy.problems.tr_problem import TRProblem
+
+def process(simulator):
+    return simulator.simulate()
 
 def get_method(beta):
 
@@ -38,11 +43,20 @@ def get_method(beta):
 
 simulators = []
 
-for beta in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+beta_range = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+beta_cfc = {}
+
+for beta in beta_range:
+
     for i in range(0, 50):
         simulator1 = ExperimentSimulator(get_method(beta), TRProblem(dimensions=2), 10**-12)
-        simulators.append(simulator1)
-        writer = CSVWriter("beta" + str(beta))
-        results = pmap(process, simulators, cpu = cpu_count)
-        for result in results:
-            writer.write(result)
+        simulators.append(simulator1)            
+
+    results = pmap(process, simulators, cpu = cpu_count)
+
+    cumulated_cfc_stats = lambda stats : sum(stats.simulator['cfc'])
+    cumulated_cfc = map(cumulated_cfc_stats, results)
+    cumulated_cfc_mean = mean(cumulated_cfc)
+    beta_cfc[beta] = cumulated_cfc_mean
+
+print beta_cfc

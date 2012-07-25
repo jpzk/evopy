@@ -32,7 +32,7 @@ class ExperimentSimulator():
         self._statistics_cfc_trajectory = []
         self.infeasibles = 0
 
-        self._general_optimizer = optimizer.description_short
+        self._general_optimizer = optimizer.description_short       
         self._general_problem = problem.description_short
         self._general_accuracy = str(accuracy)
 
@@ -72,6 +72,8 @@ class ExperimentSimulator():
             self._statistics_cfc_trajectory.append(self._count_cfc)
             self._count_cfc = 0
            
+            print optimum_fitness
+
             # TERMINATION
             if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):
                 break

@@ -48,12 +48,6 @@ class CMAESRSVC(EvolutionStrategy):
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xmean, sigma)      
 
-        # statistics
-        self.logger.add_binding('_D', 'D')
-        self.logger.add_binding('_C', 'C')
-        self.logger.add_binding('_B', 'B')
-        self.logger.add_binding('_count_repaired', 'repaired')
-        
         # SVC Metamodel
         self._meta_model = meta_model
         self._meta_model_trained = False
@@ -61,6 +55,19 @@ class CMAESRSVC(EvolutionStrategy):
 
         # valid solutions
         self._valid_solutions = []
+
+        # statistics
+        self.logger.add_const_binding('_xmean', 'initial_xmean')
+        self.logger.add_const_binding('_sigma', 'initial_sigma')
+        self.logger.add_const_binding('_beta', 'beta')
+
+        self.logger.add_binding('_D', 'D')
+        self.logger.add_binding('_C', 'C')
+        self.logger.add_binding('_B', 'B')
+        self.logger.add_binding('_count_repaired', 'repaired')
+ 
+        # log constants
+        self.logger.const_log()
 
     def _init_cma_strategy_parameters(self, xmean, sigma):   
         # dimension of objective function

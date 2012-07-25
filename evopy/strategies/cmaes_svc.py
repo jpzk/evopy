@@ -48,12 +48,6 @@ class CMAESSVC(EvolutionStrategy):
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xmean, sigma)      
 
-        # statistics
-        self.logger.add_binding('_D', 'D')
-        self.logger.add_binding('_C', 'C')
-        self.logger.add_binding('_B', 'B')
-        self.logger.add_binding('_count_repaired', 'repaired')
-
         # SVC Metamodel
         self._meta_model = meta_model
         self._meta_model_trained = False
@@ -61,6 +55,19 @@ class CMAESSVC(EvolutionStrategy):
 
         # valid solutions
         self._valid_solutions = []
+
+        # statistics
+        self.logger.add_const_binding('_xmean', 'initial_xmean')
+        self.logger.add_const_binding('_sigma', 'initial_sigma')
+        self.logger.add_const_binding('_beta', 'beta')
+
+        self.logger.add_binding('_D', 'D')
+        self.logger.add_binding('_C', 'C')
+        self.logger.add_binding('_B', 'B')
+        self.logger.add_binding('_count_repaired', 'repaired')
+
+        # log constants
+        self.logger.const_log()
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
         # dimension of objective function
@@ -289,19 +296,3 @@ class CMAESSVC(EvolutionStrategy):
             blended_mat.append(blended_vec.getA1())
 
         return matrix(blended_mat).T
-
-    def get_statistics(self, only_last = False):
-        select = lambda stats : stats[-1] if only_last else stats
-
-        statistics = {
-            "repaired" : select(self._statistics_repaired_trajectory),
-            "C" : select(self._statistics_C_trajectory),
-            "B" : select(self._statistics_B_trajectory),
-            "D" : select(self._statistics_D_trajectory)}
-    
-        super_statistics = super(CMAESSVC, self).get_statistics(only_last = only_last)
-        for k in super_statistics:
-            statistics[k] = super_statistics[k]
-
-        return statistics
-

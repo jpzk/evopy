@@ -19,27 +19,38 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 
 from numpy import array
 
+# note: Logger must not be an inner class, errors with playdoh. 
+class Logger(object):
+    def __init__(self, scope):
+        self.logs, self.bindings, self.const_bindings = {}, {}, {}
+        self.scope = scope
+
+    def add_const_binding(self, var_name, name):
+        self.const_bindings[name] = var_name       
+
+    def add_binding(self, var_name, name):
+        self.bindings[name] = var_name
+        self.logs[name] = []
+
+    def const_log(self):
+        for k, v in self.const_bindings.iteritems():
+            self.logs[k] = self.scope.__getattribute__(v)
+
+    def log(self):
+        for k, v in self.bindings.iteritems():
+            self.logs[k].append(self.scope.__getattribute__(v))                
+
 class EvolutionStrategy(object):
-
-    class Logger():
-        def __init__(self, scope):
-            self.bindings = {}
-            self.logs = {}
-            self.scope = scope
-
-        def add_binding(self, var_name, name):
-            self.bindings[name] = var_name
-            self.logs[name] = []
-
-        def log(self):
-            for k, v in self.bindings.iteritems():
-                self.logs[k].append(self.scope.__getattribute__(v))                
 
     def __init__(self, mu, lambd):
         self._mu = mu
         self._lambd = lambd
     
-        self.logger = self.Logger(self)      
+        self.logger = Logger(self)
+
+        self.logger.add_const_binding('_mu', 'mu')
+        self.logger.add_const_binding('_lambd', 'lambda')
+
         self.logger.add_binding('_best_fitness', 'best_fitness')
         self.logger.add_binding('_worst_fitness', 'worst_fitness')
         self.logger.add_binding('_mean_fitness', 'mean_fitness')
@@ -50,7 +61,7 @@ class EvolutionStrategy(object):
         self._count_repaired = 0
 
     def get_statistics(self, only_last = False):
-        select = lambda stats : stats[-1] if only_last else stats
+        select = lambda s : s[-1] if only_last and type(s) == list else s
 
         statistics = {}
         for name, trajectory in self.logger.logs.iteritems():

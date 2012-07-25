@@ -43,5 +43,5 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), OHProblem(), pow(10, -20))
-    sim.simulate()
+    sim = Simulator(get_method(), TRProblem(), pow(10, -12))
+    results = sim.simulate()

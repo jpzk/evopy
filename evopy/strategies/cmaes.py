@@ -51,10 +51,15 @@ class CMAES(EvolutionStrategy):
         self._valid_solutions = []
 
         # statistics
+        self.logger.add_const_binding('_xmean', 'initial_xmean')
+        self.logger.add_const_binding('_sigma', 'initial_sigma')
+
         self.logger.add_binding('_D', 'D')
         self.logger.add_binding('_C', 'C')
         self.logger.add_binding('_B', 'B')
-        self.logger.add_binding('_count_repaired', 'repaired')
+
+        # log constants
+        self.logger.const_log()
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
 
@@ -202,7 +207,6 @@ class CMAES(EvolutionStrategy):
         # log all bindings
         self.logger.log()
         self._count_constraint_infeasibles = 0                
-        self._count_repaired = 0
 
         self._D, self._B = eigh(self._C)
         self._B = matrix(self._B)
