@@ -21,20 +21,12 @@ from sys import path
 path.append("../..")
 
 from sklearn.cross_validation import KFold
-from evopy.problems.simple_sa_sphere_problem import SimpleSASphereProblem
-from evopy.problems.sa_sphere_problem import SASphereProblem
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
-from evopy.operators.mutation.gauss_sigma_aligned_nd import GaussSigmaAlignedND
-from evopy.operators.combination.sa_intermediate import SAIntermediate
-from evopy.operators.selection.smallest_fitness import SmallestFitness
-from evopy.operators.selfadaption.selfadaption import Selfadaption
-from evopy.views.universal_view import UniversalView
-from evopy.views.cv_ds_linear_view import CVDSLinearView
-from evopy.views.cv_ds_r_linear_view import CVDSRLinearView
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 
 from evopy.strategies.cmaes import CMAES
 from evopy.problems.tr_problem import TRProblem
+from evopy.problems.oh_problem import OHProblem
 from evopy.simulators.simulator import Simulator
 
 def get_method():
@@ -51,5 +43,5 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), TRProblem(), pow(10, -12))
+    sim = Simulator(get_method(), OHProblem(), pow(10, -20))
     sim.simulate()

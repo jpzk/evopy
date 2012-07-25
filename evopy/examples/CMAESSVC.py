@@ -26,6 +26,7 @@ from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.strategies.cmaes_svc import CMAESSVC
 from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
 from evopy.problems.tr_problem import TRProblem
+from evopy.problems.oh_problem import OHProblem
 from evopy.simulators.simulator import Simulator
 
 def get_method():
@@ -51,5 +52,5 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), TRProblem(), pow(10, -12))
+    sim = Simulator(get_method(), OHProblem(), pow(10, -20))
     sim.simulate()
