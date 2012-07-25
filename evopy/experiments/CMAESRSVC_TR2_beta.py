@@ -40,7 +40,7 @@ simulators = []
 
 for beta in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
     for i in range(0, 50):
-        simulator1 = ExperimentSimulator(get_method(beta, TRProblem(dimensions=2), 10**-12)
+        simulator1 = ExperimentSimulator(get_method(beta, TRProblem(dimensions=2), 10**-12))
         simulators.append(simulator1)
         writer = CSVWriter("beta" + str(beta))
         results = pmap(process, simulators, cpu = cpu_count)
