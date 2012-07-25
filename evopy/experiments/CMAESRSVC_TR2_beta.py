@@ -1,6 +1,11 @@
 from sys import path
 path.append("../..")
 
+from multiprocessing import cpu_count
+from evopy.external.playdoh import map as pmap
+from evopy.simulators.csv_writer import CSVWriter
+from evopy.simulators.experiment_simulator import ExperimentSimulator
+
 from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
@@ -8,8 +13,6 @@ from evopy.strategies.cmaes_rsvc import CMAESRSVC
 from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
 from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
 from evopy.problems.tr_problem import TRProblem
-from evopy.problems.oh_problem import OHProblem
-from evopy.simulators.simulator import Simulator
 
 def get_method(beta):
 
