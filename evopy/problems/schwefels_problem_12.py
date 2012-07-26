@@ -22,12 +22,12 @@ class SchwefelsProblem12():
     description = "Schwefel's problem 1.2"
     description_short = "Schwefel12"
 
-    def __init__(self, dimensions = 2, size = 10):
+    def __init__(self, dimensions = 2, size = 100):
         self._d = dimensions
         self._size = 10 
 
     def is_feasible(self, x):
-        return x.value[0] >= 0 
+        return x.value[0] - 50 >= 0
 
     def fitness(self, x):
         outer_sum = 0
@@ -40,4 +40,4 @@ class SchwefelsProblem12():
         return outer_sum            
                                   
     def optimum_fitness(self):
-        return 0.0
+        return 2500.0

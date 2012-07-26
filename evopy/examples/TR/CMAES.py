@@ -17,20 +17,26 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-class TRProblem():
+from sys import path
+path.append("../../..")
 
-    description = "Sphere function with tangent restriction"
-    description_short = "TR"
+from sklearn.cross_validation import KFold
+from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
+from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 
-    def __init__(self, dimensions = 2, size = 10):
-        self._d = dimensions
-        self._size = 10
+from evopy.strategies.cmaes import CMAES
+from evopy.problems.tr_problem import TRProblem
+from evopy.simulators.simulator import Simulator
 
-    def is_feasible(self, x):
-        return sum(x.value) - float(self._d) >= 0
+def get_method():
+    method = CMAES(\
+        mu = 15,
+        lambd = 100,
+        xmean = [5.0, 5.0],
+        sigma = 1.0)
 
-    def fitness(self, x):
-        return sum(map(lambda x : pow(x,2), x.value)) 
+    return method
 
-    def optimum_fitness(self):
-        return float(self._d)
+if __name__ == "__main__":
+    sim = Simulator(get_method(), TRProblem(), pow(10, -12))
+    results = sim.simulate()

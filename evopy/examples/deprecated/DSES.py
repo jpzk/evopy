@@ -17,20 +17,26 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-class TRProblem():
+from sys import path
+path.append("../..")
 
-    description = "Sphere function with tangent restriction"
-    description_short = "TR"
+from evopy.strategies.dses import DSES
 
-    def __init__(self, dimensions = 2, size = 10):
-        self._d = dimensions
-        self._size = 10
-
-    def is_feasible(self, x):
-        return sum(x.value) - float(self._d) >= 0
-
-    def fitness(self, x):
-        return sum(map(lambda x : pow(x,2), x.value)) 
-
-    def optimum_fitness(self):
-        return float(self._d)
+def get_method():
+    """
+    return DSES(\
+        mu = 15, 
+        lambd = 100,
+        pi = 70,
+        theta = 0.7,
+        epsilon = 1.0,
+        combination = SAIntermediate(),
+        mutation = GaussSigma(),
+        selection = SmallestFitness(),
+        view = DSESView(),
+        selfadaption = Selfadaption(tau0 = 1.0, tau1 = 0.1))
+    """
+    return True
+if __name__ == "__main__":
+    m = get_method()
+    #m.run()
