@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import pdb
+
 from collections import deque
 from copy import deepcopy
 
@@ -55,12 +57,12 @@ class SVCLinearMetaModel:
             copied_individual = deepcopy(feasible)
             copied_individual.value = [feasible.value[0]]
             reduced_infeasibles.append(copied_individual)	    
-	    
+	   
         self._training_feasibles = reduced_infeasibles
 
     def add_infeasible(self, infeasible):
         copied_individual = deepcopy(infeasible)
-        copied_individual.value = [infeasible.value[0]]
+        copied_individual.value = [infeasible.value[0]]     
         self._training_infeasibles.append(copied_individual)
 
     def check_feasibility(self, individual):
@@ -87,7 +89,6 @@ class SVCLinearMetaModel:
 
         cv_feasibles = self._training_feasibles[:self._window_size]
         cv_infeasibles = [inf for inf in self._training_infeasibles]
-
         self._scaling.setup(cv_feasibles + cv_infeasibles)
 
         scale = lambda child : self._scaling.scale(child)
@@ -200,10 +201,9 @@ class SVCLinearMetaModel:
             raise Exception("sklearn version is not supported")
 
     def repair(self, individual):
-
         repair_mode = self._repair_mode
         val = individual.value
-        x = val[0]
+        x = [val[0]]
 
         w = self._clf.coef_[0]
         nw = self.get_normal()
