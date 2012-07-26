@@ -50,23 +50,23 @@ class SVCLinearMetaModel:
         return self._trained
 
     def add_sorted_feasibles(self, feasibles):
-	reduced_infeasibles = []
-	for feasible in feasibles:
-	    copied_individual = deepcopy(feasible)
-	    copied_individual.value = [feasible.value[0]]
-	    reduced_infeasibles.append(copied_individual)	    
+        reduced_infeasibles = []
+        for feasible in feasibles:
+            copied_individual = deepcopy(feasible)
+            copied_individual.value = [feasible.value[0]]
+            reduced_infeasibles.append(copied_individual)	    
 	    
         self._training_feasibles = reduced_infeasibles
 
     def add_infeasible(self, infeasible):
-	copied_individual = deepcopy(infeasible)
-	copied_individual.value = [infeasible.value[0]]
+        copied_individual = deepcopy(infeasible)
+        copied_individual.value = [infeasible.value[0]]
         self._training_infeasibles.append(copied_individual)
 
     def check_feasibility(self, individual):
         """ Check the feasibility with meta model """
-	copied_individual = deepcopy(individual)
-	copied_individual.value = [individual.value[0]]
+    	copied_individual = deepcopy(individual)
+    	copied_individual.value = [individual.value[0]]
 	
         scaled_individual = self._scaling.scale(copied_individual)
         prediction = self._clf.predict(scaled_individual.value)
@@ -203,7 +203,7 @@ class SVCLinearMetaModel:
 
         repair_mode = self._repair_mode
         val = individual.value
-	x = val[0]
+        x = val[0]
 
         w = self._clf.coef_[0]
         nw = self.get_normal()

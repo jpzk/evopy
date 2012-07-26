@@ -25,6 +25,7 @@ from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.strategies.cmaes_svc import CMAESSVC
 from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
+from evopy.problems.schwefels_problem_12 import SchwefelsProblem12
 from evopy.problems.tr_problem import TRProblem
 from evopy.problems.oh_problem import OHProblem
 from evopy.simulators.simulator import Simulator
@@ -42,7 +43,7 @@ def get_method():
         repair_mode = 'mirror')
 
     method = CMAESSVC(\
-        mu = 50,
+        mu = 15,
         lambd = 100,
         xmean = [5.0, 5.0],
         sigma = 1.0,
@@ -52,5 +53,5 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), TRProblem(), pow(10, -12))
+    sim = Simulator(get_method(), SchwefelsProblem12(), pow(10, -12))
     results = sim.simulate()
