@@ -29,13 +29,14 @@ from numpy.random import rand
 from numpy.random import normal
 from numpy.linalg import inv
 
-class CMASVCLinearMetaModel:
+from meta_model import MetaModel
+
+class CMASVCLinearMetaModel(MetaModel):
     """ CMA SVC meta model which classfies feasible and infeasible points """
 
-    can_repair_infeasibles = True
-    can_predict_alignment = True
-
     def __init__(self, window_size, scaling, crossvalidation, repair_mode):
+
+        super(CMASVCLinearMetaModel, self).__init__()
 
         self._window_size = window_size
         self._scaling = scaling            
@@ -43,10 +44,11 @@ class CMASVCLinearMetaModel:
         self._crossvalidation = crossvalidation
         self._repair_mode = repair_mode
 
-        self._statistics_angles_trajectory = []
-        self._statistics_best_parameter_C_trajectory = []
-        self._statistics_best_accuracy_trajectory = []
-        self._statistics_infeasibles_trajectory = []
+        self.logger.add_binding('_training_feasibles', 'training_feasibles')
+        self.logger.add_binding('_training_infeasibles', 'training_infeasibles')
+        self.logger.add_binding('_best_acc', 'best_acc')
+        self.logger.add_binding('_best_parameter_C', 'best_parameter_C')
+        self.logger.add_binding('_normal', 'normal')
 
     def is_trained():
         return self._trained
@@ -72,9 +74,12 @@ class CMASVCLinearMetaModel:
             are gathered """
 
         if(len(self._training_infeasibles) < self._window_size):
-            self._statistics_best_parameter_C_trajectory.append(0.0)
-            self._statistics_best_accuracy_trajectory.append(0.0)
-            self._statistics_angles_trajectory.append([0.0])             
+            self._training_feasibles = None
+            self._angles = None
+            self._best_parameter_C = None
+            self._best_acc = None
+            self._normal = None
+            self.logger.log()
             return False
 
         cv_feasibles = self._training_feasibles[:self._window_size]
@@ -86,27 +91,26 @@ class CMASVCLinearMetaModel:
         scaled_cv_feasibles = map(scale, cv_feasibles)
         scaled_cv_infeasibles = map(scale, cv_infeasibles)
 
-        training_feasibles, training_infeasibles, best_parameter_C,\
-        best_acc = self._crossvalidation.crossvalidate(\
-            scaled_cv_feasibles, scaled_cv_infeasibles)
+        self._training_feasibles, self._training_infeasibles,\
+        self._best_parameter_C, self._best_acc =\
+            self._crossvalidation.crossvalidate(\
+                scaled_cv_feasibles, scaled_cv_infeasibles)
 
         # @todo WARNING maybe rescale training feasibles/infeasibles (!) 
-        fvalues = [f.value for f in training_feasibles]
-        ivalues = [i.value for i in training_infeasibles]
+        fvalues = [f.value for f in self._training_feasibles]
+        ivalues = [i.value for i in self._training_infeasibles]
 
         points = ivalues + fvalues
         labels = [-1] * len(ivalues) + [1] * len(fvalues) 
 
-        self._clf = svm.SVC(kernel = 'linear', C = best_parameter_C, tol = 1.0)
-        self._clf.fit(points, labels)  
+        self._clf = svm.SVC(kernel = 'linear', C = self._best_parameter_C, tol = 1.0)
+        self._clf.fit(points, labels)
 
         # Update new basis of meta model
-        self._prepare_inverse_rotations(self.get_normal())
+        self._normal = self.get_normal()
+        self._prepare_inverse_rotations(self._normal)
 
-        self._statistics_best_parameter_C_trajectory.append(best_parameter_C)
-        self._statistics_best_accuracy_trajectory.append(best_acc)
-        self._statistics_angles_trajectory.append(self.angles)             
-
+        self.logger.log()
         return True
 
     def givens(self, i, j, alpha, d):
@@ -217,18 +221,3 @@ class CMASVCLinearMetaModel:
         individual.value = nx[0]
         return individual
 
-    def get_last_statistics(self):
-        statistics = {
-            "angles" : self._statistics_angles_trajectory[-1],
-            "best_parameter_C" : self._statistics_best_parameter_C_trajectory[-1],
-            "best_acc": self._statistics_best_accuracy_trajectory[-1]}
-        
-        return statistics
-
-    def get_statistics(self):
-        statistics = {
-            "angles" : self._statistics_angles_trajectory,
-            "best_parameter_C" : self._statistics_best_parameter_C_trajectory,
-            "best_acc": self._statistics_best_accuracy_trajectory}
-        
-        return statistics
