@@ -21,7 +21,7 @@ from sys import path
 path.append("../../..")
 
 from evopy.strategies.cmaes import CMAES
-from evopy.problems.schwefels_problem_12 import SchwefelsProblem12
+from evopy.problems.schwefels_problem_26 import SchwefelsProblem26
 from evopy.simulators.simulator import Simulator
 
 def get_method():
@@ -34,5 +34,5 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), SchwefelsProblem12(), pow(10, -12))
+    sim = Simulator(get_method(), SchwefelsProblem26(), pow(10, -12))
     results = sim.simulate()
