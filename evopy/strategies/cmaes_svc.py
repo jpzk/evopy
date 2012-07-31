@@ -49,8 +49,8 @@ class CMAESSVC(EvolutionStrategy):
         self._init_cma_strategy_parameters(xmean, sigma)      
 
         # SVC Metamodel
-        self._meta_model = meta_model
-        self._meta_model_trained = False
+        self.meta_model = meta_model
+        self.meta_model_trained = False
         self._beta = beta
 
         # valid solutions
@@ -138,17 +138,17 @@ class CMAESSVC(EvolutionStrategy):
 
         difference = self._lambd - len(self._valid_solutions)
 
-        if(self._meta_model_trained):
+        if(self.meta_model_trained):
             max_amount_meta_feasible = int(floor(self._beta * difference))
             max_amount_pending_solutions = difference - max_amount_meta_feasible        
 
             while(len(pending_meta_feasible) < max_amount_meta_feasible):
                 individual = self._generate_individual() 
 
-                if(self._meta_model.check_feasibility(individual)):
+                if(self.meta_model.check_feasibility(individual)):
                     pending_meta_feasible.append(individual)
                 else:                    
-                    repaired = self._meta_model.repair(individual)
+                    repaired = self.meta_model.repair(individual)
                     self._count_repaired += 1
                     pending_meta_feasible.append(repaired)
         else: 
@@ -169,7 +169,7 @@ class CMAESSVC(EvolutionStrategy):
                 self._valid_solutions.append(child)
             else:
                 self._count_constraint_infeasibles += 1
-                self._meta_model.add_infeasible(child)
+                self.meta_model.add_infeasible(child)
 
         if(len(self._valid_solutions) < self._lambd):
             return False
@@ -193,8 +193,8 @@ class CMAESSVC(EvolutionStrategy):
 
         # update meta model sort self._valid_solutions by fitness and 
         # unsorted self._sliding_infeasibles
-        self._meta_model.add_sorted_feasibles(sorted_children)       
-        self._meta_model_trained = self._meta_model.train()
+        self.meta_model.add_sorted_feasibles(sorted_children)       
+        self.meta_model_trained = self.meta_model.train()
 
         # new xmean
         values = map(lambda child : child.value, sorted_children[:self._mu]) 

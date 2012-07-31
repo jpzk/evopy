@@ -46,8 +46,8 @@ class SVCLinearMetaModel(MetaModel):
         self._crossvalidation = crossvalidation
         self._repair_mode = repair_mode
 
-        self.logger.add_binding('_training_feasibles', 'training_feasibles')
-        self.logger.add_binding('_training_infeasibles', 'training_infeasibles')
+        self.logger.add_binding('_selected_feasibles', 'selected_feasibles')
+        self.logger.add_binding('_selected_infeasibles', 'selected_infeasibles')
         self.logger.add_binding('_best_acc', 'best_acc')
         self.logger.add_binding('_best_parameter_C', 'best_parameter_C')
 
@@ -82,8 +82,8 @@ class SVCLinearMetaModel(MetaModel):
             are gathered """
 
         if(len(self._training_infeasibles) < self._window_size):
-            self._training_feasibles = None
-            self._angles = None
+            self._selected_feasibles = None
+            self._selected_infeasibles = None
             self._best_parameter_C = None
             self._best_acc = None
             self.logger.log()
@@ -97,14 +97,14 @@ class SVCLinearMetaModel(MetaModel):
         scaled_cv_feasibles = map(scale, cv_feasibles)
         scaled_cv_infeasibles = map(scale, cv_infeasibles)
 
-        self._training_feasibles, self._training_infeasibles,\
+        self._selected_feasibles, self._selected_infeasibles,\
         self._best_parameter_C, self._best_acc =\
             self._crossvalidation.crossvalidate(\
                 scaled_cv_feasibles, scaled_cv_infeasibles)
 
         # @todo WARNING maybe rescale training feasibles/infeasibles (!) 
-        fvalues = [f.value for f in self._training_feasibles]
-        ivalues = [i.value for i in self._training_infeasibles]
+        fvalues = [f.value for f in self._selected_feasibles]
+        ivalues = [i.value for i in self._selected_infeasibles]
 
         points = ivalues + fvalues
         labels = [-1] * len(ivalues) + [1] * len(fvalues) 

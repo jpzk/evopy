@@ -49,8 +49,8 @@ class CMAESRSVC(EvolutionStrategy):
         self._init_cma_strategy_parameters(xmean, sigma)      
 
         # SVC Metamodel
-        self._meta_model = meta_model
-        self._meta_model_trained = False
+        self.meta_model = meta_model
+        self.meta_model_trained = False
         self._beta = beta
 
         # valid solutions
@@ -151,7 +151,7 @@ class CMAESRSVC(EvolutionStrategy):
 
         difference = self._lambd - len(self._valid_solutions)
 
-        if(self._meta_model_trained):
+        if(self.meta_model_trained):
             max_amount_meta_feasible = int(floor(self._beta * difference))
             max_amount_pending_solutions = difference - max_amount_meta_feasible        
 
@@ -161,10 +161,10 @@ class CMAESRSVC(EvolutionStrategy):
                 # reducing individual, back rotation to standard basis
                 reduced_individual = self._reduce(individual)
 
-                if(self._meta_model.check_feasibility(reduced_individual)):
+                if(self.meta_model.check_feasibility(reduced_individual)):
                     pending_meta_feasible.append(individual)
                 else:                    
-                    reduced_repaired = self._meta_model.repair(reduced_individual)
+                    reduced_repaired = self.meta_model.repair(reduced_individual)
                     repaired = self._unreduce(reduced_repaired)
                     self._count_repaired += 1
                     pending_meta_feasible.append(repaired)
@@ -187,7 +187,7 @@ class CMAESRSVC(EvolutionStrategy):
             else:
                 reduced_child = self._reduce(child)
                 self._count_constraint_infeasibles += 1
-                self._meta_model.add_infeasible(reduced_child)
+                self.meta_model.add_infeasible(reduced_child)
 
         if(len(self._valid_solutions) < self._lambd):
             return False
@@ -211,8 +211,8 @@ class CMAESRSVC(EvolutionStrategy):
         sorted_children = map(child, sorted_fitnesses)
 
         reduced_sorted_children = map(self._reduce, sorted_children)
-        self._meta_model.add_sorted_feasibles(reduced_sorted_children)
-        self._meta_model_trained = self._meta_model.train()
+        self.meta_model.add_sorted_feasibles(reduced_sorted_children)
+        self.meta_model_trained = self.meta_model.train()
         
         # new xmean
         values = map(lambda child : child.value, sorted_children[:self._mu]) 
