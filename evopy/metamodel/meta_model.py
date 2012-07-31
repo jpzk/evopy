@@ -44,7 +44,10 @@ class Logger(object):
     def last(self):
         last = {}
         for k in self.logs.keys():
-            last[k] = self.logs[k][-1]
+            if(type(self.logs[k]) == list):
+                last[k] = self.logs[k][-1]
+            else: 
+                last[k] = self.logs[k]
         return last
 
 class MetaModel(object):

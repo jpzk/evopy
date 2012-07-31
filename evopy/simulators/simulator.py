@@ -60,12 +60,25 @@ class Simulator():
 
             # TELL fitness, return optimum
             optimum, optimum_fitness = self.optimizer.tell_fitness(fitnesses)
- 
+
+            # A-POSTERIORI information for confusion matrix
+            if('ask_a_posteriori_solutions' in dir(self.optimizer)):
+                apos_feasibility =\
+                    lambda (solution, meta_feasibility) :\
+                    (solution, meta_feasibility, self.problem.is_feasible(solution))
+
+                apos_solutions = self.optimizer.ask_a_posteriori_solutions()
+                feasibility_info = map(apos_feasibility, apos_solutions)
+                self.optimizer.tell_a_posteriori_feasibility(feasibility_info)
+
             # UPDATE OWN STATS                                   
             self._statistics_cfc_trajectory.append(self._count_cfc)
             self._count_cfc = 0
-           
-            print "%.20f %i" % (optimum_fitness, self._statistics_cfc_trajectory[-1])
+          
+            last = self.optimizer.logger.last()
+            ppa = last['confusion_matrix'].positive_prediction_accuracy()
+
+            print "%.20f %i %f" % (optimum_fitness, self._statistics_cfc_trajectory[-1], ppa)
 
             # TERMINATION
             if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):

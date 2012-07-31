@@ -216,3 +216,4 @@ class CMAES(EvolutionStrategy):
         self._invsqrtC = self._B * invD * transpose(self._B) 
 
         return self._best_child, self._best_fitness
+

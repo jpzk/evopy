@@ -30,6 +30,7 @@ from numpy.random import normal, rand
 from numpy.linalg import eigh, norm, inv
 
 from evolution_strategy import EvolutionStrategy
+from confusion_matrix import ConfusionMatrix
 from evopy.individuals.individual import Individual
 
 class CMAESRSVC(EvolutionStrategy):
@@ -53,8 +54,8 @@ class CMAESRSVC(EvolutionStrategy):
         self.meta_model_trained = False
         self._beta = beta
 
-        # valid solutions
         self._valid_solutions = []
+        self._pending_apos_solutions = []
 
         # statistics
         self.logger.add_const_binding('_xmean', 'initial_xmean')
@@ -65,7 +66,8 @@ class CMAESRSVC(EvolutionStrategy):
         self.logger.add_binding('_C', 'C')
         self.logger.add_binding('_B', 'B')
         self.logger.add_binding('_count_repaired', 'repaired')
- 
+        self.logger.add_binding('_confusion_matrix', 'confusion_matrix')
+
         # log constants
         self.logger.const_log()
 
@@ -163,11 +165,20 @@ class CMAESRSVC(EvolutionStrategy):
 
                 if(self.meta_model.check_feasibility(reduced_individual)):
                     pending_meta_feasible.append(individual)
+
+                    # appending meta-feasible solution to a_posteriori pending
+                    self._pending_apos_solutions.append((individual, True))                   
                 else:                    
+                    # appending meta-infeasible solution to a_posteriori pending                        
+                    self._pending_apos_solutions.append((individual, False))
+
                     reduced_repaired = self.meta_model.repair(reduced_individual)
                     repaired = self._unreduce(reduced_repaired)
                     self._count_repaired += 1
                     pending_meta_feasible.append(repaired)
+
+                    # appending meta-feasible solution to a_posteriori pending
+                    self._pending_apos_solutions.append((individual, True))
         else: 
             max_amount_pending_solutions = difference
 
@@ -259,6 +270,16 @@ class CMAESRSVC(EvolutionStrategy):
         fitnesses = map(fitness, sorted_fitnesses)
         self._mean_fitness = array(fitnesses).mean()
         
+        return self._best_child, self._best_fitness
+
+    def ask_a_posteriori_solutions(self):
+        return self._pending_apos_solutions        
+
+    def tell_a_posteriori_feasibility(self, apos_feasibility):        
+        self._confusion_matrix = ConfusionMatrix(apos_feasibility)
+        self._pending_apos_solutions = []
+
+        # STATISTICS
         # log all bindings
         self.logger.log()
         self._count_constraint_infeasibles = 0                
@@ -270,6 +291,4 @@ class CMAESRSVC(EvolutionStrategy):
 
         invD = diag([1.0/d for d in self._D])
         self._invsqrtC = self._B * invD * transpose(self._B) 
-
-        return self._best_child, self._best_fitness
 
