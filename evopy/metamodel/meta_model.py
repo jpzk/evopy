@@ -11,7 +11,6 @@ option) any later version.
 evopy is distributed in the hope that it will be
 useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
-
 Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
@@ -38,6 +37,15 @@ class Logger(object):
     def log(self):
         for k, v in self.bindings.iteritems():
             self.logs[k].append(self.scope.__getattribute__(v))                
+
+    def all(self):
+        return self.logs
+
+    def last(self):
+        last = {}
+        for k in self.logs.keys():
+            last[k] = self.logs[k][-1]
+        return last
 
 class MetaModel(object):
     def __init__(self):

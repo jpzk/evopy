@@ -40,6 +40,15 @@ class Logger(object):
         for k, v in self.bindings.iteritems():
             self.logs[k].append(self.scope.__getattribute__(v))                
 
+    def all(self):
+        return self.logs
+
+    def last(self):
+        last = {}
+        for k in self.logs.keys():
+            last[k] = self.logs[k][-1]
+        return last
+
 class EvolutionStrategy(object):
 
     def __init__(self, mu, lambd):
