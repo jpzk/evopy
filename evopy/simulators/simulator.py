@@ -75,10 +75,7 @@ class Simulator():
             self._statistics_cfc_trajectory.append(self._count_cfc)
             self._count_cfc = 0
           
-            last = self.optimizer.logger.last()
-            ppa = last['confusion_matrix'].positive_prediction_accuracy()
-
-            print "%.20f %i %f" % (optimum_fitness, self._statistics_cfc_trajectory[-1], ppa)
+            print "%.20f %i" % (optimum_fitness, self._statistics_cfc_trajectory[-1])
 
             # TERMINATION
             if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):
