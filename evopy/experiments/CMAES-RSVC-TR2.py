@@ -49,9 +49,9 @@ def get_cmaes_rsvc_method():
     method = CMAESRSVC(\
         mu = 15,
         lambd = 100,
-        xmean = [5.0, 5.0, 5.0],
+        xmean = [5.0, 5.0],
         sigma = 1.0,
-        beta = 0.80,
+        beta = 0.90,
         meta_model = meta_model)
 
     return method
@@ -60,7 +60,7 @@ def get_cmaes_method():
     method = CMAES(\
         mu = 15,
         lambd = 100,
-        xmean = [5.0, 5.0, 5.0],
+        xmean = [5.0, 5.0],
         sigma = 1.0)
 
     return method
@@ -70,14 +70,13 @@ def process(simulator):
 
 simulators = []
 for i in range(0, 50):
-    simulator1 = ExperimentSimulator(get_cmaes_rsvc_method(), TRProblem(dimensions=3), 10**-12)
-    simulator2 = ExperimentSimulator(get_cmaes_method(), TRProblem(dimensions=3), 10**-12)
+    simulator1 = ExperimentSimulator(get_cmaes_rsvc_method(), TRProblem(dimensions=2), 10**-12)
+    simulator2 = ExperimentSimulator(get_cmaes_method(), TRProblem(dimensions=2), 10**-12)
     simulators.append(simulator1)
     simulators.append(simulator2)
 
-writer = CSVWriter("test")
+writer = CSVWriter("CMAES-RSVC-TR2")
 results = pmap(process, simulators, cpu = cpu_count)
-
 for result in results:
     writer.write(result)
 
