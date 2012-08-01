@@ -38,14 +38,16 @@ class ConfusionMatrix():
                 self.tn += 1.0
 
     def positive_prediction_accuracy(self):
-        if(self.tp == 0 and self.fp == 0):
+        _sum = self.tp + self.fp
+        if(_sum == 0):
             return 0.0
-        return self.tp / self.tp + self.fp
+        return self.tp / _sum 
 
     def negative_prediction_accuracy(self):
-        if(self.tn == 0 and self.fn == 0):
+        _sum = self.tn + self.fn
+        if(_sum == 0):
             return 0.0
-        return self.tn / self.tn + self.fn
+        return self.tn / _sum 
 
     def mcc(self):
         top = self.tp * self.tn - self.fp * self.fn
