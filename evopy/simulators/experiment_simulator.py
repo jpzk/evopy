@@ -98,7 +98,7 @@ class ExperimentSimulator():
                 self._general_accuracy,\
                 self.get_statistics(),\
                 self.optimizer.logger.all(),\
-                mm_stats = self.optimizer._meta_model.get_statistics())
+                mm_stats = self.optimizer.meta_model.logger.all())
         else:                
             simulation_statistics = SimulationStatistics(\
                 self._general_optimizer,\
