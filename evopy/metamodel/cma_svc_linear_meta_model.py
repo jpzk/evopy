@@ -97,8 +97,8 @@ class CMASVCLinearMetaModel(MetaModel):
                 scaled_cv_feasibles, scaled_cv_infeasibles)
 
         # @todo WARNING maybe rescale training feasibles/infeasibles (!) 
-        fvalues = [f.value for f in self._training_feasibles]
-        ivalues = [i.value for i in self._training_infeasibles]
+        fvalues = [f.value for f in self._selected_feasibles]
+        ivalues = [i.value for i in self._selected_infeasibles]
 
         points = ivalues + fvalues
         labels = [-1] * len(ivalues) + [1] * len(fvalues) 
