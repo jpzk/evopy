@@ -107,7 +107,6 @@ class ExperimentSimulator():
                 self.get_statistics(),\
                 self.optimizer.logger.all())
         
-        pdb.set_trace()
         return simulation_statistics
 
     def get_statistics(self):
