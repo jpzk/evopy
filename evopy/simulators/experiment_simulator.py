@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import pdb
+
 from sys import path
 path.append("../..")
 
@@ -95,7 +97,7 @@ class ExperimentSimulator():
                 self._general_problem,\
                 self._general_accuracy,\
                 self.get_statistics(),\
-                self.optimizer.get_statistics(),\
+                self.optimizer.logger.all(),\
                 mm_stats = self.optimizer._meta_model.get_statistics())
         else:                
             simulation_statistics = SimulationStatistics(\
@@ -103,8 +105,9 @@ class ExperimentSimulator():
                 self._general_problem,\
                 self._general_accuracy,\
                 self.get_statistics(),\
-                self.optimizer.get_statistics())
-
+                self.optimizer.logger.all())
+        
+        pdb.set_trace()
         return simulation_statistics
 
     def get_statistics(self):

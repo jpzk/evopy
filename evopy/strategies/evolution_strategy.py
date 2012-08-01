@@ -72,11 +72,3 @@ class EvolutionStrategy(object):
         self._count_constraint_infeasibles = 0
         self._count_repaired = 0
 
-    def get_statistics(self, only_last = False):
-        select = lambda s : s[-1] if only_last and type(s) == list else s
-
-        statistics = {}
-        for name, trajectory in self.logger.logs.iteritems():
-            statistics[name] = select(trajectory)
-
-        return statistics
