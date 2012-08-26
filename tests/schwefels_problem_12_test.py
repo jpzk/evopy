@@ -1,15 +1,33 @@
+''' 
+This file is part of evopy.
+
+Copyright 2012, Jendrik Poloczek
+
+evopy is free software: you can redistribute it
+and/or modify it under the terms of the GNU General Public License as published
+by the Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+evopy is distributed in the hope that it will be
+useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+evopy.  If not, see <http://www.gnu.org/licenses/>.
+'''
+
 from evopy.strategies.cmaes import CMAES
-from evopy.problems.schwefels_problem_12 import SchwefelsProblem12
-from evopy.simulators.simulator import Simulator
-from sklearn.cross_validation import KFold
-from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
-from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
+from evopy.strategies.cmaes_svc import CMAESSVC
 from evopy.strategies.cmaes_rsvc import CMAESRSVC
 from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
+from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
+from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
+from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.problems.schwefels_problem_12 import SchwefelsProblem12
 from evopy.simulators.simulator import Simulator
-from evopy.strategies.cmaes_svc import CMAESSVC
-from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
+
+from sklearn.cross_validation import KFold
 
 def get_method_cmaessvc():
 
