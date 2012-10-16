@@ -65,10 +65,27 @@ class EvolutionStrategy(object):
 
         self.logger.add_binding('_best_fitness', 'best_fitness')
         self.logger.add_binding('_worst_fitness', 'worst_fitness')
-        self.logger.add_binding('_mean_fitness', 'mean_fitness')
+        #self.logger.add_binding('_mean_fitness', 'mean_fitness')
         self.logger.add_binding('_selected_children', 'selected_children')
         self.logger.add_binding('_count_constraint_infeasibles', 'infeasibles')
 
         self._count_constraint_infeasibles = 0
         self._count_repaired = 0
 
+    def ask_pending_solutions(self):
+        pass
+
+    def tell_feasibility(self, feasibility_information):
+        pass
+
+    def ask_valid_solutions(self):
+        pass
+
+    def tell_fitness(self, fitnesses):
+        pass
+
+    def ask_posteriori_solutions(self):
+        pass
+        
+    def tell_a_posteriori_feasibility(self, apos_feasibility):
+        pass

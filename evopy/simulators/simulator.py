@@ -39,7 +39,7 @@ class Simulator():
 
                 # CHECK solutions for feasibility 
                 feasibility =\
-                    lambda solution : (solution, self.problem.is_feasible(solution))
+                    lambda solution : (solution, self.problem.is_feasible(solution[0]))
 
                 feasibility_information = []                   
                 for solution in solutions:
@@ -55,7 +55,7 @@ class Simulator():
             valid_solutions = self.optimizer.ask_valid_solutions()
 
             # CHECK fitness
-            fitness = lambda solution : (solution, self.problem.fitness(solution))
+            fitness = lambda solution : (solution, self.problem.fitness(solution[0]))
             fitnesses = map(fitness, valid_solutions)
 
             # TELL fitness, return optimum
