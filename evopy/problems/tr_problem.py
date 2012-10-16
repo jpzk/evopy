@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from numpy import vectorize
+
 class TRProblem():
 
     description = "Sphere function with tangent restriction"
@@ -27,10 +29,10 @@ class TRProblem():
         self._size = 10
 
     def is_feasible(self, x):
-        return sum(x.value) - float(self._d) >= 0
+        return x.sum() - float(self._d) >= 0
 
     def fitness(self, x):
-        return sum(map(lambda x : pow(x,2), x.value)) 
+        return (vectorize(lambda x : pow(x,2))(x)).sum()
 
     def optimum_fitness(self):
         return float(self._d)

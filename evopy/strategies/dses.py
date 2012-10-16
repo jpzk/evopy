@@ -18,120 +18,131 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from math import sqrt
-from numpy import array
+from numpy import array, random, matrix, exp, vectorize
 
 from evolution_strategy import EvolutionStrategy
 
-class DSES(EvolutionStrategy): 
+class DSES(EvolutionStrategy):
 
-    _strategy_name = "Death Penalty Step Control"
+    description =\
+        "Death Penalty Step Control Evolution Strategy (DS-ES)"    
 
-    listadd = lambda self, l1, l2 : map(lambda i1, i2 : i1 + i2, l1, l2)
-    meansigmas = lambda self, sigmas : map(lambda sigma : sigma / len(sigmas),\
-        reduce(self.listadd, sigmas))
+    description_short = "DS-ES"        
 
-    def __init__(self, problem, mu, lambd, theta, pi, epsilon, \
-        combination, mutation, selection, view, selfadaption):
+    def __init__(self, mu, lambd, theta, pi, initial_sigma,\
+        delta, tau0, tau1, initial_pos):
 
-        super(DSES, self).\
-            __init__(problem, mu, lambd, \
-            combination, mutation, selection, view) 
+        super(DSES, self).__init__(mu, lambd)
 
-        self._statistics_parameter_epsilon_trajectory = []
-        self._statistics_DSES_infeasibles_trajectory = []
-        self._statistics_average_sigma_trajectory = []
-
-        # Death Penalty step control parameters
         self._theta = theta
         self._pi = pi
-        self._epsilon = epsilon
+        self._delta = delta
+        self._infeasibles = 0
+        self._init_pos = initial_pos
+        self._init_sigma = initial_sigma
+        self._tau0 = tau0
+        self._tau1 = tau1
 
-        # Selfadaption           
-        self._selfadaption = selfadaption
+        self._current_population = [] 
+        self._valid_solutions = [] 
 
-    def log(\
-        self, generation, next_population, parameter_epsilon, DSES_infeasibles):
+        self.logger.add_const_binding('_theta', 'theta')
+        self.logger.add_const_binding('_pi', 'pi')
+        self.logger.add_const_binding('_tau0', 'tau0')
+        self.logger.add_const_binding('_tau1', 'tau1')
+        self.logger.add_binding('_delta', 'delta')
+
+        # log constants
+        self.logger.const_log()
         
-        super(DSES, self).log(generation, next_population)
+        # initialize population
+        self._initialize_population()                    
 
-        sigmas = map(lambda child : child.sigmas, next_population)
+    def _initialize_population(self):
+        init_pos, init_sigma = self._init_pos, self._init_sigma
+        d = len(init_pos)
 
-        self._statistics_average_sigma_trajectory.append(self.meansigmas(sigmas))
-        self._statistics_parameter_epsilon_trajectory.append(parameter_epsilon)
-        self._statistics_DSES_infeasibles_trajectory.append(DSES_infeasibles)
+        genpos = lambda pos, sigma : random.normal(pos, sigma)
+        gensig = lambda sigma : sigma 
+         
+        while(len(self._current_population) < self._lambd):
+            sigmas = [gensig(init_sigma[i]) for i in range(0, d)]
+            positions = [genpos(init_pos[i], sigmas[i]) for i in range(0, d)]
+            individual = matrix([positions, sigmas])
+            self._current_population.append(individual)
 
-    def view(\
-        self, generation, next_population, epsilon, DSES_infeasibles):
+    def _generate_individual(self):
+        # recombination
+        e1 = self._current_population[random.randint(0, self._mu)]
+        e2 = self._current_population[random.randint(0, self._mu)]
+        child = 0.5 * (e1 + e2)
 
-        sigmas = map(lambda child : child.sigmas, next_population)
+        # mutation of sigma
+        normal = random.normal
+        temp = exp(self._tau0 * normal(0, 1))
+        mutate = lambda sigma : temp * exp(self._tau1 * normal(0, sigma))
+        child[1] = vectorize(mutate)(child[1])
 
-        self._view.view(generation, next_population, self._problem.fitness,\
-            epsilon, DSES_infeasibles, array(self.meansigmas(sigmas)).mean())
+        # minimum step size
+        delta = self._delta
+        reducer = lambda sigma : delta if sigma < delta else sigma        
+        child[1] = vectorize(reducer)(child[1])
 
-    def get_statistics(self):
-        statistics = {
-            "parameter-epsilon" : self._statistics_parameter_epsilon_trajectory,
-            "DSES-infeasibles" : self._statistics_DSES_infeasibles_trajectory,
-            "avg-sigma" : self._statistics_average_sigma_trajectory}
-        
-        super_statistics = super(DSES, self).get_statistics()
-        for k in super_statistics:
-            statistics[k] = super_statistics[k]
-        
-        return statistics
+        # mutation of position with new step size
+        mutate = lambda coord, sigma : coord + normal(0, sigma)        
+        child[0] = vectorize(mutate)(child[0], child[1])
+       
+        return child
 
-    # generate child 
-    def generate_child(self, population, epsilon):
-        combined_child = self.combine(population)
-        mutated_child = self.mutate(combined_child, combined_child.sigmas)
-        sa_child = self._selfadaption.mutate(mutated_child)
-        
-        # minimum DSES step size control
-        sa_child.sigmas =\
-            [epsilon if s < epsilon else s for s in sa_child.sigmas]
+    def ask_pending_solutions(self):
+        pending_solutions = []
 
-        return sa_child            
+        # death penalty
+        while(len(pending_solutions) < (self._lambd - len(self._valid_solutions))):
+            if(self._infeasibles > self._pi):
+                self._delta *= self._theta
+                self._infeasibles = 0 # not in original algorithm
+            child = self._generate_individual()
+            pending_solutions.append(child)
 
-    def _run(self, (population, generation, m, l, lastfitness, epsilon)):
+        return pending_solutions
 
-        DSES_infeasibles = 0
-
-        feasible_children = []
-
-        while(len(feasible_children) < l): 
-            child = self.generate_child(population, epsilon) 
-            if(self.is_feasible(child)):
-                feasible_children.append(child)
+    def tell_feasibility(self, feasibility_information):
+        for (child, feasibility) in feasibility_information:
+            if(feasibility):
+                self._valid_solutions.append(child)
             else:
-                DSES_infeasibles += 1
+                self._count_constraint_infeasibles += 1
+                self._infeasibles += 1
 
-        next_population = self.select(population, feasible_children, m)
-        fitness_of_best = self.fitness(next_population[0])
-
-        # step size reduction if infeasibles >= pi
-        if(DSES_infeasibles >= self._pi):
-            epsilon = epsilon * self._theta
-
-        self.log(generation, next_population, epsilon, DSES_infeasibles)
-        self.view(generation, next_population, epsilon, DSES_infeasibles)         
-
-        if(self.termination(generation, fitness_of_best)):
-            return True
+        if(len(self._valid_solutions) < self._lambd):
+            return False
         else:
-            return (next_population, generation + 1, m,\
-            l, fitness_of_best, epsilon)
+            return True
+                
+    def ask_valid_solutions(self):
+        return self._valid_solutions
 
-    def run(self):
-        feasible_parents = []
-        while(len(feasible_parents) < self._mu):
-            parent = self.generate_population() 
-            if(self.is_feasible(parent)):
-                feasible_parents.append(parent)
+    def tell_fitness(self, fitnesses):   
+        fitness = lambda (child, fitness) : fitness
+        child = lambda (child, fitness) : child
 
-        result = self._run((feasible_parents, 0, self._mu,\
-            self._lambd, 0, self._epsilon))
+        # selection
+        sorted_fitnesses = sorted(fitnesses, key = fitness)[:self._mu]
+        sorted_children = map(child, sorted_fitnesses)
+        self._current_population = sorted_children
 
-        while result != True:
-            result = self._run(result)
+        # log information
+        self._selected_children = array(sorted_children)
+        self._best_child, self._best_fitness = sorted_fitnesses[0]
+        self._worst_child, self._worst_fitness = sorted_fitnesses[-1]        
+        self.logger.log() 
 
-        return result
+        # reset generation variables
+        self._count_constraint_infeasibles = 0
+        self._valid_solutions = [] 
+        self._infeasibles = 0
+
+        print self._best_child[1]
+
+        return self._best_child, self._best_fitness 
