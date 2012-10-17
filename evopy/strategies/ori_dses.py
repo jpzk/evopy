@@ -16,23 +16,22 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
-
-from math import sqrt
 from numpy import array, random, matrix, exp, vectorize
+from numpy.random import normal
 
 from evolution_strategy import EvolutionStrategy
 
-class DSES(EvolutionStrategy):
+class ORIDSES(EvolutionStrategy):
 
     description =\
-        "Death Penalty Step Control Evolution Strategy (DS-ES)"    
+        "Ori. Death Penalty Step Control Evolution Strategy (DS-ES)"    
 
-    description_short = "DS-ES"        
+    description_short = "Ori. DS-ES"        
 
     def __init__(self, mu, lambd, theta, pi, initial_sigma,\
         delta, tau0, tau1, initial_pos):
 
-        super(DSES, self).__init__(mu, lambd)
+        super(ORIDSES, self).__init__(mu, lambd)
 
         self._theta = theta
         self._pi = pi
@@ -52,6 +51,16 @@ class DSES(EvolutionStrategy):
         self.logger.add_const_binding('_tau1', 'tau1')
         self.logger.add_binding('_delta', 'delta')
 
+        # prepare operators, numpy.vectorize for use with matrices
+        reducer = lambda sigma : self._delta if sigma < self._delta else sigma
+        mutate_pos = lambda coord, sigma : coord + normal(0, sigma)        
+        mutate_sig = lambda sigma : sigma * exp(self._tau0 * normal(0,1)) *\
+            exp(self._tau1 * normal(0, 1))    
+
+        self._mat_reducer = vectorize(reducer)
+        self._mat_mutate_pos = vectorize(mutate_pos)
+        self._mat_mutate_sig = vectorize(mutate_sig)
+
         # log constants
         self.logger.const_log()
         
@@ -65,47 +74,66 @@ class DSES(EvolutionStrategy):
         genpos = lambda pos, sigma : random.normal(pos, sigma)
         gensig = lambda sigma : sigma 
          
-        while(len(self._current_population) < self._lambd):
-            sigmas = [gensig(init_sigma[i]) for i in range(0, d)]
-            positions = [genpos(init_pos[i], sigmas[i]) for i in range(0, d)]
-            individual = matrix([positions, sigmas])
-            self._current_population.append(individual)
+        # initial mu lambda population, with selection of pairing 
+        # probability 1/mu. interval size is equally.
+        s, i = 0.0, (1 / float(self._mu))
+        while(len(self._current_population) < self._mu):
+            sigma = self._mat_mutate_sig(init_sigma)
+            pos = self._mat_mutate_pos(init_pos, sigma)
+            individual = matrix([pos.getA1(), sigma.getA1()])  
+            self._current_population.append((individual, s, s+i))
+            s = s+i        
 
     def _generate_individual(self):
-        # recombination
-        e1 = self._current_population[random.randint(0, self._mu)]
-        e2 = self._current_population[random.randint(0, self._mu)]
-        child = 0.5 * (e1 + e2)
+        # selection of pairing, anti-proportional selection using 
+        # the intervals between [0, 1]
+        parents = []
+        while(len(parents) < 2): 
+            x = random.random()
+            for individual, start, end in self._current_population:
+                if(start <= x < end):
+                    parents.append(individual) 
+
+        child = 0.5 * (parents[0] + parents[1])
 
         # mutation of sigma
-        normal = random.normal
-        temp = exp(self._tau0 * normal(0, 1))
-        mutate = lambda sigma : temp * exp(self._tau1 * normal(0, sigma))
-        child[1] = vectorize(mutate)(child[1])
+        child[1] = self._mat_mutate_sig(child[1])
 
+        if(self._infeasibles % self._pi == 0):
+            self._delta *= self._theta
+ 
         # minimum step size
-        delta = self._delta
-        reducer = lambda sigma : delta if sigma < delta else sigma        
-        child[1] = vectorize(reducer)(child[1])
+        child[1] = self._mat_reducer(child[1])
 
         # mutation of position with new step size
-        mutate = lambda coord, sigma : coord + normal(0, sigma)        
-        child[0] = vectorize(mutate)(child[0], child[1])
+        child[0] = self._mat_mutate_pos(child[0], child[1])
        
         return child
 
+    def _update_probabilites(self, sorted_fitnesses):
+        """ update the selection probabilites according to 
+            anti-proportional fitness. """      
+        probabilities = []
+        s, a_prop_sum, sum_of_fitnesses = 0.0, 0.0, 0.0
+
+        for individual, fitness in sorted_fitnesses:
+            sum_of_fitnesses += fitness
+        for individual, fitness in sorted_fitnesses:
+            a_prop_sum += 1.0 / (fitness / float(sum_of_fitnesses))
+        for individual, fitness in sorted_fitnesses: 
+            p = (1.0 / (fitness / float(sum_of_fitnesses))) / a_prop_sum
+            probabilities.append((individual, p))
+        probabilities.reverse()
+
+        self._current_population = []
+        start = 0
+        for individual, prob in probabilities:
+            self._current_population.append((individual, start, start + prob))
+            start = s + prob
+        self._current_population.reverse() 
+
     def ask_pending_solutions(self):
-        pending_solutions = []
-
-        # death penalty
-        while(len(pending_solutions) < (self._lambd - len(self._valid_solutions))):
-            if(self._infeasibles > self._pi):
-                self._delta *= self._theta
-                self._infeasibles = 0 # not in original algorithm
-            child = self._generate_individual()
-            pending_solutions.append(child)
-
-        return pending_solutions
+        return [self._generate_individual()]
 
     def tell_feasibility(self, feasibility_information):
         for (child, feasibility) in feasibility_information:
@@ -116,6 +144,7 @@ class DSES(EvolutionStrategy):
                 self._infeasibles += 1
 
         if(len(self._valid_solutions) < self._lambd):
+            self._infeasibles = 0
             return False
         else:
             return True
@@ -123,17 +152,19 @@ class DSES(EvolutionStrategy):
     def ask_valid_solutions(self):
         return self._valid_solutions
 
-    def tell_fitness(self, fitnesses):   
+    def tell_fitness(self, fitnesses):  
         fitness = lambda (child, fitness) : fitness
         child = lambda (child, fitness) : child
 
-        # selection
+        # selection of survival
         sorted_fitnesses = sorted(fitnesses, key = fitness)[:self._mu]
         sorted_children = map(child, sorted_fitnesses)
-        self._current_population = sorted_children
+
+        # update probababilites
+        self._update_probabilites(sorted_fitnesses)
 
         # log information
-        self._selected_children = array(sorted_children)
+        self._selected_children = sorted_children
         self._best_child, self._best_fitness = sorted_fitnesses[0]
         self._worst_child, self._worst_fitness = sorted_fitnesses[-1]        
         self.logger.log() 
@@ -142,7 +173,5 @@ class DSES(EvolutionStrategy):
         self._count_constraint_infeasibles = 0
         self._valid_solutions = [] 
         self._infeasibles = 0
-
-        print self._best_child[1]
 
         return self._best_child, self._best_fitness 
