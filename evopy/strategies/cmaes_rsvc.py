@@ -73,7 +73,7 @@ class CMAESRSVC(EvolutionStrategy):
 
     def _init_cma_strategy_parameters(self, xmean, sigma):   
         # dimension of objective function
-        N = len(xmean) 
+        N = xmean.size
         self._xmean = xmean 
         self._sigma = sigma
 

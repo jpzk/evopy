@@ -28,7 +28,6 @@ from numpy import identity, matrix, dot, exp, zeros, ones
 from numpy.random import normal, rand
 from numpy.linalg import eigh, norm
 
-from evopy.individuals.individual import Individual
 from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
 from evolution_strategy import EvolutionStrategy
 
@@ -64,7 +63,7 @@ class CMAES(EvolutionStrategy):
     def _init_cma_strategy_parameters(self, xmean, sigma):
 
         # dimension of objective function
-        N = len(xmean)
+        N = xmean.size
         self._xmean = xmean 
         self._sigma = sigma
 
@@ -124,9 +123,9 @@ class CMAES(EvolutionStrategy):
         while(len(pending_solutions) < (self._lambd - len(self._valid_solutions))):
             normals = transpose(matrix([normal(0.0, d) for d in self._D]))
             value = self._xmean + transpose(self._sigma * self._B * normals)
-            pending_solutions.append(Individual(value.getA1()))
+            pending_solutions.append(value)
 
-        return pending_solutions            
+        return pending_solutions  
 
     def tell_feasibility(self, feasibility_information):
         """ tell feasibilty; return True if there are no pending solutions, 
@@ -150,7 +149,7 @@ class CMAES(EvolutionStrategy):
     def tell_fitness(self, fitnesses):
         """ tell fitness; update all strategy specific attributes """        
 
-        N = len(self._xmean)
+        N = self._xmean.size
         oldxmean = deepcopy(self._xmean)
 
         fitness = lambda (child, fitness) : fitness
@@ -160,12 +159,16 @@ class CMAES(EvolutionStrategy):
         sorted_children = map(child, sorted_fitnesses)
 
         # new xmean
-        values = map(lambda child : child.value, sorted_children) 
-        self._xmean = dot(self._weights, values)
-       
+        values = sorted_children
+
+        self._xmean = matrix([[0.0 for i in range(0,N)]]) 
+        weighted_values = zip(self._weights, values)
+        for weight, value in weighted_values:
+            self._xmean += weight * value
+
         # cumulation: update evolution paths
         y = self._xmean - oldxmean
-        z = dot(self._invsqrtC, y) # C**(-1/2) * (xnew - xold)
+        z = dot(self._invsqrtC, y.T) # C**(-1/2) * (xnew - xold)
 
         # normalizing coefficient c and evolution path sigma control
         c = (self._cs * (2 - self._cs) * self._mueff) ** 0.5 / self._sigma

@@ -25,8 +25,8 @@ class ScalingStandardscore():
     """ Scaling to standardscore """
 
     def setup(self, individuals):
-        values = map(lambda i : i.value, individuals)
-        dimensions = len(values[0])
+        values = individuals 
+        dimensions = values[0].size
        
         self._mean = []
         self._std = []

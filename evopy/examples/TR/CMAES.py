@@ -20,6 +20,8 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from sys import path
 path.append("../../..")
 
+from numpy import matrix
+
 from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
@@ -32,7 +34,7 @@ def get_method():
     method = CMAES(\
         mu = 15,
         lambd = 100,
-        xmean = [5.0, 5.0],
+        xmean = matrix([[5.0, 5.0]]),        
         sigma = 1.0)
 
     return method

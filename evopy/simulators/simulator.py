@@ -39,11 +39,11 @@ class Simulator():
 
                 # CHECK solutions for feasibility 
                 feasibility =\
-                    lambda solution : (solution, self.problem.is_feasible(solution[0]))
+                    lambda solution : (solution, self.problem.is_feasible(solution))
 
                 feasibility_information = []                   
                 for solution in solutions:
-                    self._count_cfc += 1 
+                    self._count_cfc += 1
                     feasibility_information.append(feasibility(solution))
  
                 # TELL feasibility, returns True if all feasible, 

@@ -30,7 +30,6 @@ from numpy.random import normal, rand
 from numpy.linalg import eigh, norm, inv
 
 from evolution_strategy import EvolutionStrategy
-from evopy.individuals.individual import Individual
 from confusion_matrix import ConfusionMatrix
 
 class CMAESSVC(EvolutionStrategy):
@@ -73,7 +72,7 @@ class CMAESSVC(EvolutionStrategy):
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
         # dimension of objective function
-        N = len(xmean) 
+        N = xmean.size
         self._xmean = xmean 
         self._sigma = sigma
 
@@ -128,7 +127,7 @@ class CMAESSVC(EvolutionStrategy):
     def _generate_individual(self):
         normals = transpose(matrix([normal(0.0, d) for d in self._D]))
         value = self._xmean + transpose(self._sigma * self._B * normals)
-        return Individual(value.getA1()) 
+        return value 
 
     def ask_pending_solutions(self):
         """ ask pending solutions; solutions which need a checking for true 
@@ -153,7 +152,7 @@ class CMAESSVC(EvolutionStrategy):
                     # appending meta-feasible solution to a_posteriori pending
                     self._pending_apos_solutions.append((individual, True))
                 else:
-                    # appending meta-infeasible solution to a_posteriori pending                        
+                    # appending meta-infeasible solution to a_posteriori pending 
                     self._pending_apos_solutions.append((individual, False))
 
                     repaired = self.meta_model.repair(individual)
@@ -193,7 +192,7 @@ class CMAESSVC(EvolutionStrategy):
     def tell_fitness(self, fitnesses):
         """ tell fitness; update all strategy specific attributes """       
 
-        N = len(self._xmean)
+        N = self._xmean.size
         oldxmean = deepcopy(self._xmean)
 
         fitness = lambda (child, fitness) : fitness
@@ -208,12 +207,15 @@ class CMAESSVC(EvolutionStrategy):
         self.meta_model_trained = self.meta_model.train()
 
         # new xmean
-        values = map(lambda child : child.value, sorted_children[:self._mu]) 
-        self._xmean = dot(self._weights, values)
-       
+        values = sorted_children[:self._mu] 
+        self._xmean = matrix([[0.0 for i in range(0,N)]]) 
+        weighted_values = zip(self._weights, values)
+        for weight, value in weighted_values:
+            self._xmean += weight * value
+      
         # cumulation: update evolution paths
         y = self._xmean - oldxmean
-        z = dot(self._invsqrtC, y) # C**(-1/2) * (xnew - xold)
+        z = dot(self._invsqrtC, y.T) # C**(-1/2) * (xnew - xold)
 
         # normalizing coefficient c and evolution path sigma control
         c = (self._cs * (2 - self._cs) * self._mueff) ** 0.5 / self._sigma
