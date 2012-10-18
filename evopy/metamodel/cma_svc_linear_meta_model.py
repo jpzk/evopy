@@ -63,7 +63,7 @@ class CMASVCLinearMetaModel(MetaModel):
         """ Check the feasibility with meta model """
 
         scaled_individual = self._scaling.scale(individual)
-        prediction = self._clf.predict(scaled_individual.value)
+        prediction = self._clf.predict(scaled_individual.getA1())
 
         encode = lambda distance : False if distance < 0 else True
         return encode(prediction)
@@ -97,8 +97,8 @@ class CMASVCLinearMetaModel(MetaModel):
                 scaled_cv_feasibles, scaled_cv_infeasibles)
 
         # @todo WARNING maybe rescale training feasibles/infeasibles (!) 
-        fvalues = [f.value for f in self._selected_feasibles]
-        ivalues = [i.value for i in self._selected_infeasibles]
+        fvalues = [f.getA1() for f in self._selected_feasibles]
+        ivalues = [i.getA1() for i in self._selected_infeasibles]
 
         points = ivalues + fvalues
         labels = [-1] * len(ivalues) + [1] * len(fvalues) 
@@ -198,7 +198,7 @@ class CMASVCLinearMetaModel(MetaModel):
     def repair(self, individual):
 
         repair_mode = self._repair_mode
-        x = individual.value
+        x = individual.getA1()
 
         w = self._clf.coef_[0]
         nw = self.get_normal()

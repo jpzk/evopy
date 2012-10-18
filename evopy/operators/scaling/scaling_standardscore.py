@@ -17,34 +17,30 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import pdb
-from numpy import array
+from numpy import array, matrix, vectorize
 from copy import deepcopy
 
 class ScalingStandardscore():
     """ Scaling to standardscore """
 
     def setup(self, individuals):
-        values = individuals 
-        dimensions = values[0].size
+        dimensions = individuals[0].size
        
-        self._mean = []
-        self._std = []
-        for d in range(0, dimensions):
-            vals = map(lambda u : u[d], values)
-            self._mean.append(array(vals).mean())
-            self._std.append(array(vals).std())
+        iinrow = []
+        for individual in individuals: 
+            iinrow.append(individual.getA1())
+        temp = matrix(iinrow)
+        self._mean = temp.mean(axis=0)
+        self._std = temp.std(axis=0)
 
     def scale(self, individualx):
         individual = deepcopy(individualx)
-        val = individual.value
-        dimensions = len(val)
-    
-        scaled_value = []
-        for d in range(0, dimensions):
-            old_value = val[d]
-            scaled_value.append((old_value - self._mean[d])/ self._std[d])
+        val = individual
+        dimensions = val.size
 
-        individual.value = scaled_value
+        scale = lambda val, mean, std : (val - mean) / std
+        mat_scale = vectorize(scale)
+          
+        individual = mat_scale(individualx, self._mean, self._std)
         return individual
 

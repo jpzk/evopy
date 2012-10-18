@@ -40,7 +40,7 @@ class SVCCVSkGridLinear():
             'kernel': ['linear'], 
             'C': self._C_range}]
 
-        X = array([f.value for f in feasible] + [i.value for i in infeasible])
+        X = array([f.getA1() for f in feasible] + [i.getA1() for i in infeasible])
         y = array([1] * len(feasible) + [-1] * len(infeasible))
 
         clf = GridSearchCV(SVC(), tuned_parameters, cv=self._cv_method)
