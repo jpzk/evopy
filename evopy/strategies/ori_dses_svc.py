@@ -53,6 +53,7 @@ class ORIDSESSVC(EvolutionStrategy):
 
         self._current_population = [] 
         self._valid_solutions = [] 
+        self._pending_apos_solutions = []
 
         self.logger.add_const_binding('_theta', 'theta')
         self.logger.add_const_binding('_pi', 'pi')
