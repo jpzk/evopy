@@ -120,28 +120,6 @@ class ORIDSESSVC(EvolutionStrategy):
        
         return child
 
-    def _update_probabilites(self, sorted_fitnesses):
-        """ update the selection probabilites according to 
-            anti-proportional fitness. """      
-        probabilities = []
-        s, a_prop_sum, sum_of_fitnesses = 0.0, 0.0, 0.0
-
-        for individual, fitness in sorted_fitnesses:
-            sum_of_fitnesses += fitness
-        for individual, fitness in sorted_fitnesses:
-            a_prop_sum += 1.0 / (fitness / float(sum_of_fitnesses))
-        for individual, fitness in sorted_fitnesses: 
-            p = (1.0 / (fitness / float(sum_of_fitnesses))) / a_prop_sum
-            probabilities.append((individual, p))
-        probabilities.reverse()
-
-        self._current_population = []
-        start = 0
-        for individual, prob in probabilities:
-            self._current_population.append((individual, start, start + prob))
-            start = s + prob
-        self._current_population.reverse() 
-
     def ask_pending_solutions(self):
         """ ask pending solutions; solutions which need a checking for true 
             feasibility """
