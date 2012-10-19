@@ -140,8 +140,6 @@ class RSVCLinearMetaModel(MetaModel):
             return individual
         if repair_mode == 'project':
             s = to_hp 
-        if repair_mode == 'projectsigma':
-            s = to_hp + mean(individual.sigmas)
         if repair_mode == None: 
             raise Exception("no repair_mode selected: " + repair_mode)
 

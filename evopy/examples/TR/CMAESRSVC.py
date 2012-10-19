@@ -46,7 +46,7 @@ def get_method():
         lambd = 100,
         xmean = matrix([[5.0, 5.0]]),
         sigma = 1.0,
-        beta = 0.80,
+        beta = 0.8,
         meta_model = meta_model)
 
     return method

@@ -119,6 +119,7 @@ class CMAESRSVC(EvolutionStrategy):
         ### FIRST RUN
         self._D, self._B = eigh(self._C)
         self._B = matrix(self._B)
+        self._invB = inv(self._B)
         self._D = [d ** 0.5 for d in self._D] 
 
         invD = diag([1.0 / d for d in self._D])
@@ -126,8 +127,8 @@ class CMAESRSVC(EvolutionStrategy):
 
     def _reduce(self, individual):
         """ back rotation to standard basis """
-        reducing = lambda child : self._invB * child.T
-        return individual 
+        reducing = lambda child : (self._invB * child.T).T
+        return reducing(individual)
         
     def _unreduce(self, individual):
         """ rotation to self._B basis """
