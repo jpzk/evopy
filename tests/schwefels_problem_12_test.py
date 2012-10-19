@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from numpy import matrix
 from evopy.strategies.cmaes import CMAES
 from evopy.strategies.cmaes_svc import CMAESSVC
 from evopy.strategies.cmaes_rsvc import CMAESRSVC
@@ -44,7 +45,7 @@ def get_method_cmaessvc():
     method = CMAESSVC(\
         mu = 15,
         lambd = 100,
-        xmean = [100.0, 100.0],
+        xmean = matrix([[100.0, 100.0]]),
         sigma = 1.0,
         beta = 0.9,
         meta_model = meta_model) 
@@ -66,7 +67,7 @@ def get_method_cmaesrsvc():
     method = CMAESRSVC(\
         mu = 15,
         lambd = 100,
-        xmean = [100.0, 100.0],
+        xmean = matrix([[100.0, 100.0]]),
         sigma = 1.0,
         beta = 0.80,
         meta_model = meta_model)
@@ -77,7 +78,7 @@ def get_method_cmaes():
     method = CMAES(\
         mu = 15,
         lambd = 100,
-        xmean = [100.0, 100.0],
+        xmean = matrix([[100.0, 100.0]]),
         sigma = 1.0)
 
     return method
