@@ -24,14 +24,13 @@ http://www.lri.fr/~hansen/cmaesintro.html.
 from copy import deepcopy
 from math import floor
 
-from numpy import array, mean, log, eye, diag, transpose
+from numpy import array, mean, log, eye, diag, transpose, vectorize
 from numpy import identity, matrix, dot, exp, zeros, ones
 from numpy.random import normal, rand
 from numpy.linalg import eigh, norm, inv
 
 from evolution_strategy import EvolutionStrategy
 from confusion_matrix import ConfusionMatrix
-from evopy.individuals.individual import Individual
 
 class CMAESRSVC(EvolutionStrategy):
  
@@ -122,26 +121,23 @@ class CMAESRSVC(EvolutionStrategy):
         self._B = matrix(self._B)
         self._D = [d ** 0.5 for d in self._D] 
 
-        invD = diag([1.0/d for d in self._D])
+        invD = diag([1.0 / d for d in self._D])
         self._invsqrtC = self._B * invD * transpose(self._B) 
 
     def _reduce(self, individual):
         """ back rotation to standard basis """
-        invB = inv(self._B)
-        reducing = lambda child : (invB * matrix(child.value).T).getA1()
-        reduced_value = reducing(individual)
-        return Individual(reduced_value)
+        reducing = lambda child : self._invB * child.T
+        return individual 
         
     def _unreduce(self, individual):
         """ rotation to self._B basis """
-        unreducing = lambda child : (self._B * matrix(child.value).T).getA1()
-    	unreduced_value = unreducing(individual)
-    	return Individual(unreduced_value)
+        unreducing = lambda child : (self._B * child.T).T
+    	return unreducing(individual)
 
     def _generate_individual(self):
         normals = transpose(matrix([normal(0.0, d) for d in self._D]))
         value = self._xmean + transpose(self._sigma * self._B * normals)
-        return Individual(value.getA1()) 
+        return value
 
     def ask_pending_solutions(self):
         """ ask pending solutions; solutions which need a checking for true 
@@ -169,7 +165,7 @@ class CMAESRSVC(EvolutionStrategy):
                     # appending meta-feasible solution to a_posteriori pending
                     self._pending_apos_solutions.append((individual, True))                   
                 else:                    
-                    # appending meta-infeasible solution to a_posteriori pending                        
+                    # appending meta-infeasible solution to a_posteriori pending  
                     self._pending_apos_solutions.append((individual, False))
 
                     reduced_repaired = self.meta_model.repair(reduced_individual)
@@ -212,7 +208,7 @@ class CMAESRSVC(EvolutionStrategy):
     def tell_fitness(self, fitnesses):
         """ tell fitness; update all strategy specific attributes """       
 
-        N = len(self._xmean)
+        N = self._xmean.size
         oldxmean = deepcopy(self._xmean)
 
         fitness = lambda (child, fitness) : fitness
@@ -226,12 +222,15 @@ class CMAESRSVC(EvolutionStrategy):
         self.meta_model_trained = self.meta_model.train()
         
         # new xmean
-        values = map(lambda child : child.value, sorted_children[:self._mu]) 
-        self._xmean = dot(self._weights, values)
-       
+        values = sorted_children[:self._mu]
+        self._xmean = matrix([[0.0 for i in range(0,N)]]) 
+        weighted_values = zip(self._weights, values)
+        for weight, value in weighted_values:
+            self._xmean += weight * value
+
         # cumulation: update evolution paths
         y = self._xmean - oldxmean
-        z = dot(self._invsqrtC, y) # C**(-1/2) * (xnew - xold)
+        z = dot(self._invsqrtC, y.T) # C**(-1/2) * (xnew - xold)
 
         # normalizing coefficient c and evolution path sigma control
         c = (self._cs * (2 - self._cs) * self._mueff) ** 0.5 / self._sigma
@@ -286,7 +285,8 @@ class CMAESRSVC(EvolutionStrategy):
         self._count_repaired = 0
 
         self._D, self._B = eigh(self._C)
-        self._B = matrix(self._B)
+        self._B = matrix(self._B) 
+        self._invB = inv(self._B)
         self._D = [d ** 0.5 for d in self._D] 
 
         invD = diag([1.0/d for d in self._D])
