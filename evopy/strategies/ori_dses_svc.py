@@ -16,22 +16,26 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
+
+from copy import deepcopy
+from math import floor
 from numpy import array, random, matrix, exp, vectorize
 from numpy.random import normal
 
 from evolution_strategy import EvolutionStrategy
+from confusion_matrix import ConfusionMatrix
 
-class ORIDSES(EvolutionStrategy):
+class ORIDSESSVC(EvolutionStrategy):
 
     description =\
-        "Ori. Death Penalty Step Control Evolution Strategy (DSES)"    
+        "Ori. Death Penalty Step Control Evolution Strategy (DSES) with SVC"
 
-    description_short = "Ori. DSES" 
+    description_short = "Ori. DSES with SVC"
 
     def __init__(self, mu, lambd, theta, pi, initial_sigma,\
-        delta, tau0, tau1, initial_pos):
+        delta, tau0, tau1, initial_pos, beta, meta_model):
 
-        super(ORIDSES, self).__init__(mu, lambd)
+        super(ORIDSESSVC, self).__init__(mu, lambd)
 
         self._theta = theta
         self._pi = pi
@@ -41,6 +45,11 @@ class ORIDSES(EvolutionStrategy):
         self._init_sigma = initial_sigma
         self._tau0 = tau0
         self._tau1 = tau1
+
+        # SVC Metamodel
+        self.meta_model = meta_model
+        self.meta_model_trained = False
+        self._beta = beta
 
         self._current_population = [] 
         self._valid_solutions = [] 
@@ -63,9 +72,9 @@ class ORIDSES(EvolutionStrategy):
 
         # log constants
         self.logger.const_log()
-        
-        # initialize population
-        self._initialize_population()                    
+       
+        # initialize population 
+        self._initialize_population()
 
     def _initialize_population(self):
         init_pos, init_sigma = self._init_pos, self._init_sigma
@@ -110,34 +119,7 @@ class ORIDSES(EvolutionStrategy):
        
         return child
 
-    def ask_pending_solutions(self):
-        return [self._generate_individual()]
-
-    def tell_feasibility(self, feasibility_information):
-        for (child, feasibility) in feasibility_information:
-            if(feasibility):
-                self._valid_solutions.append(child)
-            else:
-                self._count_constraint_infeasibles += 1
-                self._infeasibles += 1
-
-        if(len(self._valid_solutions) < self._lambd):
-            self._infeasibles = 0
-            return False
-        else:
-            return True
-                
-    def ask_valid_solutions(self):
-        return self._valid_solutions
-
-    def tell_fitness(self, fitnesses):  
-        fitness = lambda (child, fitness) : fitness
-        child = lambda (child, fitness) : child
-
-        # selection of survival
-        sorted_fitnesses = sorted(fitnesses, key = fitness)[:self._mu]
-        sorted_children = map(child, sorted_fitnesses)
-
+    def _update_probabilites(self, sorted_fitnesses):
         """ update the selection probabilites according to 
             anti-proportional fitness. """      
         probabilities = []
@@ -152,6 +134,101 @@ class ORIDSES(EvolutionStrategy):
             probabilities.append((individual, p))
         probabilities.reverse()
 
+        self._current_population = []
+        start = 0
+        for individual, prob in probabilities:
+            self._current_population.append((individual, start, start + prob))
+            start = s + prob
+        self._current_population.reverse() 
+
+    def ask_pending_solutions(self):
+        """ ask pending solutions; solutions which need a checking for true 
+            feasibility """
+        
+        # testing beta percent of generated children on meta model first.
+        pending_meta_feasible = []
+        pending_solutions = []
+ 
+        difference = self._lambd - len(self._valid_solutions)
+
+        if(self.meta_model_trained):
+            max_amount_meta_feasible = int(floor(self._beta * difference))
+            max_amount_pending_solutions = difference - max_amount_meta_feasible        
+
+            while(len(pending_meta_feasible) < max_amount_meta_feasible):
+                individual = self._generate_individual() 
+
+                if(self.meta_model.check_feasibility(individual)):
+                    pending_meta_feasible.append(individual)
+
+                    # appending meta-feasible solution to a_posteriori pending
+                    self._pending_apos_solutions.append((individual, True))
+                else:
+                    # appending meta-infeasible solution to a_posteriori pending 
+                    self._pending_apos_solutions.append((individual, False))
+
+                    repaired = self.meta_model.repair(individual)
+                    self._count_repaired += 1
+                    pending_meta_feasible.append(repaired)
+
+                    # appending meta-feasible solution to a_posteriori pending
+                    self._pending_apos_solutions.append((individual, True))
+        else: 
+            max_amount_pending_solutions = difference
+
+        while(len(pending_solutions) < max_amount_pending_solutions):
+            individual = self._generate_individual()
+            pending_solutions.append(individual)
+
+        return pending_meta_feasible + pending_solutions            
+   
+    def tell_feasibility(self, feasibility_information):
+        """ tell feasibilty; return True if there are no pending solutions, 
+            otherwise False """
+
+        for (child, feasibility) in feasibility_information:
+            if(feasibility):
+                self._valid_solutions.append(child)
+            else:
+                self._count_constraint_infeasibles += 1
+                self.meta_model.add_infeasible(child)
+
+        if(len(self._valid_solutions) < self._lambd):
+            return False
+        else:            
+           return True
+
+    def ask_valid_solutions(self):
+        return self._valid_solutions
+
+    def ask_a_posteriori_solutions(self):
+        return self._pending_apos_solutions        
+
+    def tell_fitness(self, fitnesses):
+        fitness = lambda (child, fitness) : fitness
+        child = lambda (child, fitness) : child
+
+        sorted_fitnesses = sorted(fitnesses, key = fitness)
+        sorted_children = map(child, sorted_fitnesses)
+
+        # update meta model sort self._valid_solutions by fitness and 
+        # unsorted self._sliding_infeasibles
+        self.meta_model.add_sorted_feasibles(sorted_children)       
+        self.meta_model_trained = self.meta_model.train()
+
+        """ update the selection probabilites according to 
+            anti-proportional fitness. """      
+        probabilities = []
+        s, a_prop_sum, sum_of_fitnesses = 0.0, 0.0, 0.0
+
+        for individual, fitness in sorted_fitnesses:
+            sum_of_fitnesses += fitness
+        for individual, fitness in sorted_fitnesses:
+            a_prop_sum += 1.0 / (fitness / float(sum_of_fitnesses))
+        for individual, fitness in sorted_fitnesses: 
+            p = (1.0 / (fitness / float(sum_of_fitnesses))) / a_prop_sum
+            probabilities.append((individual, p))
+        probabilities.reverse()
     
         """ update the current population """            
         self._current_population = []
@@ -161,15 +238,22 @@ class ORIDSES(EvolutionStrategy):
             start = s + prob
         self._current_population.reverse() 
 
-        # log information
-        self._selected_children = sorted_children
+        ### UPDATE FOR NEXT ITERATION
+        self._valid_solutions = []
+        
+        ### STATISTICS
+        self._selected_children = self._current_population  
         self._best_child, self._best_fitness = sorted_fitnesses[0]
         self._worst_child, self._worst_fitness = sorted_fitnesses[-1]        
-        self.logger.log() 
 
-        # reset generation variables
-        self._count_constraint_infeasibles = 0
-        self._valid_solutions = [] 
-        self._infeasibles = 0
+        return self._best_child, self._best_fitness
 
-        return self._best_child, self._best_fitness 
+    def tell_a_posteriori_feasibility(self, apos_feasibility):        
+        self._confusion_matrix = ConfusionMatrix(apos_feasibility)
+        self._pending_apos_solutions = []
+
+        # log all bindings
+        self.logger.log()
+        self._count_constraint_infeasibles = 0                
+        self._count_repaired = 0
+

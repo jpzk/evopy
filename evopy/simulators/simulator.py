@@ -18,6 +18,8 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sys import path
+from numpy import vsplit
+
 path.append("../..")
 
 class Simulator():
@@ -39,12 +41,15 @@ class Simulator():
 
                 # CHECK solutions for feasibility 
                 feasibility =\
-                    lambda solution : (solution, self.problem.is_feasible(solution))
+                    lambda solution, position :\
+                        (solution, self.problem.is_feasible(position))
 
                 feasibility_information = []                   
                 for solution in solutions:
-                    self._count_cfc += 1
-                    feasibility_information.append(feasibility(solution))
+                    self._count_cfc += 1                    
+                    information = vsplit(solution, solution.shape[0])
+                    position = information[0]
+                    feasibility_information.append(feasibility(solution, position))
  
                 # TELL feasibility, returns True if all feasible, 
                 # returns False if extra checks

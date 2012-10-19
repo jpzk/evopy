@@ -305,7 +305,6 @@ class DSESSVC(MMEvolutionStrategy):
         best_infeasibles = self.select([], infeasibles, self._window_size)
 
         # adding to sliding windows
-
         map(self._sliding_best_feasibles.append, best_feasibles)
         map(self._sliding_best_infeasibles.append, best_infeasibles)
 
