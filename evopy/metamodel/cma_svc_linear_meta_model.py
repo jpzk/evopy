@@ -197,27 +197,22 @@ class CMASVCLinearMetaModel(MetaModel):
 
     def repair(self, individual):
 
-        repair_mode = self._repair_mode
-        x = individual.getA1()
-
+        x = individual
         w = self._clf.coef_[0]
         nw = self.get_normal()
         b = self._clf.intercept_[0] / w[1]
       
         to_hp = (self._clf.decision_function(x) * (1/sqrt(sum(w ** 2))))
-        if repair_mode == 'mirror':
+        if self._repair_mode == 'mirror':
             s = 2 * to_hp
-        if repair_mode == 'none':
+        if self._repair_mode == 'none':
             return individual
-        if repair_mode == 'project':
+        if self._repair_mode == 'project':
             s = to_hp 
-        if repair_mode == 'projectsigma':
-            s = to_hp + mean(individual.sigmas)
-        if repair_mode == None: 
+        if self._repair_mode == None: 
             raise Exception("no repair_mode selected: " + repair_mode)
 
         nx = x + (nw * s)
         
-        individual.value = nx[0]
-        return individual
+        return nx
 

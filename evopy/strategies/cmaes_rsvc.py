@@ -127,13 +127,11 @@ class CMAESRSVC(EvolutionStrategy):
 
     def _reduce(self, individual):
         """ back rotation to standard basis """
-        reducing = lambda child : (self._invB * child.T).T
-        return reducing(individual)
+        return (self._invB * individual.T).T
         
     def _unreduce(self, individual):
         """ rotation to self._B basis """
-        unreducing = lambda child : (self._B * child.T).T
-    	return unreducing(individual)
+    	return (self._B * individual.T).T 
 
     def _generate_individual(self):
         normals = transpose(matrix([normal(0.0, d) for d in self._D]))
