@@ -25,6 +25,10 @@ from numpy.random import normal
 from evolution_strategy import EvolutionStrategy
 from confusion_matrix import ConfusionMatrix
 
+# constants, row indices for individual matrix
+POS = 0
+SIGMA = 1
+
 class ORIDSESSVC(EvolutionStrategy):
 
     description =\
@@ -107,16 +111,16 @@ class ORIDSESSVC(EvolutionStrategy):
         child = 0.5 * (parents[0] + parents[1])
 
         # mutation of sigma
-        child[1] = self._mat_mutate_sig(child[1])
+        child[SIGMA] = self._mat_mutate_sig(child[SIGMA])
 
         if(self._infeasibles % self._pi == 0):
             self._delta *= self._theta
  
         # minimum step size
-        child[1] = self._mat_reducer(child[1])
+        child[SIGMA] = self._mat_reducer(child[SIGMA])
 
         # mutation of position with new step size
-        child[0] = self._mat_mutate_pos(child[0], child[1])
+        child[POS] = self._mat_mutate_pos(child[POS], child[SIGMA])
        
         return child
 
@@ -137,7 +141,7 @@ class ORIDSESSVC(EvolutionStrategy):
             while(len(pending_meta_feasible) < max_amount_meta_feasible):
                 individual = self._generate_individual() 
 
-                if(self.meta_model.check_feasibility(individual)):
+                if(self.meta_model.check_feasibility(individual[POS])):
                     pending_meta_feasible.append(individual)
 
                     # appending meta-feasible solution to a_posteriori pending
@@ -146,9 +150,9 @@ class ORIDSESSVC(EvolutionStrategy):
                     # appending meta-infeasible solution to a_posteriori pending 
                     self._pending_apos_solutions.append((individual, False))
 
-                    repaired = self.meta_model.repair(individual)
+                    individual[POS] = self.meta_model.repair(individual[POS])
                     self._count_repaired += 1
-                    pending_meta_feasible.append(repaired)
+                    pending_meta_feasible.append(individual)
 
                     # appending meta-feasible solution to a_posteriori pending
                     self._pending_apos_solutions.append((individual, True))
@@ -170,7 +174,7 @@ class ORIDSESSVC(EvolutionStrategy):
                 self._valid_solutions.append(child)
             else:
                 self._count_constraint_infeasibles += 1
-                self.meta_model.add_infeasible(child)
+                self.meta_model.add_infeasible(child[POS])
 
         if(len(self._valid_solutions) < self._lambd):
             return False
@@ -186,13 +190,16 @@ class ORIDSESSVC(EvolutionStrategy):
     def tell_fitness(self, fitnesses):
         fitness = lambda (child, fitness) : fitness
         child = lambda (child, fitness) : child
+        position = lambda (child, fitness) : child[POS]
 
         sorted_fitnesses = sorted(fitnesses, key = fitness)
-        sorted_children = map(child, sorted_fitnesses)
+        sorted_children = map(child, sorted_fitnesses)      
+        selected_sorted_fitnesses = sorted_fitnesses[:self._mu]
 
         # update meta model sort self._valid_solutions by fitness and 
         # unsorted self._sliding_infeasibles
-        self.meta_model.add_sorted_feasibles(sorted_children)       
+        sorted_feasibles = map(position, sorted_fitnesses)        
+        self.meta_model.add_sorted_feasibles(sorted_feasibles)       
         self.meta_model_trained = self.meta_model.train()
 
         """ update the selection probabilites according to 
@@ -200,11 +207,11 @@ class ORIDSESSVC(EvolutionStrategy):
         probabilities = []
         s, a_prop_sum, sum_of_fitnesses = 0.0, 0.0, 0.0
 
-        for individual, fitness in sorted_fitnesses:
+        for individual, fitness in selected_sorted_fitnesses:
             sum_of_fitnesses += fitness
-        for individual, fitness in sorted_fitnesses:
+        for individual, fitness in selected_sorted_fitnesses:
             a_prop_sum += 1.0 / (fitness / float(sum_of_fitnesses))
-        for individual, fitness in sorted_fitnesses: 
+        for individual, fitness in selected_sorted_fitnesses: 
             p = (1.0 / (fitness / float(sum_of_fitnesses))) / a_prop_sum
             probabilities.append((individual, p))
         probabilities.reverse()
