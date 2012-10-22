@@ -19,6 +19,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 
 from copy import deepcopy
 from math import floor
+
 from numpy import array, random, matrix, exp, vectorize, eye, transpose
 from numpy import sum, sqrt, mean, arctan2, pi, matrix, sin, cos
 from numpy import matrix, cos, sin, inner, array, sqrt, arccos, pi, arctan2

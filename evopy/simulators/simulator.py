@@ -17,19 +17,25 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from sys import path
 from numpy import vsplit
 
+from sys import path
+from evopy.helper.logger import Logger
 path.append("../..")
 
-class Simulator():
+class Simulator(object):
     def __init__(self, optimizer, problem, accuracy):
         self.optimizer = optimizer
         self.problem = problem
         self.accuracy = accuracy
+        self.logger = Logger(self)
+
         self._count_cfc = 0
-        self._statistics_cfc_trajectory = []
-        self.infeasibles = 0
+        self._count_ffc = 0
+        self._generations = 0
+        self.logger.add_binding('_count_cfc', 'count_cfc')
+        self.logger.add_binding('_count_ffc', 'count_ffc')
+        self.logger.add_binding('_generations', 'generations')
 
     def simulate(self):
         while(True):
@@ -60,8 +66,11 @@ class Simulator():
             valid_solutions = self.optimizer.ask_valid_solutions()
 
             # CHECK fitness
+            fitnesses = []
             fitness = lambda solution : (solution, self.problem.fitness(solution[0]))
-            fitnesses = map(fitness, valid_solutions)
+            for solution in valid_solutions:
+                fitnesses.append(fitness(solution))
+                self._count_ffc += 1
 
             # TELL fitness, return optimum
             optimum, optimum_fitness = self.optimizer.tell_fitness(fitnesses)
@@ -76,19 +85,15 @@ class Simulator():
                 feasibility_info = map(apos_feasibility, apos_solutions)
                 self.optimizer.tell_a_posteriori_feasibility(feasibility_info)
 
-            # UPDATE OWN STATS                                   
-            self._statistics_cfc_trajectory.append(self._count_cfc)
+            # UPDATE OWN STATS
+            self._generations += 1
+            self.logger.log()
             self._count_cfc = 0
+            self._count_ffc = 0
           
-            print "%.20f %i" % (optimum_fitness, self._statistics_cfc_trajectory[-1])
+            print "%.20f" % (optimum_fitness)
 
             # TERMINATION
             if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):
-                print sum(self._statistics_cfc_trajectory)
                 break
 
-    def get_statistics(self, only_last = False):
-        select = lambda stats : stats[-1] if only_last else stats
-
-        statistics = {"cfc" : select(self._statistics_cfc_trajectory)}
-        return statistics
