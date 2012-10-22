@@ -44,6 +44,7 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
 
         super(ORIDSESAlignedSVC, self).__init__(mu, lambd)
 
+        self._d = initial_pos.size
         self._theta = theta
         self._pi = pi
         self._delta = delta
@@ -52,8 +53,11 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
         self._init_sigma = initial_sigma
         self._tau0 = tau0
         self._tau1 = tau1
-        self._new_basis = eye(2)
-        self._normal = matrix([[1.0, 1.0]])
+        self._new_basis = eye(self._d)
+
+        # for logging proposes
+        self._normal = matrix([[1.0 for i in range(0, self._d)]])
+        self._angles = matrix([[0.0 for i in range(0, self._d)]])
 
         # SVC Metamodel
         self.meta_model = meta_model
@@ -70,6 +74,7 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
         self.logger.add_const_binding('_tau1', 'tau1')
         self.logger.add_binding('_delta', 'delta')
         self.logger.add_binding('_normal', 'normal')
+        self.logger.add_binding('_angles', 'angles')
 
         # prepare operators, numpy.vectorize for use with matrices
         reducer = lambda sigma : self._delta if sigma < self._delta else sigma
@@ -126,7 +131,7 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
         child[SIGMA] = self._mat_reducer(child[SIGMA])
 
         # mutation of position with new step size
-        X = normal(0, child[SIGMA], size=(1, 2))
+        X = normal(0, child[SIGMA], size=(1, self._d))
         child[POS] = child[POS] + (self._new_basis * matrix(X).T).T
 
         return child
@@ -154,14 +159,10 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
             mat.append(row)                                                
         return matrix(mat)
 
-    def _get_angles_degree(self):
-        return self._angles
-
-    def _rotations(self, normal, d):       
+    def _rotations(self, normal, d):
         rotations = []
         self._angles = []            
         enormals = [transpose(normal)]
-
         for x, y in [(0, i) for i in range(1,d)]:
             lnormal = enormals[-1]
             lnormal_as_list = lnormal.getA1()
@@ -172,12 +173,12 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
             # append angles for info
             # (2 * pi + angle) for CMA-ES left-hand-coordinates
             # -angle for DSES right-hand-coordinates
-            self._angles.append((2 * pi - angle) * 180.0/pi)
+            self._angles.append(-angle * (180.0/pi))
 
             # (2 * pi + angle) for CMA-ES left-hand-coordinates
             # -angle for DSES right-hand-coordinates 
             # embed normal into next axis combination
-            rotation = self._givens(x,y, 2 * pi - angle, d)
+            rotation = self._givens(x,y, -angle, d)
 
             # append embedded normal
             enormals.append(rotation * lnormal)
@@ -185,8 +186,6 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
             # append rotation
             rotations.append(rotation)
         rotations.reverse() 
-
-        print self._angles
         return rotations
 
     def _prepare_inverse_rotations(self, hyperplane_normal):
