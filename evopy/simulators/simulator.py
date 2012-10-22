@@ -24,10 +24,10 @@ from evopy.helper.logger import Logger
 path.append("../..")
 
 class Simulator(object):
-    def __init__(self, optimizer, problem, accuracy):
+    def __init__(self, optimizer, problem, termination):
         self.optimizer = optimizer
         self.problem = problem
-        self.accuracy = accuracy
+        self.termination = termination
         self.logger = Logger(self)
 
         self._count_cfc = 0
@@ -94,6 +94,6 @@ class Simulator(object):
             print "%.20f" % (optimum_fitness)
 
             # TERMINATION
-            if(optimum_fitness <= self.problem.optimum_fitness() + self.accuracy):
+            if(self.termination.terminate(optimum_fitness, self._generations)):
                 break
 
