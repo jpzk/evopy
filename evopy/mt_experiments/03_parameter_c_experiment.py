@@ -44,34 +44,7 @@ from evopy.external.playdoh import map as pmap
 
 from pylab import * 
 
-def get_method_without_scaling():
-
-    sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 5, 2)],
-        cv_method = KFold(20, 5))
-
-    meta_model = DSESSVCLinearMetaModel(\
-        window_size = 10,
-        scaling = ScalingDummy(),
-        crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
-
-    method = ORIDSESSVC(\
-        mu = 15,
-        lambd = 100,
-        theta = 0.3,
-        pi = 70,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
-        tau0 = 0.5, 
-        tau1 = 0.6,
-        initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.9,
-        meta_model = meta_model) 
-
-    return method
-
-def get_method_with_scaling():
+def get_method():
 
     sklearn_cv = SVCCVSkGridLinear(\
         C_range = [2 ** i for i in range(-5, 5, 2)],
@@ -104,58 +77,33 @@ def process(simulator):
 simulators_with_s = []
 simulators_without_s = []
 
-for i in range(0, 3):
-    optimizer = get_method_with_scaling()
+for i in range(0, 10):
+    optimizer = get_method()
     problem = TRProblem()
-    conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-4)]
+    conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-6)]
     simulators_with_s.append(Simulator(optimizer, problem, ORCombinator(conditions)))
 
-for i in range(0, 3):
-    optimizer = get_method_without_scaling()
-    problem = TRProblem()
-    conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-4)]
-    simulators_without_s.append(Simulator(optimizer, problem, ORCombinator(conditions)))
-
 map(process, simulators_with_s)
-map(process, simulators_without_s)
 
-accuracies_with_s = []
-accuracies_without_s = []
+parameterCs_with_s = []
 
 for simulator in simulators_with_s:
-    accuracies_with_s.append(\
-        simulator.optimizer.meta_model.logger.all()['best_acc'])
+    parameterCs_with_s.append(\
+        simulator.optimizer.meta_model.logger.all()['best_parameter_C'])
 
-for simulator in simulators_without_s:
-    accuracies_without_s.append(\
-        simulator.optimizer.meta_model.logger.all()['best_acc'])
+parameterCs_with_s, errors_with_s =\
+    TimeseriesAggregator(parameterCs_with_s).get_aggregate()
 
-accuracies_with_s, errors_with_s =\
-    TimeseriesAggregator(accuracies_with_s).get_aggregate()
-
-generations_with_s = range(0, len(accuracies_with_s))
-
-accuracies_without_s, errors_without_s =\
-    TimeseriesAggregator(accuracies_without_s).get_aggregate()
-
-generations_without_s = range(0, len(accuracies_without_s))
+generations_with_s = range(0, len(parameterCs_with_s))
 
 b1 = errorbar(generations_with_s,\
-    accuracies_with_s,\
+    parameterCs_with_s,\
     fmt="g-",\
     label="mit Skalierung",\
     yerr=errors_with_s)
 
-b2 = errorbar(generations_without_s,\
-    accuracies_without_s,\
-    fmt="b--",\
-    label="ohne Skalierung",\
-    yerr=errors_without_s)
-
-#legend([b1, b2], ["mit Skalierung", "ohne Skalierung"])
-
-xlabel('Generationn')
-ylabel('Genauigkeit')
+xlabel('Generation')
+ylabel('Bester Parameter C')
 
 show()
 

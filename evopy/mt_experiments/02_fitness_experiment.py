@@ -20,7 +20,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from sys import path
 path.append("../../")
 
-from numpy import matrix
+from numpy import matrix, log10
 
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
 from evopy.problems.tr_problem import TRProblem
@@ -104,13 +104,13 @@ def process(simulator):
 simulators_with_s = []
 simulators_without_s = []
 
-for i in range(0, 3):
+for i in range(0, 10):
     optimizer = get_method_with_scaling()
     problem = TRProblem()
     conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-4)]
     simulators_with_s.append(Simulator(optimizer, problem, ORCombinator(conditions)))
 
-for i in range(0, 3):
+for i in range(0, 10):
     optimizer = get_method_without_scaling()
     problem = TRProblem()
     conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-4)]
@@ -124,11 +124,11 @@ accuracies_without_s = []
 
 for simulator in simulators_with_s:
     accuracies_with_s.append(\
-        simulator.optimizer.meta_model.logger.all()['best_acc'])
+        simulator.optimizer.logger.all()['mean_fitness'])
 
 for simulator in simulators_without_s:
     accuracies_without_s.append(\
-        simulator.optimizer.meta_model.logger.all()['best_acc'])
+        simulator.optimizer.logger.all()['mean_fitness'])
 
 accuracies_with_s, errors_with_s =\
     TimeseriesAggregator(accuracies_with_s).get_aggregate()
@@ -139,6 +139,13 @@ accuracies_without_s, errors_without_s =\
     TimeseriesAggregator(accuracies_without_s).get_aggregate()
 
 generations_without_s = range(0, len(accuracies_without_s))
+
+logit = lambda value : log10(value - 2.0)
+
+accuracies_with_s = map(logit, accuracies_with_s)
+accuracies_without_s = map(logit, accuracies_without_s)
+errors_with_s = map(logit, errors_with_s)
+errors_without_s = map(logit, errors_without_s)
 
 b1 = errorbar(generations_with_s,\
     accuracies_with_s,\
@@ -152,10 +159,8 @@ b2 = errorbar(generations_without_s,\
     label="ohne Skalierung",\
     yerr=errors_without_s)
 
-#legend([b1, b2], ["mit Skalierung", "ohne Skalierung"])
-
-xlabel('Generationn')
-ylabel('Genauigkeit')
+xlabel('Generationen #')
+ylabel('Mittlere Fitness')
 
 show()
 

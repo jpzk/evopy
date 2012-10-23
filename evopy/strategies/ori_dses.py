@@ -165,6 +165,8 @@ class ORIDSES(EvolutionStrategy):
         self._selected_children = sorted_children
         self._best_child, self._best_fitness = sorted_fitnesses[0]
         self._worst_child, self._worst_fitness = sorted_fitnesses[-1]        
+        self._mean_fitness = array(map(lambda (c,f) : f, sorted_fitnesses)).mean()
+        
         self.logger.log() 
 
         # reset generation variables

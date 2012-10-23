@@ -36,7 +36,7 @@ class EvolutionStrategy(object):
 
         self.logger.add_binding('_best_fitness', 'best_fitness')
         self.logger.add_binding('_worst_fitness', 'worst_fitness')
-        #self.logger.add_binding('_mean_fitness', 'mean_fitness')
+        self.logger.add_binding('_mean_fitness', 'mean_fitness')
         self.logger.add_binding('_selected_children', 'selected_children')
         self.logger.add_binding('_count_constraint_infeasibles', 'infeasibles')
 

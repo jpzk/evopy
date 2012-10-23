@@ -313,8 +313,9 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
        
         ### STATISTICS
         self._selected_children = self._current_population  
-        self._best_child, self._best_fitness = sorted_fitnesses[0]
-        self._worst_child, self._worst_fitness = sorted_fitnesses[-1]        
+        self._best_child, self._best_fitness = selected_sorted_fitnesses[0]
+        self._worst_child, self._worst_fitness = selected_sorted_fitnesses[-1]        
+        self._mean_fitness = array(map(lambda (c,f) : f, selected_sorted_fitnesses)).mean()
 
         return self._best_child, self._best_fitness
 
