@@ -27,6 +27,7 @@ from evopy.strategies.ori_dses import ORIDSES
 from sklearn.cross_validation import KFold
 from sklearn.cross_validation import LeaveOneOut
 
+from evopy.strategies.ori_dses_svc_repair import ORIDSESSVCR
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
 from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
@@ -66,13 +67,13 @@ def get_method_with_SVC():
 
     sklearn_cv = SVCCVSkGridLinear(\
         C_range = [2 ** i for i in range(-5, 5, 2)],
-        cv_method = LeaveOneOut(20))
+        cv_method = KFold(50,5))
 
     meta_model = DSESSVCLinearMetaModel(\
-        window_size = 10,
+        window_size = 25,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'none')
 
     method = ORIDSESSVC(\
         mu = 15,
@@ -84,7 +85,7 @@ def get_method_with_SVC():
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.9,
+        beta = 0.90,
         meta_model = meta_model) 
 
     return method
@@ -101,11 +102,11 @@ cfcs = []
 for method in method_names:
     simulators_for_method = []
     index = method_names.index(method)
-    for i in range(0, 10):
+    for i in range(0, 25):
         optimizer = methods[index]()
-        problem = TRProblem()
+        problem = TRProblem(dimensions=2)
         conditions = [Accuracy(problem.optimum_fitness(),\
-            10**-4), Convergence(10**-4)]
+            10**-6), Convergence(10**-6)]
         simulators_for_method.append(\
             Simulator(optimizer, problem, ORCombinator(conditions)))
     simulators.append(simulators_for_method)

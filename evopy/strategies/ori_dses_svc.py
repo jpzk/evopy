@@ -129,42 +129,29 @@ class ORIDSESSVC(EvolutionStrategy):
         """ ask pending solutions; solutions which need a checking for true 
             feasibility """
         
-        # testing beta percent of generated children on meta model first.
-        pending_meta_feasible = []
-        pending_solutions = []
- 
-        difference = self._lambd - len(self._valid_solutions)
-
-        if(self.meta_model_trained):
-            max_amount_meta_feasible = int(floor(self._beta * difference))
-            max_amount_pending_solutions = difference - max_amount_meta_feasible        
-
-            while(len(pending_meta_feasible) < max_amount_meta_feasible):
+        individuals = []
+        while(len(individuals) < 1):
+            if((random.random() < self._beta) and self.meta_model_trained):
                 individual = self._generate_individual() 
-
                 if(self.meta_model.check_feasibility(individual[POS])):
-                    pending_meta_feasible.append(individual)
-
+                    individuals.append(individual)
                     # appending meta-feasible solution to a_posteriori pending
                     self._pending_apos_solutions.append((individual, True))
                 else:
                     # appending meta-infeasible solution to a_posteriori pending 
                     self._pending_apos_solutions.append((individual, False))
 
-                    individual[POS] = self.meta_model.repair(individual[POS])
-                    self._count_repaired += 1
-                    pending_meta_feasible.append(individual)
+                #individual[POS] = self.meta_model.repair(individual[POS])
+                #self._count_repaired += 1
+                #pending_meta_feasible.append(individual)
 
-                    # appending meta-feasible solution to a_posteriori pending
-                    self._pending_apos_solutions.append((individual, True))
-        else: 
-            max_amount_pending_solutions = difference
+                # appending meta-feasible solution to a_posteriori pending
+                #self._pending_apos_solutions.append((individual, True))
+            else: 
+                individual = self._generate_individual()
+                individuals.append(individual)
 
-        while(len(pending_solutions) < max_amount_pending_solutions):
-            individual = self._generate_individual()
-            pending_solutions.append(individual)
-
-        return pending_meta_feasible + pending_solutions            
+        return individuals           
    
     def tell_feasibility(self, feasibility_information):
         """ tell feasibilty; return True if there are no pending solutions, 
@@ -173,8 +160,10 @@ class ORIDSESSVC(EvolutionStrategy):
         for (child, feasibility) in feasibility_information:
             if(feasibility):
                 self._valid_solutions.append(child)
+                self._infeasibles = 0
             else:
                 self._count_constraint_infeasibles += 1
+                self._infeasibles += self._infeasibles
                 self.meta_model.add_infeasible(child[POS])
 
         if(len(self._valid_solutions) < self._lambd):

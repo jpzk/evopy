@@ -205,11 +205,20 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
         """ ask pending solutions; solutions which need a checking for true 
             feasibility """
         
-        # testing beta percent of generated children on meta model first.
-        pending_meta_feasible = []
-        pending_solutions = []
- 
-        difference = self._lambd - len(self._valid_solutions)
+        individual = [] 
+        while(len(individuals) < 1):
+            if((random.random() < self._beta) and self.meta_model_trained):
+                individual = self._generate_individual()
+                if(self.meta_model.check_feasibility(individual[POS]):
+                    individuals.append(individual)
+                    self._pending_apos_solutions.append((individual, True))
+                else:
+                    self._pending_apos_solutions.append((individual, False))
+            else:
+                individual = self._generate_individiual()
+                individuals.append(individual)
+
+        return individuals                            
 
         if(self.meta_model_trained):
             max_amount_meta_feasible = int(floor(self._beta * difference))
@@ -249,6 +258,7 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
         for (child, feasibility) in feasibility_information:
             if(feasibility):
                 self._valid_solutions.append(child)
+                self._infeasibles = 0
             else:
                 self._count_constraint_infeasibles += 1
                 self.meta_model.add_infeasible(child[POS])

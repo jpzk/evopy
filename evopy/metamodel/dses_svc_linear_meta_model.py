@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import pdb
+
 from collections import deque
 
 from sklearn import svm
@@ -142,6 +144,5 @@ class DSESSVCLinearMetaModel(MetaModel):
             raise Exception("no repair_mode selected: " + repair_mode)
 
         nx = x + (nw * s)
-        
         return nx
 
