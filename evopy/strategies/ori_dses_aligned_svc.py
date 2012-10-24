@@ -1,7 +1,7 @@
 ''' 
 This file is part of evopy.
 
-Copyright 2012, Jendrik Poloczek
+Copyright 2012 - 2013, Jendrik Poloczek
 
 evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
@@ -80,8 +80,7 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
         # prepare operators, numpy.vectorize for use with matrices
         reducer = lambda sigma : self._delta if sigma < self._delta else sigma
         mutate_pos = lambda coord, sigma : coord + normal(0, sigma)  
-        mutate_sig = lambda sigma : sigma * exp(self._tau0 * normal(0,1)) *\
-            exp(self._tau1 * normal(0, 1))    
+        mutate_sig = lambda sigma : sigma * exp(self._tau1 * normal(0, 1))    
 
         self._mat_reducer = vectorize(reducer)
         self._mat_mutate_pos = vectorize(mutate_pos)
@@ -123,7 +122,9 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
         child = 0.5 * (parents[0] + parents[1])
 
         # mutation of sigma
+        self._global_sigma_mutation = exp(self._tau0 * normal(0, 1))
         child[SIGMA] = self._mat_mutate_sig(child[SIGMA])
+        child[SIGMA] = self._global_sigma_mutation * child[SIGMA]
 
         if(self._infeasibles % self._pi == 0):
             self._delta *= self._theta
@@ -172,12 +173,8 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
             angle = arctan2(lnormal_as_list[y], lnormal_as_list[x])
 
             # append angles for info
-            # (2 * pi + angle) for CMA-ES left-hand-coordinates
-            # -angle for DSES right-hand-coordinates
             self._angles.append(-angle * (180.0/pi))
 
-            # (2 * pi + angle) for CMA-ES left-hand-coordinates
-            # -angle for DSES right-hand-coordinates 
             # embed normal into next axis combination
             rotation = self._givens(x,y, -angle, d)
 

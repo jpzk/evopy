@@ -24,6 +24,7 @@ from numpy import matrix
 from evopy.strategies.ori_dses import ORIDSES 
 from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
+from evopy.termination.accuracy import Accuracy
 
 def get_method():
     method = ORIDSES(\
@@ -40,5 +41,7 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), TRProblem(), pow(10, -1))
+    problem = TRProblem()
+    termination = Accuracy(problem.optimum_fitness(), pow(10, -6))
+    sim = Simulator(get_method(), problem, termination)
     results = sim.simulate()

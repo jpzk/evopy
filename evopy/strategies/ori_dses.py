@@ -1,7 +1,7 @@
 ''' 
 This file is part of evopy.
 
-Copyright 2012, Jendrik Poloczek
+Copyright 2012 - 2013, Jendrik Poloczek
 
 evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
@@ -16,10 +16,15 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
+
 from numpy import array, random, matrix, exp, vectorize
 from numpy.random import normal
 
 from evolution_strategy import EvolutionStrategy
+
+# constants, row indices for individual matrix
+POS = 0
+SIGMA = 1
 
 class ORIDSES(EvolutionStrategy):
 
@@ -53,9 +58,8 @@ class ORIDSES(EvolutionStrategy):
 
         # prepare operators, numpy.vectorize for use with matrices
         reducer = lambda sigma : self._delta if sigma < self._delta else sigma
-        mutate_pos = lambda coord, sigma : coord + normal(0, sigma)        
-        mutate_sig = lambda sigma : sigma * exp(self._tau0 * normal(0,1)) *\
-            exp(self._tau1 * normal(0, 1))    
+        mutate_pos = lambda coord, sigma : coord + normal(0, sigma) 
+        mutate_sig = lambda sigma : sigma * exp(self._tau1 * normal(0, 1)) 
 
         self._mat_reducer = vectorize(reducer)
         self._mat_mutate_pos = vectorize(mutate_pos)
@@ -97,16 +101,18 @@ class ORIDSES(EvolutionStrategy):
         child = 0.5 * (parents[0] + parents[1])
 
         # mutation of sigma
-        child[1] = self._mat_mutate_sig(child[1])
+        self._global_sigma_mutation = exp(self._tau0 * normal(0, 1))
+        child[SIGMA] = self._mat_mutate_sig(child[SIGMA])
+        child[SIGMA] = self._global_sigma_mutation * child[SIGMA]
 
         if(self._infeasibles % self._pi == 0):
             self._delta *= self._theta
  
         # minimum step size
-        child[1] = self._mat_reducer(child[1])
+        child[SIGMA] = self._mat_reducer(child[SIGMA])
 
         # mutation of position with new step size
-        child[0] = self._mat_mutate_pos(child[0], child[1])
+        child[POS] = self._mat_mutate_pos(child[POS], child[SIGMA])
        
         return child
 
