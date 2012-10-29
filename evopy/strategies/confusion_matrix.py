@@ -37,23 +37,43 @@ class ConfusionMatrix():
             else:
                 self.tn += 1.0
 
-    def positive_prediction_accuracy(self):
+        top = self.tp * self.tn - self.fp * self.fn
+        bottom = sqrt((self.tp + self.fp) * (self.tp + self.fn) *\
+            (self.tn + self.fp) * (self.tn + self.fn))
+        if(bottom == 0):
+            self._mcc = top / 1.0
+        else:            
+            self._mcc = top / bottom            
+
+        print self.tp, self.fp, self.tn, self.fn
+
+    def savings(self):
+        if(self.fp + self.tn == 0):
+            return 0.0
+        else:
+            return self.tn / float(self.fp + self.tn)
+
+    def acc(self):
+        all_sum = self.matrix().sum()
+        if(all_sum == 0):
+            return 0.0
+        else:
+            return (self.tp + self.fp) / float(all_sum)
+
+    def pacc(self):
         _sum = self.tp + self.fp
         if(_sum == 0):
             return 0.0
         return self.tp / _sum 
 
-    def negative_prediction_accuracy(self):
+    def nacc(self):
         _sum = self.tn + self.fn
         if(_sum == 0):
             return 0.0
         return self.tn / _sum 
 
     def mcc(self):
-        top = self.tp * self.tn - self.fp * self.fn
-        bottom = sqrt((self.tp + self.fp) * (self.tp + self.fn) *\
-            (self.tn + self.fp) * (self.tn + self.fn))
-        return top / bottom            
+        return self._mcc
 
     def matrix(self):
         return matrix([[self.tp, self.fp],[self.fn, self.tn]])

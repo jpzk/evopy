@@ -16,7 +16,7 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
-
+import pdb
 from numpy import sqrt
 
 class TimeseriesAggregator():

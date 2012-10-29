@@ -18,9 +18,10 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sys import path
-path.append("../../")
+path.append("../../..")
 
 from numpy import matrix
+import pdb
 
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
 from evopy.problems.tr_problem import TRProblem
@@ -42,6 +43,8 @@ from evopy.helper.timeseries_aggregator import TimeseriesAggregator
 from multiprocessing import cpu_count
 from evopy.external.playdoh import map as pmap
 
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
 from pylab import * 
 
 def get_method_without_scaling():
@@ -54,7 +57,7 @@ def get_method_without_scaling():
         window_size = 10,
         scaling = ScalingDummy(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'none')
 
     method = ORIDSESSVC(\
         mu = 15,
@@ -66,7 +69,7 @@ def get_method_without_scaling():
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.9,
+        beta = 0.95,
         meta_model = meta_model) 
 
     return method
@@ -81,7 +84,7 @@ def get_method_with_scaling():
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'none')
 
     method = ORIDSESSVC(\
         mu = 15,
@@ -93,7 +96,7 @@ def get_method_with_scaling():
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.9,
+        beta = 0.95,
         meta_model = meta_model) 
 
     return method
@@ -104,17 +107,22 @@ def process(simulator):
 simulators_with_s = []
 simulators_without_s = []
 
-for i in range(0, 3):
+problem = TRProblem()
+
+conditions = [Accuracy(problem.optimum_fitness(),\
+            10**-6), Convergence(10**-6)]
+
+termination = ORCombinator(conditions)
+
+for i in range(0, 25):
     optimizer = get_method_with_scaling()
     problem = TRProblem()
-    conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-4)]
-    simulators_with_s.append(Simulator(optimizer, problem, ORCombinator(conditions)))
+    simulators_with_s.append(Simulator(optimizer, problem, Generations(50)))
 
-for i in range(0, 3):
+for i in range(0, 25):
     optimizer = get_method_without_scaling()
     problem = TRProblem()
-    conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-4)]
-    simulators_without_s.append(Simulator(optimizer, problem, ORCombinator(conditions)))
+    simulators_without_s.append(Simulator(optimizer, problem, Generations(50)))
 
 map(process, simulators_with_s)
 map(process, simulators_without_s)
@@ -124,11 +132,11 @@ accuracies_without_s = []
 
 for simulator in simulators_with_s:
     accuracies_with_s.append(\
-        simulator.optimizer.meta_model.logger.all()['best_acc'])
+        simulator.optimizer.logger.all()['savings'])
 
 for simulator in simulators_without_s:
     accuracies_without_s.append(\
-        simulator.optimizer.meta_model.logger.all()['best_acc'])
+        simulator.optimizer.logger.all()['savings'])
 
 accuracies_with_s, errors_with_s =\
     TimeseriesAggregator(accuracies_with_s).get_aggregate()
@@ -140,22 +148,35 @@ accuracies_without_s, errors_without_s =\
 
 generations_without_s = range(0, len(accuracies_without_s))
 
+figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
+plt.xlabel("Generation")
+plt.ylabel("$RN / (RN + FP)$ in einer Generation")
+plt.xlim([0, 50])
+plt.ylim([0.0, 1.0])
+
 b1 = errorbar(generations_with_s,\
     accuracies_with_s,\
-    fmt="g-",\
+    marker="x",
+    color="g",\
+    ecolor="#CCCCCC",\
+    linestyle="none",
     label="mit Skalierung",\
     yerr=errors_with_s)
 
 b2 = errorbar(generations_without_s,\
     accuracies_without_s,\
-    fmt="b--",\
+    marker=".",\
+    color="#004997",\
+    ecolor="#CCCCCC",\
+    linestyle="none",\
     label="ohne Skalierung",\
     yerr=errors_without_s)
 
 #legend([b1, b2], ["mit Skalierung", "ohne Skalierung"])
 
-xlabel('Generationn')
-ylabel('Genauigkeit')
+pp = PdfPages("tnfp.pdf")
+plt.savefig(pp, format='pdf')
+pp.close()
 
-show()
-
+f = open('tnfp.tex', 'w')
+f.close()

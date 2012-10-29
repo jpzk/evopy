@@ -96,4 +96,5 @@ class Simulator(object):
             # TERMINATION
             if(self.termination.terminate(optimum_fitness, self._generations)):
                 break
-
+            
+        return self 

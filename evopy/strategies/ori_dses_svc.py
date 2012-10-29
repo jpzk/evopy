@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import pdb
+
 from copy import deepcopy
 from math import floor
 from numpy import array, random, matrix, exp, vectorize
@@ -64,6 +66,11 @@ class ORIDSESSVC(EvolutionStrategy):
         self.logger.add_const_binding('_tau0', 'tau0')
         self.logger.add_const_binding('_tau1', 'tau1')
         self.logger.add_binding('_delta', 'delta')
+        self.logger.add_binding('_mcc', 'mcc')
+        self.logger.add_binding('_nacc', 'nacc')
+        self.logger.add_binding('_acc', 'acc')
+        self.logger.add_binding('_savings', 'savings')
+        self.logger.add_binding('_confusion_matrix', 'confusion_matrix')
 
         # prepare operators, numpy.vectorize for use with matrices
         reducer = lambda sigma : self._delta if sigma < self._delta else sigma
@@ -225,8 +232,13 @@ class ORIDSESSVC(EvolutionStrategy):
 
         return self._best_child, self._best_fitness
 
-    def tell_a_posteriori_feasibility(self, apos_feasibility):        
+    def tell_a_posteriori_feasibility(self, apos_feasibility):
         self._confusion_matrix = ConfusionMatrix(apos_feasibility)
+        self._mcc = self._confusion_matrix.mcc()
+        self._acc = self._confusion_matrix.acc()
+        self._nacc = self._confusion_matrix.nacc()
+        self._savings = self._confusion_matrix.savings()
+
         self._pending_apos_solutions = []
 
         # log all bindings
