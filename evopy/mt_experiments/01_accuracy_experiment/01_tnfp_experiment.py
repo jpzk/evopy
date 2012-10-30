@@ -30,6 +30,7 @@ from evopy.simulators.simulator import Simulator
 from evopy.metamodel.dses_svc_linear_meta_model import DSESSVCLinearMetaModel
 from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
+from evopy.operators.scaling.scaling_normalization import ScalingNormalization
 from evopy.operators.scaling.scaling_dummy import ScalingDummy
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 
@@ -74,6 +75,32 @@ def get_method_without_scaling():
 
     return method
 
+def get_method_with_normalization():
+    sklearn_cv = SVCCVSkGridLinear(\
+        C_range = [2 ** i for i in range(-5, 5, 2)],
+        cv_method = KFold(20, 5))
+
+    meta_model = DSESSVCLinearMetaModel(\
+        window_size = 10,
+        scaling = ScalingNormalization(),
+        crossvalidation = sklearn_cv,
+        repair_mode = 'mirror')
+
+    method = ORIDSESSVC(\
+        mu = 15,
+        lambd = 100,
+        theta = 0.3,
+        pi = 70,
+        initial_sigma = matrix([[4.5, 4.5]]),
+        delta = 4.5,
+        tau0 = 0.5, 
+        tau1 = 0.6,
+        initial_pos = matrix([[10.0, 10.0]]),
+        beta = 0.9,
+        meta_model = meta_model) 
+
+    return method
+
 def get_method_with_scaling():
 
     sklearn_cv = SVCCVSkGridLinear(\
@@ -106,29 +133,38 @@ def process(simulator):
 
 simulators_with_s = []
 simulators_without_s = []
+simulators_with_n = []
 
 problem = TRProblem()
 
-conditions = [Accuracy(problem.optimum_fitness(),\
-            10**-6), Convergence(10**-6)]
+samples = 25
 
-termination = ORCombinator(conditions)
+for i in range(0, samples):
+    optimizer = get_method_with_normalization()
+    problem = TRProblem()
+    simulators_with_n.append(Simulator(optimizer, problem, Generations(50)))
 
-for i in range(0, 25):
+for i in range(0, samples):
     optimizer = get_method_with_scaling()
     problem = TRProblem()
     simulators_with_s.append(Simulator(optimizer, problem, Generations(50)))
 
-for i in range(0, 25):
+for i in range(0, samples):
     optimizer = get_method_without_scaling()
     problem = TRProblem()
     simulators_without_s.append(Simulator(optimizer, problem, Generations(50)))
 
 map(process, simulators_with_s)
 map(process, simulators_without_s)
+map(process, simulators_with_n)
 
+accuracies_with_n = []
 accuracies_with_s = []
 accuracies_without_s = []
+
+for simulator in simulators_with_n:
+    accuracies_with_n.append(\
+        simulator.optimizer.logger.all()['savings'])
 
 for simulator in simulators_with_s:
     accuracies_with_s.append(\
@@ -137,6 +173,11 @@ for simulator in simulators_with_s:
 for simulator in simulators_without_s:
     accuracies_without_s.append(\
         simulator.optimizer.logger.all()['savings'])
+
+accuracies_with_n, errors_with_n =\
+    TimeseriesAggregator(accuracies_with_n).get_aggregate()
+
+generations_with_n = range(0, len(accuracies_with_n))
 
 accuracies_with_s, errors_with_s =\
     TimeseriesAggregator(accuracies_with_s).get_aggregate()
@@ -154,6 +195,20 @@ plt.ylabel("$RN / (RN + FP)$ in einer Generation")
 plt.xlim([0, 50])
 plt.ylim([0.0, 1.0])
 
+b0 = errorbar(generations_with_n,\
+    accuracies_with_n,\
+    marker="+",
+    color="k",\
+    ecolor="#CCCCCC",\
+    linestyle="none",
+    label="mit Normalisierung",\
+    yerr=errors_with_n)
+
+b0z = polyfit(generations_with_n, accuracies_with_n, 0)
+b0p = poly1d(b0z)
+b0ls = linspace(generations_with_n[0], generations_with_n[-1], 100)
+b0p = plot(b0ls, b0p(b0ls), color="k", linestyle="-")
+
 b1 = errorbar(generations_with_s,\
     accuracies_with_s,\
     marker="x",
@@ -162,6 +217,11 @@ b1 = errorbar(generations_with_s,\
     linestyle="none",
     label="mit Skalierung",\
     yerr=errors_with_s)
+
+b1z = polyfit(generations_with_s, accuracies_with_s, 0)
+b1p = poly1d(b1z)
+b1ls = linspace(generations_with_s[0], generations_with_s[-1], 100)
+b1p = plot(b1ls, b1p(b1ls), color="g", linestyle="-")
 
 b2 = errorbar(generations_without_s,\
     accuracies_without_s,\
@@ -173,6 +233,12 @@ b2 = errorbar(generations_without_s,\
     yerr=errors_without_s)
 
 #legend([b1, b2], ["mit Skalierung", "ohne Skalierung"])
+
+b2z = polyfit(generations_without_s, accuracies_without_s, 1)
+b2p = poly1d(b2z)
+b2ls = linspace(generations_without_s[0], generations_without_s[-1], 100)
+b2p = plot(b2ls, b2p(b2ls), color="#004997", linestyle="-")
+
 
 pp = PdfPages("tnfp.pdf")
 plt.savefig(pp, format='pdf')

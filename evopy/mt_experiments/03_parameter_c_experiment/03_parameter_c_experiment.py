@@ -18,7 +18,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sys import path
-path.append("../../")
+path.append("../../..")
 
 from numpy import matrix
 
@@ -42,6 +42,8 @@ from evopy.helper.timeseries_aggregator import TimeseriesAggregator
 from multiprocessing import cpu_count
 from evopy.external.playdoh import map as pmap
 
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
 from pylab import * 
 
 def get_method():
@@ -75,9 +77,8 @@ def process(simulator):
     return simulator.simulate()
 
 simulators_with_s = []
-simulators_without_s = []
 
-for i in range(0, 10):
+for i in range(0, 25):
     optimizer = get_method()
     problem = TRProblem()
     conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-6)]
@@ -96,9 +97,16 @@ parameterCs_with_s, errors_with_s =\
 
 generations_with_s = range(0, len(parameterCs_with_s))
 
+figure_c = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
+plt.xlabel('Generation')
+plt.ylabel('Bester Parameter C')
+plt.xlim([0,50])
 b1 = errorbar(generations_with_s,\
     parameterCs_with_s,\
-    fmt="g-",\
+    marker=".",
+    color="#004997",
+    ecolor="#CCCCCC",
+    linestyle="none",
     label="mit Skalierung",\
     yerr=errors_with_s)
 
@@ -107,3 +115,6 @@ ylabel('Bester Parameter C')
 
 show()
 
+pp = PdfPages("parameterC.pdf")
+plt.savefig(pp, format='pdf')
+pp.close()

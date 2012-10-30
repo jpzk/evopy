@@ -16,7 +16,7 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
-
+import pdb
 from numpy import vsplit
 
 from sys import path
@@ -78,11 +78,17 @@ class Simulator(object):
             # A-POSTERIORI information for confusion matrix
             if('ask_a_posteriori_solutions' in dir(self.optimizer)):
                 apos_feasibility =\
-                    lambda (solution, meta_feasibility) :\
-                    (solution, meta_feasibility, self.problem.is_feasible(solution))
+                    lambda (position, meta_feasibility) :\
+                    (position, meta_feasibility, self.problem.is_feasible(position))
+ 
+                apos_solutions = self.optimizer.ask_a_posteriori_solutions() 
+                feasibility_info = []
+                for solution in apos_solutions:
+                    information = vsplit(solution[0], solution[0].shape[0])      
+                    position = information[0]
+                    meta_feasibility = solution[1]
+                    feasibility_info.append(apos_feasibility((position, meta_feasibility)))
 
-                apos_solutions = self.optimizer.ask_a_posteriori_solutions()
-                feasibility_info = map(apos_feasibility, apos_solutions)
                 self.optimizer.tell_a_posteriori_feasibility(feasibility_info)
 
             # UPDATE OWN STATS

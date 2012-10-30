@@ -23,24 +23,22 @@ from copy import deepcopy
 class ScalingStandardscore():
     """ Scaling to standardscore """
 
-    def setup(self, individuals):
-        dimensions = individuals[0].size
+    def setup(self, values):
+        dimensions = values[0].size
        
         iinrow = []
-        for individual in individuals: 
-            iinrow.append(individual.getA1())
+        for val in values: 
+            iinrow.append(val.getA1())
         temp = matrix(iinrow)
-        self._mean = temp.mean(axis=0)
-        self._std = temp.std(axis=0)
+        self._mean = temp.mean(axis = 0)
+        self._std = temp.std(axis = 0)
 
-    def scale(self, individualx):
-        individual = deepcopy(individualx)
-        val = individual
-        dimensions = val.size
+    def scale(self, valx):
+        val = deepcopy(valx)
 
         scale = lambda val, mean, std : (val - mean) / std
         mat_scale = vectorize(scale)
           
-        individual = mat_scale(individualx, self._mean, self._std)
-        return individual
+        val = mat_scale(valx, self._mean, self._std)
+        return val
 

@@ -20,17 +20,14 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from sys import path
 path.append("../../..")
 
-import pdb 
-from numpy import matrix, array
-
-from sklearn.cross_validation import KFold
-from sklearn.cross_validation import LeaveOneOut
+from numpy import matrix
 
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
-from evopy.problems.tr_problem import TRProblem
+from evopy.problems.schwefels_problem_240 import SchwefelsProblem240
 from evopy.simulators.simulator import Simulator
 
 from evopy.metamodel.dses_svc_linear_meta_model import DSESSVCLinearMetaModel
+from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.operators.scaling.scaling_dummy import ScalingDummy
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
@@ -45,13 +42,15 @@ from evopy.helper.timeseries_aggregator import TimeseriesAggregator
 from multiprocessing import cpu_count
 from evopy.external.playdoh import map as pmap
 
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
 from pylab import * 
 
-def get_method(cv_method):
+def get_method():
 
     sklearn_cv = SVCCVSkGridLinear(\
         C_range = [2 ** i for i in range(-5, 5, 2)],
-        cv_method = cv_method)
+        cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
         window_size = 10,
@@ -62,14 +61,14 @@ def get_method(cv_method):
     method = ORIDSESSVC(\
         mu = 15,
         lambd = 100,
-        theta = 0.3,
-        pi = 70,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
-        tau0 = 0.5, 
-        tau1 = 0.6,
-        initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.9,
+        theta = 0.7,
+        pi = 100,
+        initial_sigma = matrix([[980.0, 980.0, 980.0, 980.0, 980.0]]),
+        delta = 980.0,
+        tau0 = 0.316, 
+        tau1 = 0.473,
+        initial_pos = matrix([[100.0, 100.0, 100.0, 100.0, 100.0]]),
+        beta = 0.50,
         meta_model = meta_model) 
 
     return method
@@ -77,38 +76,44 @@ def get_method(cv_method):
 def process(simulator):
     return simulator.simulate()
 
-method_names = ["10-fache", "5-fache", "LOO"]
-cv_method = [KFold(10, 5), KFold(20, 5), LeaveOneOut(20)]
-simulators = []
-best_accuracies = []
+simulators_with_s = []
 
-for method in method_names:
-    simulators_for_method = []
-    index = method_names.index(method)
-    for i in range(0, 10):
-        optimizer = get_method(cv_method[index])
-        problem = TRProblem()
-        conditions = [Accuracy(problem.optimum_fitness(),\
-            10**-4), Convergence(10**-4)]
-        simulators_for_method.append(\
-            Simulator(optimizer, problem, ORCombinator(conditions)))
-    simulators.append(simulators_for_method)
+for i in range(0, 25):
+    optimizer = get_method()
+    problem = SchwefelsProblem240()
+    simulators_with_s.append(Simulator(optimizer, problem, Generations(50)))
 
-for method in method_names:
-    index = method_names.index(method)
-    best_accuracies_for_method = []        
-    for simulator in simulators[index]:
-        simulator.simulate()
-        mean, amount = 0, 0
-        for acc in simulator.optimizer.meta_model.logger.all()['best_acc']:
-            if(type(acc) != type(None)):
-                mean += acc
-                amount += 1
-            if(amount > 0):
-                mean = float(mean) / float(amount)
-                best_accuracies_for_method.append(mean)
-    best_accuracies.append(best_accuracies_for_method)
+map(process, simulators_with_s)
 
-xticks(range(0, len(method_names)), method_names)
-boxplot(best_accuracies) 
+parameterCs_with_s = []
+
+for simulator in simulators_with_s:
+    parameterCs_with_s.append(\
+        simulator.optimizer.meta_model.logger.all()['best_parameter_C'])
+
+parameterCs_with_s, errors_with_s =\
+    TimeseriesAggregator(parameterCs_with_s).get_aggregate()
+
+generations_with_s = range(0, len(parameterCs_with_s))
+
+figure_c = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
+plt.xlabel('Generation')
+plt.ylabel('Bester Parameter C')
+plt.xlim([0,50])
+b1 = errorbar(generations_with_s,\
+    parameterCs_with_s,\
+    marker=".",
+    color="#004997",
+    ecolor="#CCCCCC",
+    linestyle="none",
+    label="mit Skalierung",\
+    yerr=errors_with_s)
+
+xlabel('Generation')
+ylabel('Bester Parameter C')
+
 show()
+
+pp = PdfPages("240-parameterC.pdf")
+plt.savefig(pp, format='pdf')
+pp.close()

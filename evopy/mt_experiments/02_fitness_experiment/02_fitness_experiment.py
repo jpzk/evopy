@@ -18,11 +18,12 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sys import path
-path.append("../../")
+path.append("../../..")
 
 from numpy import matrix, log10
 
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
+from evopy.strategies.ori_dses import ORIDSES
 from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
 
@@ -42,21 +43,13 @@ from evopy.helper.timeseries_aggregator import TimeseriesAggregator
 from multiprocessing import cpu_count
 from evopy.external.playdoh import map as pmap
 
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
 from pylab import * 
 
-def get_method_without_scaling():
+def get_method_without_svc():
 
-    sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 5, 2)],
-        cv_method = KFold(20, 5))
-
-    meta_model = DSESSVCLinearMetaModel(\
-        window_size = 10,
-        scaling = ScalingDummy(),
-        crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
-
-    method = ORIDSESSVC(\
+    method = ORIDSES(\
         mu = 15,
         lambd = 100,
         theta = 0.3,
@@ -65,13 +58,11 @@ def get_method_without_scaling():
         delta = 4.5,
         tau0 = 0.5, 
         tau1 = 0.6,
-        initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.9,
-        meta_model = meta_model) 
+        initial_pos = matrix([[10.0, 10.0]])) 
 
     return method
 
-def get_method_with_scaling():
+def get_method_with_svc():
 
     sklearn_cv = SVCCVSkGridLinear(\
         C_range = [2 ** i for i in range(-5, 5, 2)],
@@ -104,31 +95,39 @@ def process(simulator):
 simulators_with_s = []
 simulators_without_s = []
 
-for i in range(0, 10):
-    optimizer = get_method_with_scaling()
+for i in range(0, 25):
+    optimizer = get_method_with_svc()
     problem = TRProblem()
-    conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-4)]
-    simulators_with_s.append(Simulator(optimizer, problem, ORCombinator(conditions)))
+    #conditions = [Accuracy(problem.optimum_fitness(), 10**-6), Convergence(10**-6)]
+    simulators_with_s.append(Simulator(optimizer, problem, Generations(50)))
 
-for i in range(0, 10):
-    optimizer = get_method_without_scaling()
+for i in range(0, 25):
+    optimizer = get_method_without_svc()
     problem = TRProblem()
-    conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-4)]
-    simulators_without_s.append(Simulator(optimizer, problem, ORCombinator(conditions)))
+    #conditions = [Accuracy(problem.optimum_fitness(), 10**-6), Convergence(10**-6)]
+    simulators_without_s.append(Simulator(optimizer, problem, Generations(50)))
 
 map(process, simulators_with_s)
 map(process, simulators_without_s)
 
 accuracies_with_s = []
 accuracies_without_s = []
+bestf_with_s = []
+bestf_without_s = []
+
+logit = lambda value : log10(value - 2.0)
 
 for simulator in simulators_with_s:
     accuracies_with_s.append(\
         simulator.optimizer.logger.all()['mean_fitness'])
+    bestf_with_s.append(\
+        logit((simulator.optimizer.logger.all()['best_fitness'])[-1]))
 
 for simulator in simulators_without_s:
     accuracies_without_s.append(\
         simulator.optimizer.logger.all()['mean_fitness'])
+    bestf_without_s.append(\
+        logit((simulator.optimizer.logger.all()['best_fitness'])[-1]))
 
 accuracies_with_s, errors_with_s =\
     TimeseriesAggregator(accuracies_with_s).get_aggregate()
@@ -139,8 +138,6 @@ accuracies_without_s, errors_without_s =\
     TimeseriesAggregator(accuracies_without_s).get_aggregate()
 
 generations_without_s = range(0, len(accuracies_without_s))
-
-logit = lambda value : log10(value - 2.0)
 
 accuracies_with_s = map(logit, accuracies_with_s)
 accuracies_without_s = map(logit, accuracies_without_s)
@@ -159,8 +156,34 @@ b2 = errorbar(generations_without_s,\
     label="ohne Skalierung",\
     yerr=errors_without_s)
 
-xlabel('Generationen #')
-ylabel('Mittlere Fitness')
 
-show()
+plt.xlabel('Generationen #')
+plt.ylabel('Mittlere Fitness')
+
+pp = PdfPages("fitness.pdf")
+plt.savefig(pp, format='pdf')
+pp.close()
+
+figure_hist = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
+
+h1 = hist(bestf_with_s, normed=True, alpha=0.5, edgecolor="none", facecolor="#CCCCCC")
+h1 = hist(bestf_without_s, normed=True, alpha=0.5, edgecolor="none", facecolor="#CCCCCC")
+
+pp = PdfPages("hist.pdf")
+plt.savefig(pp, format='pdf')
+pp.close()
+
+figure_boxes = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
+
+plt.ylabel("Beste Fitnessgenauigkeit")
+plt.xticks([0,1], ["DSES", "DSES-SVC"])
+box = plt.boxplot([bestf_without_s, bestf_with_s]) 
+
+setp(box['boxes'], color="#004997")
+setp(box['medians'], color="g")
+
+pp = PdfPages("boxplot.pdf")
+plt.savefig(pp, format='pdf')
+pp.close()
+
 

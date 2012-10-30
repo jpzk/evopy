@@ -17,26 +17,34 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-class SchwefelsProblem12():
-    
-    description = "Schwefel's problem 1.2"
-    description_short = "Schwefel12"
+import pdb
 
-    def __init__(self, dimensions = 2, size = 100):
-        self._d = dimensions
+class SchwefelsProblem240():
+
+    description = "Schwefel's problem 2.40"
+    description_short = "Schwefel240"
 
     def is_feasible(self, x):
-        return x[0, 0] - 50 >= 0
+
+        m = x
+        # g1, g5       
+        for i in range(0, x.size):
+            if(m[0, i] < 0):
+                return False
+        # g6
+        p = 50000
+        sum_of_is = 0      
+        for i in range(0, x.size):
+            sum_of_is += (9+(i+1)) * m[0, i]
+        left = -sum_of_is + p 
+        if(left < 0):
+            return False
+        else: 
+            return True
 
     def fitness(self, x):
-        outer_sum = 0
-        for d in range(0, self._d):
-            inner_sum = 0
-            for j in range(0, d):
-                inner_sum += x.value[j]
-            quadratic_inner_sum = inner_sum ** 2
-            outer_sum += quadratic_inner_sum
-        return outer_sum            
-                                  
+        fitness = - x.sum()
+        return fitness
+
     def optimum_fitness(self):
-        return 2500.0
+        return -5000
