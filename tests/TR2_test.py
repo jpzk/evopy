@@ -1,7 +1,7 @@
 ''' 
 This file is part of evopy.
 
-Copyright 2012, Jendrik Poloczek
+Copyright 2012 - 2013, Jendrik Poloczek
 
 evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
@@ -27,6 +27,8 @@ from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
+from evopy.operators.termination.accuracy import Accuracy
+from evopy.operators.termination.generations import Generations
 
 from sklearn.cross_validation import KFold
 
@@ -81,18 +83,24 @@ def get_method_cmaes():
     return method
 
 def CMAES_TR2_simulation_test():
-    sim = Simulator(get_method_cmaes(), TRProblem(), pow(10, -12))
+    optimizer = get_method_cmaes()
+    problem = TRProblem()
+    sim = Simulator(optimizer, problem, Generations(50))
     results = sim.simulate()
     assert True  
 
 def CMAESSVC_TR2_simulation_test():
-    sim = Simulator(get_method_cmaessvc(), TRProblem(), pow(10, -12))
+    optimizer = get_method_cmaessvc()
+    problem = TRProblem()
+    sim = Simulator(optimizer, problem, Generations(50))
     results = sim.simulate()
     assert True  
 
 def CMAESRSVC_TR2_simulation_test():
-    sim = Simulator(get_method_cmaesrsvc(), TRProblem(), pow(10, -12))
+    optimizer = get_method_cmaesrsvc()
+    problem = TRProblem()
+    sim = Simulator(optimizer, problem, Generations(50))
     results = sim.simulate()
     assert True  
 
- 
+
