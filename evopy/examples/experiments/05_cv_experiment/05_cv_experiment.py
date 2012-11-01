@@ -20,8 +20,10 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from sys import path
 path.append("../../../..")
 
-import pdb 
 from numpy import matrix, array
+from multiprocessing import cpu_count
+from evopy.external.playdoh import map as pmap
+from pylab import * 
 
 from sklearn.cross_validation import KFold
 from sklearn.cross_validation import LeaveOneOut
@@ -29,23 +31,15 @@ from sklearn.cross_validation import LeaveOneOut
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
 from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
-
+from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.metamodel.dses_svc_linear_meta_model import DSESSVCLinearMetaModel
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.operators.scaling.scaling_dummy import ScalingDummy
-from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
-
-from evopy.termination.or_combinator import ORCombinator
-from evopy.termination.accuracy import Accuracy
-from evopy.termination.generations import Generations
-from evopy.termination.convergence import Convergence 
-
+from evopy.operators.termination.or_combinator import ORCombinator
+from evopy.operators.termination.accuracy import Accuracy
+from evopy.operators.termination.generations import Generations
+from evopy.operators.termination.convergence import Convergence 
 from evopy.helper.timeseries_aggregator import TimeseriesAggregator
-
-from multiprocessing import cpu_count
-from evopy.external.playdoh import map as pmap
-
-from pylab import * 
 
 def get_method(cv_method):
 

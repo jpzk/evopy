@@ -21,8 +21,10 @@ from sys import path
 from sys import argv
 path.append("../../../..")
 
-import pdb 
 from numpy import matrix, array
+from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pyplot as plt
+from pylab import * 
 
 from evopy.strategies.ori_dses import ORIDSES 
 from sklearn.cross_validation import KFold
@@ -33,22 +35,15 @@ from evopy.strategies.ori_dses_svc import ORIDSESSVC
 from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
 from evopy.simulators.experiment_simulator import ExperimentSimulator
-
+from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.metamodel.dses_svc_linear_meta_model import DSESSVCLinearMetaModel
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.operators.scaling.scaling_dummy import ScalingDummy
-from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
-
-from evopy.termination.or_combinator import ORCombinator
-from evopy.termination.accuracy import Accuracy
-from evopy.termination.generations import Generations
-from evopy.termination.convergence import Convergence 
-
+from evopy.operators.termination.or_combinator import ORCombinator
+from evopy.operators.termination.accuracy import Accuracy
+from evopy.operators.termination.generations import Generations
+from evopy.operators.termination.convergence import Convergence 
 from evopy.helper.timeseries_aggregator import TimeseriesAggregator
-
-from matplotlib.backends.backend_pdf import PdfPages
-import matplotlib.pyplot as plt
-from pylab import * 
 
 def get_method_without_SVC():
     method = ORIDSES(\

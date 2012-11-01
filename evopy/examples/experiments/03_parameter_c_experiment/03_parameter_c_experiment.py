@@ -32,10 +32,10 @@ from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.operators.scaling.scaling_dummy import ScalingDummy
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 
-from evopy.termination.or_combinator import ORCombinator
-from evopy.termination.accuracy import Accuracy
-from evopy.termination.generations import Generations
-from evopy.termination.convergence import Convergence 
+from evopy.operators.termination.or_combinator import ORCombinator
+from evopy.operators.termination.accuracy import Accuracy
+from evopy.operators.termination.generations import Generations
+from evopy.operators.termination.convergence import Convergence 
 
 from evopy.helper.timeseries_aggregator import TimeseriesAggregator
 

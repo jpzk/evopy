@@ -24,7 +24,7 @@ from numpy import matrix
 from evopy.strategies.ori_dses import ORIDSES 
 from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
-from evopy.termination.accuracy import Accuracy
+from evopy.operators.termination.accuracy import Accuracy
 
 def get_method():
     method = ORIDSES(\

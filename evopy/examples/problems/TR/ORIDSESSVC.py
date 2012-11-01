@@ -21,14 +21,15 @@ from sys import path
 path.append("../../../..")
 
 from numpy import matrix
+from sklearn.cross_validation import KFold
+
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
 from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
 from evopy.metamodel.dses_svc_linear_meta_model import DSESSVCLinearMetaModel
-
-from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
+from evopy.operators.termination.accuracy import Accuracy
 
 def get_method():
 
@@ -58,5 +59,7 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), TRProblem(), pow(10, -3))
+    problem = TRProblem() 
+    optfit = problem.optimum_fitness()
+    sim = Simulator(get_method(), problem, Accuracy(optfit, 10**(-3)))
     results = sim.simulate()

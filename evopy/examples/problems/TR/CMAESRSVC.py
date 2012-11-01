@@ -18,16 +18,18 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sys import path
-path.append("../../..")
+path.append("../../../..")
 
 from numpy import matrix
 from sklearn.cross_validation import KFold
+
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 from evopy.strategies.cmaes_rsvc import CMAESRSVC
 from evopy.metamodel.rsvc_linear_meta_model import RSVCLinearMetaModel
 from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
+from evopy.operators.termination.accuracy import Accuracy
 
 def get_method():
 
@@ -52,5 +54,7 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), TRProblem(dimensions=2), pow(10, -12))
+    problem = TRProblem() 
+    optfit = problem.optimum_fitness()
+    sim = Simulator(get_method(), problem, Accuracy(optfit, 10**(-12)))
     results = sim.simulate()
