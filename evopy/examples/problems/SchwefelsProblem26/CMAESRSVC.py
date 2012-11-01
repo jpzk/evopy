@@ -18,40 +18,39 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sys import path
-path.append("../..")
+path.append("../../../..")
 
 from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
-from evopy.strategies.cmaes_svc import CMAESSVC
-from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
-from evopy.problems.schwefels_problem_12 import SchwefelsProblem12
-from evopy.problems.tr_problem import TRProblem
-from evopy.problems.oh_problem import OHProblem
+from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
+
+from evopy.strategies.cmaes_rsvc import CMAESRSVC
+from evopy.problems.schwefels_problem_26 import SchwefelsProblem26
 from evopy.simulators.simulator import Simulator
 
 def get_method():
 
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 5, 2)],
+        C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(20, 5))
 
-    meta_model = CMASVCLinearMetaModel(\
+    meta_model = SVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
         repair_mode = 'mirror')
 
-    method = CMAESSVC(\
+    method = CMAESRSVC(\
         mu = 15,
         lambd = 100,
         xmean = [100.0, 100.0],
         sigma = 1.0,
-        beta = 0.9,
-        meta_model = meta_model) 
+        beta = 0.80,
+        meta_model = meta_model)
 
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), SchwefelsProblem12(), pow(10, -12))
+    sim = Simulator(get_method(), SchwefelsProblem26(dimensions=2), pow(10, -12))
     results = sim.simulate()

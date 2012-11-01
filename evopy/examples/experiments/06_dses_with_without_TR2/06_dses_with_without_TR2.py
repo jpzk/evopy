@@ -19,7 +19,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 
 from sys import path
 from sys import argv
-path.append("../../..")
+path.append("../../../..")
 
 import pdb 
 from numpy import matrix, array

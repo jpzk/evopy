@@ -18,7 +18,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sys import path
-path.append("../../..")
+path.append("../../../..")
 
 from numpy import matrix
 from evopy.strategies.ori_dses import ORIDSES 

@@ -18,7 +18,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sys import path
-path.append("../../..")
+path.append("../../../..")
 
 import pdb 
 from numpy import matrix, array

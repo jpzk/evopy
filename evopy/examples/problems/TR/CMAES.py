@@ -18,21 +18,27 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sys import path
-path.append("../../..")
+path.append("../../../..")
+
+from numpy import matrix
+
+from sklearn.cross_validation import KFold
+from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
+from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
 
 from evopy.strategies.cmaes import CMAES
-from evopy.problems.schwefels_problem_26 import SchwefelsProblem26
+from evopy.problems.tr_problem import TRProblem
 from evopy.simulators.simulator import Simulator
 
 def get_method():
     method = CMAES(\
         mu = 15,
         lambd = 100,
-        xmean = [100.0, 100.0],
+        xmean = matrix([[5.0, 5.0]]),        
         sigma = 1.0)
 
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), SchwefelsProblem26(), pow(10, -12))
+    sim = Simulator(get_method(), TRProblem(), pow(10, -12))
     results = sim.simulate()

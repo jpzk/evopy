@@ -18,12 +18,12 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from sys import path
-path.append("../../..")
+path.append("../../../..")
 
 from numpy import matrix
 
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
-from evopy.problems.tr_problem import TRProblem
+from evopy.problems.schwefels_problem_240 import SchwefelsProblem240
 from evopy.simulators.simulator import Simulator
 
 from evopy.metamodel.dses_svc_linear_meta_model import DSESSVCLinearMetaModel
@@ -61,14 +61,14 @@ def get_method():
     method = ORIDSESSVC(\
         mu = 15,
         lambd = 100,
-        theta = 0.3,
-        pi = 70,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
-        tau0 = 0.5, 
-        tau1 = 0.6,
-        initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.9,
+        theta = 0.7,
+        pi = 100,
+        initial_sigma = matrix([[980.0, 980.0, 980.0, 980.0, 980.0]]),
+        delta = 980.0,
+        tau0 = 0.316, 
+        tau1 = 0.473,
+        initial_pos = matrix([[100.0, 100.0, 100.0, 100.0, 100.0]]),
+        beta = 0.50,
         meta_model = meta_model) 
 
     return method
@@ -80,9 +80,8 @@ simulators_with_s = []
 
 for i in range(0, 25):
     optimizer = get_method()
-    problem = TRProblem()
-    conditions = [Accuracy(problem.optimum_fitness(), 10**-4), Convergence(10**-6)]
-    simulators_with_s.append(Simulator(optimizer, problem, ORCombinator(conditions)))
+    problem = SchwefelsProblem240()
+    simulators_with_s.append(Simulator(optimizer, problem, Generations(50)))
 
 map(process, simulators_with_s)
 
@@ -115,6 +114,6 @@ ylabel('Bester Parameter C')
 
 show()
 
-pp = PdfPages("parameterC.pdf")
+pp = PdfPages("240-parameterC.pdf")
 plt.savefig(pp, format='pdf')
 pp.close()
