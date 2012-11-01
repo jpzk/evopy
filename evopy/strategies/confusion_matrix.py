@@ -45,8 +45,6 @@ class ConfusionMatrix():
         else:            
             self._mcc = top / bottom            
 
-        print self.tp, self.fp, self.tn, self.fn
-
     def savings(self):
         if(self.fp + self.tn == 0):
             return 0.0
