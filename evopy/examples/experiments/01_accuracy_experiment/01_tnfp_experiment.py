@@ -21,7 +21,6 @@ from sys import path
 path.append("../../../..")
 
 from numpy import matrix
-import pdb
 
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
 from evopy.problems.tr_problem import TRProblem
@@ -51,7 +50,7 @@ from pylab import *
 def get_method_without_scaling():
 
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 5, 2)],
+        C_range = [2 ** i for i in range(-5, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -70,14 +69,14 @@ def get_method_without_scaling():
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.95,
+        beta = 0.5,
         meta_model = meta_model) 
 
     return method
 
 def get_method_with_normalization():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 5, 2)],
+        C_range = [2 ** i for i in range(-5, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -96,7 +95,7 @@ def get_method_with_normalization():
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.9,
+        beta = 0.5,
         meta_model = meta_model) 
 
     return method
@@ -104,7 +103,7 @@ def get_method_with_normalization():
 def get_method_with_scaling():
 
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 5, 2)],
+        C_range = [2 ** i for i in range(-5, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -123,7 +122,7 @@ def get_method_with_scaling():
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.95,
+        beta = 0.50,
         meta_model = meta_model) 
 
     return method
@@ -174,18 +173,44 @@ for simulator in simulators_without_s:
     accuracies_without_s.append(\
         simulator.optimizer.logger.all()['savings'])
 
+none = lambda x : type(x) != type(None)
+worst_acc_with_n = min(filter(none, TimeseriesAggregator(accuracies_with_n).\
+    get_minimum()))
+    
+best_acc_with_n = max(filter(none, TimeseriesAggregator(accuracies_with_n).\
+    get_maximum()))
+
 accuracies_with_n, errors_with_n =\
     TimeseriesAggregator(accuracies_with_n).get_aggregate()
 
+mean_with_n = array(accuracies_with_n).mean()
+var_with_n = array(accuracies_with_n).std()
+
 generations_with_n = range(0, len(accuracies_with_n))
+
+worst_acc_with_s = min(filter(none, TimeseriesAggregator(accuracies_with_s).\
+    get_minimum()))
+best_acc_with_s = max(filter(none, TimeseriesAggregator(accuracies_with_s).\
+    get_maximum()))
 
 accuracies_with_s, errors_with_s =\
     TimeseriesAggregator(accuracies_with_s).get_aggregate()
 
+mean_with_s = array(accuracies_with_s).mean()
+var_with_s = array(accuracies_with_s).std()
+
 generations_with_s = range(0, len(accuracies_with_s))
+
+worst_acc_without_scaling = min(filter(none, TimeseriesAggregator(accuracies_without_s).\
+    get_minimum()))
+best_acc_without_scaling = max(filter(none, TimeseriesAggregator(accuracies_without_s).\
+    get_maximum()))
 
 accuracies_without_s, errors_without_s =\
     TimeseriesAggregator(accuracies_without_s).get_aggregate()
+mean_without_scaling = array(accuracies_without_s).mean()
+var_without_scaling = array(accuracies_without_s).std()
+
 
 generations_without_s = range(0, len(accuracies_without_s))
 
@@ -207,7 +232,7 @@ b0 = errorbar(generations_with_n,\
 b0z = polyfit(generations_with_n, accuracies_with_n, 0)
 b0p = poly1d(b0z)
 b0ls = linspace(generations_with_n[0], generations_with_n[-1], 100)
-b0p = plot(b0ls, b0p(b0ls), color="k", linestyle="-")
+#b0p = plot(b0ls, b0p(b0ls), color="k", linestyle="-")
 
 b1 = errorbar(generations_with_s,\
     accuracies_with_s,\
@@ -221,7 +246,7 @@ b1 = errorbar(generations_with_s,\
 b1z = polyfit(generations_with_s, accuracies_with_s, 0)
 b1p = poly1d(b1z)
 b1ls = linspace(generations_with_s[0], generations_with_s[-1], 100)
-b1p = plot(b1ls, b1p(b1ls), color="g", linestyle="-")
+#b1p = plot(b1ls, b1p(b1ls), color="g", linestyle="-")
 
 b2 = errorbar(generations_without_s,\
     accuracies_without_s,\
@@ -237,12 +262,28 @@ b2 = errorbar(generations_without_s,\
 b2z = polyfit(generations_without_s, accuracies_without_s, 1)
 b2p = poly1d(b2z)
 b2ls = linspace(generations_without_s[0], generations_without_s[-1], 100)
-b2p = plot(b2ls, b2p(b2ls), color="#004997", linestyle="-")
-
+#b2p = plot(b2ls, b2p(b2ls), color="#004997", linestyle="-")
 
 pp = PdfPages("tnfp.pdf")
 plt.savefig(pp, format='pdf')
 pp.close()
 
-f = open('tnfp.tex', 'w')
+f = open('tnfp_results.tex', 'w')
+
+lines = [
+    "\\begin{tabularx}{\\textwidth}{l X X X X}\n", 
+    "\\toprule\n", 
+    "\\textbf{Ergebnisse}\\\\\n",
+    "\midrule\n",
+    "Verfahren & Beste & Mittel & Schlechteste & Varianz\\\\\n",
+    "Ohne Skalierung & $%f$ & $%f$ & $%f$ & $%f$ \\\\\n" % (best_acc_without_scaling, mean_without_scaling, worst_acc_without_scaling, var_without_scaling), 
+    "Normalisierung & $%f$ & $%f$ & $%f$ & $%f$ \\\\\n" % (best_acc_with_n, mean_with_n, worst_acc_with_n, var_with_n),
+    "z-Transformation & $%f$ & $%f$ & $%f$ & $%f$ \\\\\n" % (best_acc_with_s, mean_with_s, worst_acc_with_s, var_with_s),
+    "\\bottomrule\n", 
+    "\end{tabularx}\n"]
+
+f.writelines(lines)
+
 f.close()
+
+
