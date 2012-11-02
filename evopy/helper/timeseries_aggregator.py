@@ -16,13 +16,53 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import pdb
 from numpy import sqrt
+from copy import deepcopy
 
 class TimeseriesAggregator():
     def __init__(self, time_series):
         self._time_series = time_series
         self._amount = len(time_series)
+
+    def get_minimum(self):
+        max_length = 0        
+        
+        for time_serie in self._time_series: 
+            length = len(time_serie)
+            if(length > max_length):
+                max_length = length
+                longest = time_serie        
+
+        minimum_time_serie = deepcopy(longest)
+
+        for i in range(0, self._amount):
+            time_series = self._time_series[i]
+            for k in range(0, len(time_series)):
+                if(type(time_series[k]) != type(None)):
+                    if(time_series[k] < minimum_time_serie[k]):
+                        minimum_time_serie[k] = time_series[k]
+
+        return minimum_time_serie                        
+   
+    def get_maximum(self):
+        max_length = 0        
+        
+        for time_serie in self._time_series: 
+            length = len(time_serie)
+            if(length > max_length):
+                max_length = length
+                longest = time_serie        
+
+        maximum_time_serie = deepcopy(longest)
+
+        for i in range(0, self._amount):
+            time_series = self._time_series[i]
+            for k in range(0, len(time_series)):
+                if(type(time_series[k]) != type(None)):
+                    if(time_series[k] > maximum_time_serie[k]):
+                        maximum_time_serie[k] = time_series[k]
+
+        return maximum_time_serie                        
 
     def get_aggregate(self):
         max_length = 0
