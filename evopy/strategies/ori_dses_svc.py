@@ -199,6 +199,8 @@ class ORIDSESSVC(EvolutionStrategy):
         self.meta_model.add_sorted_feasibles(sorted_feasibles)       
         self.meta_model_trained = self.meta_model.train()
 
+        print self.meta_model_trained
+    
         """ update the selection probabilites according to 
             anti-proportional fitness. """      
         probabilities = []

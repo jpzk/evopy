@@ -16,12 +16,13 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import pdb
+
 from sys import path
 from sys import argv
 path.append("../../../..")
 
 from numpy import matrix, array
+from matplotlib import ticker
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 from pylab import * 
@@ -48,7 +49,7 @@ from evopy.helper.timeseries_aggregator import TimeseriesAggregator
 def get_method_with_SVC(beta):
 
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 5, 2)],
+        C_range = [2 ** i for i in range(-5, 14, 2)],
         cv_method = KFold(20,5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -72,7 +73,7 @@ def get_method_with_SVC(beta):
 
     return method
 
-betas = map(lambda i : i / 10.0, range(0, 10))
+betas = map(lambda i : i / 100.0, range(0, 110))
 simulators = []
 cfcs = []
 means = []
@@ -81,18 +82,17 @@ for beta in betas:
     simulators_for_beta = []
     index = betas.index(beta)
     for i in range(0, 25):
+        simulators_for_beta = []
         optimizer = get_method_with_SVC(beta)
         problem = TRProblem()
         optimum_fitness = problem.optimum_fitness()
         accuracy = Accuracy(optimum_fitness, 10**(-6))
-        convergence = Convergence(10**-6)
+        convergence = Convergence(10**-12)
+        generationst = Generations(50)
+        termination = ORCombinator([accuracy, generationst])
         simulators_for_beta.append(\
-            Simulator(optimizer, problem,\
-                ORCombinator([accuracy, convergence])))
+            Simulator(optimizer, problem, termination))
     simulators.append(simulators_for_beta)
-
-def process(simulator):
-    simulator.simulate()
 
 for beta in betas:
     index = betas.index(beta)
@@ -101,20 +101,18 @@ for beta in betas:
     for simulator in simulators[index]:
         simulator.simulate()
         cfc_for_method.append(\
-            simulator.logger.all()['count_cfc'])
-
-        cfcs.append(cfc_for_method)        
+            array(simulator.logger.all()['count_cfc']).mean())
+    cfcs.append(cfc_for_method) 
 
 for beta in betas:
     index = betas.index(beta)
-    cfcs_serie, cfcs_error =\
-        TimeseriesAggregator(cfcs[index]).get_aggregate()
-    means.append(array(cfcs_serie).mean())
+    means.append(array(cfcs[index]).mean())
 
 figure_betas = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 
-plt.xlabel("Einflussparameter")
+plt.xlabel("Einflussparameter $\\beta \cdot 10^2$")
 plt.ylabel("Mittlere Restriktionsaufrufe pro Generation")
+plt.xlim([0, 100])
 
 m = array(means).tolist()
 
@@ -125,7 +123,7 @@ plt.plot(\
     marker=".",
     linestyle="none")
 
-pp = PdfPages("beta.pdf")
+pp = PdfPages("betacfc.pdf")
 plt.savefig(pp, format='pdf')
 pp.close()
 

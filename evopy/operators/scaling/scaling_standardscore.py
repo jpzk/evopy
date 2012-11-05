@@ -1,7 +1,7 @@
 ''' 
 This file is part of evopy.
 
-Copyright 2012, Jendrik Poloczek
+Copyright 2012 - 2013, Jendrik Poloczek
 
 evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
@@ -23,6 +23,11 @@ from copy import deepcopy
 class ScalingStandardscore():
     """ Scaling to standardscore """
 
+    def __init__(self):
+        # only scale if std != 0 
+        scale = lambda val, mean, std : (val - mean) / std if std != 0 else val
+        self._mat_scale = vectorize(scale)        
+
     def setup(self, values):
         dimensions = values[0].size
        
@@ -34,11 +39,5 @@ class ScalingStandardscore():
         self._std = temp.std(axis = 0)
 
     def scale(self, valx):
-        val = deepcopy(valx)
-
-        scale = lambda val, mean, std : (val - mean) / std
-        mat_scale = vectorize(scale)
-          
-        val = mat_scale(valx, self._mean, self._std)
-        return val
+        return self._mat_scale(valx, self._mean, self._std)   
 

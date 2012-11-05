@@ -62,7 +62,7 @@ def get_method_without_SVC():
 def get_method_with_SVC():
 
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 5, 2)],
+        C_range = [2 ** i for i in range(-1, 14, 2)],
         cv_method = KFold(20,5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -81,7 +81,7 @@ def get_method_with_SVC():
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.95,
+        beta = 1.0,
         meta_model = meta_model) 
 
     return method
@@ -109,7 +109,7 @@ for method in method_names:
         optimizer = methods[index]()
         problem = TRProblem(dimensions=2)
         conditions = [Accuracy(problem.optimum_fitness(),\
-            10**-6), Convergence(10**-6)]
+            10**-6), Generations(50)]
         simulators_for_method.append(\
             Simulator(optimizer, problem, ORCombinator(conditions)))
     simulators.append(simulators_for_method)
@@ -134,9 +134,10 @@ for method in method_names:
 # boxplots
 figure_boxplot = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 
-plt.ylabel("Kumulierte Restriktionsaufrufe (cfc)")
+plt.ylabel("Kumulierte Restriktionsaufrufe nach Generation")
 plt.xticks(range(0, len(method_names)), method_names)
 box = plt.boxplot(cfcs_sums) 
+plt.xlim([0, 50])
 
 setp(box['boxes'], color="#004997")
 setp(box['medians'], color="g")
@@ -153,8 +154,9 @@ for method in method_names:
     cfcs_errors.append(cfcs_error)
 
 figure_cfcs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
+plt.xlim([0, 50])
 plt.xlabel("Generation")
-plt.ylabel("Restriktionsaufrufe (cfc) / Generation")
+plt.ylabel("Mittlere Restriktionsaufrufe pro Generation")
 
 for method in method_names:
     index = method_names.index(method)
@@ -182,7 +184,8 @@ for method in method_names:
 
 figure_cfcs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 plt.xlabel("Generation")
-plt.ylabel("Kumulierte Restriktionsaufrufe (cfc)")
+plt.ylabel("Kumulierte Restriktionsaufrufe nach Generation")
+plt.xlim([0, 50])
 
 for method in method_names:
     index = method_names.index(method)

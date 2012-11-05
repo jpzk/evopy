@@ -84,7 +84,7 @@ def get_method_with_svc():
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
-        beta = 0.9,
+        beta = 1.0,
         meta_model = meta_model) 
 
     return method
@@ -99,13 +99,13 @@ for i in range(0, 25):
     optimizer = get_method_with_svc()
     problem = TRProblem()
     #conditions = [Accuracy(problem.optimum_fitness(), 10**-6), Convergence(10**-6)]
-    simulators_with_s.append(Simulator(optimizer, problem, Generations(50)))
+    simulators_with_s.append(Simulator(optimizer, problem, Generations(100)))
 
 for i in range(0, 25):
     optimizer = get_method_without_svc()
     problem = TRProblem()
     #conditions = [Accuracy(problem.optimum_fitness(), 10**-6), Convergence(10**-6)]
-    simulators_without_s.append(Simulator(optimizer, problem, Generations(50)))
+    simulators_without_s.append(Simulator(optimizer, problem, Generations(100)))
 
 map(process, simulators_with_s)
 map(process, simulators_without_s)
@@ -166,8 +166,8 @@ pp.close()
 
 figure_hist = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 
-h1 = hist(bestf_with_s, normed=True, alpha=0.5, edgecolor="none", facecolor="#CCCCCC")
-h1 = hist(bestf_without_s, normed=True, alpha=0.5, edgecolor="none", facecolor="#CCCCCC")
+h1 = hist(bestf_with_s, normed=True, alpha=0.5, edgecolor="none", facecolor="g")
+h1 = hist(bestf_without_s, normed=True, alpha=0.5, edgecolor="none", facecolor="#004779")
 
 pp = PdfPages("hist.pdf")
 plt.savefig(pp, format='pdf')

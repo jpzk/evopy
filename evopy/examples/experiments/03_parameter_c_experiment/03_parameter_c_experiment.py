@@ -76,7 +76,7 @@ def process(simulator):
 
 simulators_with_s = []
 
-for i in range(0, 50):
+for i in range(0, 25):
     optimizer = get_method()
     problem = TRProblem()
     termination = Generations(50)
@@ -182,7 +182,7 @@ def process(simulator):
 
 simulators_with_s = []
 
-for i in range(0, 50):
+for i in range(0, 25):
     optimizer = get_method_with_s()
     problem = TRProblem()
     termination = Generations(50)
