@@ -20,6 +20,8 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from sys import path
 path.append("../../../..")
 
+from numpy import matrix
+
 from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
@@ -28,11 +30,12 @@ from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
 from evopy.strategies.cmaes_svc import CMAESSVC
 from evopy.problems.schwefels_problem_26 import SchwefelsProblem26
 from evopy.simulators.simulator import Simulator
+from evopy.operators.termination.accuracy import Accuracy
 
 def get_method():
 
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 5, 2)],
+        C_range = [2 ** i for i in range(-1, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = CMASVCLinearMetaModel(\
@@ -44,13 +47,20 @@ def get_method():
     method = CMAESSVC(\
         mu = 15,
         lambd = 100,
-        xmean = [100.0, 100.0],
+        xmean = matrix([100.0, 100.0]),
         sigma = 1.0,
-        beta = 0.9,
+        beta = 1.0,
         meta_model = meta_model) 
 
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), SchwefelsProblem26(), pow(10, -12))
+    optimizer = get_method()
+    problem = SchwefelsProblem26()
+    termination = Accuracy(problem.optimum_fitness(), pow(10, -12)) 
+    print optimizer
+    print problem
+    
+    sim = Simulator(optimizer, problem, termination)
     results = sim.simulate()
+

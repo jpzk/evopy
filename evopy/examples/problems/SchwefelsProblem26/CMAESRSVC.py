@@ -32,7 +32,7 @@ from evopy.simulators.simulator import Simulator
 def get_method():
 
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-1, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = SVCLinearMetaModel(\
@@ -44,13 +44,19 @@ def get_method():
     method = CMAESRSVC(\
         mu = 15,
         lambd = 100,
-        xmean = [100.0, 100.0],
+        xmean = matrix([[100.0, 100.0]]),
         sigma = 1.0,
-        beta = 0.80,
+        beta = 1.0,
         meta_model = meta_model)
 
     return method
 
 if __name__ == "__main__":
-    sim = Simulator(get_method(), SchwefelsProblem26(dimensions=2), pow(10, -12))
+    optimizer = get_method()
+    problem = SchwefelsProblem26()
+    termination = Accuracy(problem.optimum_fitness(), pow(10, -12)) 
+    print optimizer
+    print problem
+    
+    sim = Simulator(optimizer, problem, termination)
     results = sim.simulate()

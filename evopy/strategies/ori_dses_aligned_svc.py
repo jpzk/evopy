@@ -209,7 +209,7 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
         while(len(individuals) < 1):
             if((random.random() < self._beta) and self.meta_model_trained):
                 individual = self._generate_individual()
-                if(self.meta_model.check_feasibility(individual[POS]):
+                if(self.meta_model.check_feasibility(individual[POS])):
                     individuals.append(individual)
                     self._pending_apos_solutions.append((individual, True))
                 else:

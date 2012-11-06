@@ -1,7 +1,7 @@
 ''' 
 This file is part of evopy.
 
-Copyright 2012, Jendrik Poloczek
+Copyright 2012 - 2013, Jendrik Poloczek
 
 evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
@@ -24,12 +24,12 @@ from numpy import matrix
 from sklearn.cross_validation import KFold
 
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
-from evopy.problems.tr_problem import TRProblem
+from evopy.problems.schwefels_problem_240 import SchwefelsProblem240
 from evopy.simulators.simulator import Simulator
+from evopy.operators.termination.accuracy import Accuracy
 from evopy.metamodel.dses_svc_linear_meta_model import DSESSVCLinearMetaModel
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
-from evopy.operators.termination.accuracy import Accuracy
 
 def get_method():
 
@@ -48,22 +48,22 @@ def get_method():
         lambd = 100,
         theta = 0.3,
         pi = 70,
-        initial_sigma = matrix([[4.5, 4.5]]),
+        initial_sigma = matrix([[4.5, 4.5, 4.5, 4.5, 4.5]]),
         delta = 4.5,
         tau0 = 0.5, 
         tau1 = 0.6,
-        initial_pos = matrix([[10.0, 10.0]]),
+        initial_pos = matrix([[10.0, 10.0, 10.0, 10.0, 10.0]]),
         beta = 1.0,
         meta_model = meta_model) 
 
     return method
 
 if __name__ == "__main__":
-    problem = TRProblem()
-    optimizer = get_method()       
+    optimizer = get_method()
+    problem = SchwefelsProblem240()
     print optimizer.description
     print problem.description
 
-    optfit = problem.optimum_fitness()
-    sim = Simulator(optimizer, problem, Accuracy(optfit, 10**(-3)))
+    termination = Accuracy(problem.optimum_fitness(), pow(10, -6))
+    sim = Simulator(get_method(), problem, termination)
     results = sim.simulate()

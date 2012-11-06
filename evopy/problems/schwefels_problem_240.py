@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import pdb
-
 class SchwefelsProblem240():
 
     description = "Schwefel's problem 2.40"

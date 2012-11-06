@@ -21,26 +21,27 @@ from sys import path
 path.append("../../../..")
 
 from numpy import matrix
-from evopy.strategies.cmaes import CMAES
+from evopy.strategies.ori_dses import ORIDSES 
 from evopy.problems.schwefels_problem_26 import SchwefelsProblem26
 from evopy.simulators.simulator import Simulator
 from evopy.operators.termination.accuracy import Accuracy
 
 def get_method():
-    method = CMAES(\
+    method = ORIDSES(\
         mu = 15,
         lambd = 100,
-        xmean = matrix([[100.0, 100.0]]),
-        sigma = 1.0)
+        theta = 0.3,
+        pi = 70,
+        initial_sigma = matrix([[4.5, 4.5]]),
+        delta = 4.5,
+        tau0 = 0.5, 
+        tau1 = 0.6,
+        initial_pos = matrix([[10.0, 10.0]])) 
 
     return method
 
 if __name__ == "__main__":
-    optimizer = get_method()
     problem = SchwefelsProblem26()
-    termination = Accuracy(problem.optimum_fitness(), pow(10, -12)) 
-    print optimizer
-    print problem
-    
-    sim = Simulator(optimizer, problem, termination)
+    termination = Accuracy(problem.optimum_fitness(), pow(10, -6))
+    sim = Simulator(get_method(), problem, termination)
     results = sim.simulate()

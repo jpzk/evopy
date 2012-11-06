@@ -27,11 +27,12 @@ class SchwefelsProblem26:
         self._size = size
 
     def is_feasible(self, x):
-        return sum(x.value) - 70 >= 0
+        return x.sum() - 70 >= 0
 
     def fitness(self, x):
-        v = x.value
-        return max(abs(v[0] + 2 * v[1] - 7), abs(2 * v[0] + v[1] - 5))
+        return max(\
+            abs(x[0,0] + 2 * x[0,1] - 7),\
+            abs(2 * x[0,0] + x[0,1] - 5))
                                
     def optimum_fitness(self):
-        return 0.0 
+        return 99.0 

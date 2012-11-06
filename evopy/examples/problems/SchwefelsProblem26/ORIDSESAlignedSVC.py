@@ -23,8 +23,9 @@ path.append("../../../..")
 from numpy import matrix
 from sklearn.cross_validation import KFold
 
-from evopy.strategies.ori_dses_svc import ORIDSESSVC
+from evopy.strategies.ori_dses_aligned_svc import ORIDSESAlignedSVC
 from evopy.problems.tr_problem import TRProblem
+from evopy.problems.schwefels_problem_26 import SchwefelsProblem26
 from evopy.simulators.simulator import Simulator
 from evopy.metamodel.dses_svc_linear_meta_model import DSESSVCLinearMetaModel
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
@@ -43,7 +44,7 @@ def get_method():
         crossvalidation = sklearn_cv,
         repair_mode = 'mirror')
 
-    method = ORIDSESSVC(\
+    method = ORIDSESAlignedSVC(\
         mu = 15,
         lambd = 100,
         theta = 0.3,
@@ -59,11 +60,11 @@ def get_method():
     return method
 
 if __name__ == "__main__":
-    problem = TRProblem()
-    optimizer = get_method()       
-    print optimizer.description
-    print problem.description
+    optimizer = get_method()
+    problem = SchwefelsProblem26()
+    print optimizer
+    print problem
 
     optfit = problem.optimum_fitness()
-    sim = Simulator(optimizer, problem, Accuracy(optfit, 10**(-3)))
+    sim = Simulator(optimizer, problem, Accuracy(optfit, 10**(-6)))
     results = sim.simulate()
