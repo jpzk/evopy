@@ -41,7 +41,8 @@ def get_method():
     return method
 
 if __name__ == "__main__":
+    optimizer = get_method()
     problem = SchwefelsProblem26()
     termination = Accuracy(problem.optimum_fitness(), pow(10, -6))
-    sim = Simulator(get_method(), problem, termination)
+    sim = Simulator(optimizer, problem, termination)
     results = sim.simulate()

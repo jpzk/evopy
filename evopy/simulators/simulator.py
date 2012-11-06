@@ -1,7 +1,7 @@
 ''' 
 This file is part of evopy.
 
-Copyright 2012, Jendrik Poloczek
+Copyright 2012 - 2013, Jendrik Poloczek
 
 evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
@@ -16,7 +16,6 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import pdb
 from numpy import vsplit
 
 from sys import path
@@ -24,6 +23,11 @@ from evopy.helper.logger import Logger
 path.append("../..")
 
 class Simulator(object):
+
+    name = "evopy: framework for experimention in evolutionary computing"
+    description = "Single-threaded Simulator"
+    description_short = "Simulator"
+
     def __init__(self, optimizer, problem, termination):
         self.optimizer = optimizer
         self.problem = problem
@@ -37,7 +41,15 @@ class Simulator(object):
         self.logger.add_binding('_count_ffc', 'count_ffc')
         self.logger.add_binding('_generations', 'generations')
 
+    def _information(self):
+        print ("-" * 80) + "\n" + self.name +"\n" + ("-" * 80)
+        print "simulator: " + self.description 
+        print "optimizer: " + self.optimizer.description
+        print "problem: " + self.problem.description
+        print "-" * 80    
+
     def simulate(self):
+        self._information()
         while(True):
             # Simulator and optimizer handling constraints
             all_feasible = False
