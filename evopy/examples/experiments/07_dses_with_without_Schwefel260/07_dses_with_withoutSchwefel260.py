@@ -16,7 +16,6 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
-import pdb
 
 from sys import path
 from sys import argv
@@ -35,6 +34,7 @@ from sklearn.cross_validation import LeaveOneOut
 from evopy.strategies.ori_dses_svc_repair import ORIDSESSVCR
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
 from evopy.problems.tr_problem import TRProblem
+from evopy.problems.schwefels_problem_26 import SchwefelsProblem26
 from evopy.simulators.simulator import Simulator
 from evopy.simulators.experiment_simulator import ExperimentSimulator
 from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
@@ -57,7 +57,7 @@ def get_method_without_SVC():
         delta = 4.5,
         tau0 = 0.5, 
         tau1 = 0.6,
-        initial_pos = matrix([[10.0, 10.0]])) 
+        initial_pos = matrix([[200.0, 200.0]])) 
 
     return method
 
@@ -82,7 +82,7 @@ def get_method_with_SVC():
         delta = 4.5,
         tau0 = 0.5, 
         tau1 = 0.6,
-        initial_pos = matrix([[10.0, 10.0]]),
+        initial_pos = matrix([[200.0, 200.0]]),
         beta = 1.0,
         meta_model = meta_model) 
 
@@ -106,7 +106,7 @@ for method in method_names:
     index = method_names.index(method)
     for i in range(0, 25):
         optimizer = methods[index]()
-        problem = TRProblem(dimensions=2)
+        problem = SchwefelsProblem26(dimensions=2)
         conditions = [Generations(50)]
         simulators_for_method.append(\
             Simulator(optimizer, problem, ORCombinator(conditions)))

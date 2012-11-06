@@ -55,8 +55,5 @@ if __name__ == "__main__":
     optimizer = get_method()
     problem = SchwefelsProblem26()
     termination = Accuracy(problem.optimum_fitness(), pow(10, -12)) 
-    print optimizer
-    print problem
-    
     sim = Simulator(optimizer, problem, termination)
     results = sim.simulate()

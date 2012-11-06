@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import pdb
-
 from copy import deepcopy
 from math import floor
 from numpy import array, random, matrix, exp, vectorize
@@ -199,8 +197,6 @@ class ORIDSESSVC(EvolutionStrategy):
         self.meta_model.add_sorted_feasibles(sorted_feasibles)       
         self.meta_model_trained = self.meta_model.train()
 
-        print self.meta_model_trained
-    
         """ update the selection probabilites according to 
             anti-proportional fitness. """      
         probabilities = []

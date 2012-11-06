@@ -62,9 +62,6 @@ def get_method():
 if __name__ == "__main__":
     optimizer = get_method()
     problem = SchwefelsProblem26()
-    print optimizer
-    print problem
-
     optfit = problem.optimum_fitness()
     sim = Simulator(optimizer, problem, Accuracy(optfit, 10**(-6)))
     results = sim.simulate()
