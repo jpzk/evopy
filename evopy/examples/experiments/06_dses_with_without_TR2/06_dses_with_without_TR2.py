@@ -87,9 +87,6 @@ def get_method_with_SVC():
 
     return method
 
-def process(simulator):
-    return simulator.simulate()
-
 method_names = ["DSES", "DSES-SVC"]
 methods = [get_method_without_SVC, get_method_with_SVC]
 method_marker = ['.','x']
@@ -114,10 +111,6 @@ for method in method_names:
             Simulator(optimizer, problem, ORCombinator(conditions)))
     simulators.append(simulators_for_method)
 
-# parallel with playdoh
-def process(simulator):
-    simulator.simulate()
-
 for method in method_names:
     index = method_names.index(method)
     cfc_sum_for_method = []
@@ -129,7 +122,7 @@ for method in method_names:
         cfc_for_method.append(simulator.logger.all()['count_cfc'])
 
     cfcs_sums.append(cfc_sum_for_method)
-    cfcs.append(cfc_for_method)             
+cfcs.append(cfc_for_method)             
 
 # boxplots
 figure_boxplot = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
@@ -202,7 +195,11 @@ pp = PdfPages("cum_cfcs.pdf")
 plt.savefig(pp, format='pdf')
 pp.close()
 
-# wilcoxon test
+# wilcoxon test for cfcs per generation
+z, p = wilcoxon(cfcs_series[0], cfcs_series[1])
+print "cfcs per generations: z: %f, p: %f" % (z,p)
+
+# wilcoxon test for cumulated cfcs
 z, p = wilcoxon(cfcs_sums[0], cfcs_sums[1])
-print "z", z
-print "p", p
+print "cumulated cfcs wilcoxon test: z: %f, p: %f" % (z,p)
+
