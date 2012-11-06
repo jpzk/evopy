@@ -25,6 +25,7 @@ from numpy import matrix, array
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 from pylab import * 
+from scipy.stats import wilcoxon
 
 from evopy.strategies.ori_dses import ORIDSES 
 from sklearn.cross_validation import KFold
@@ -108,8 +109,7 @@ for method in method_names:
     for i in range(0, 25):
         optimizer = methods[index]()
         problem = TRProblem(dimensions=2)
-        conditions = [Accuracy(problem.optimum_fitness(),\
-            10**-6), Generations(50)]
+        conditions = [Generations(50)]
         simulators_for_method.append(\
             Simulator(optimizer, problem, ORCombinator(conditions)))
     simulators.append(simulators_for_method)
@@ -202,3 +202,7 @@ pp = PdfPages("cum_cfcs.pdf")
 plt.savefig(pp, format='pdf')
 pp.close()
 
+# wilcoxon test
+z, p = wilcoxon(cfcs_sums[0], cfcs_sums[1])
+print "z", z
+print "p", p
