@@ -27,12 +27,13 @@ class TRProblem():
     def __init__(self, dimensions = 2, size = 10):
         self._d = dimensions
         self._size = 10
+        self._power = vectorize(lambda x : pow(x,2))
 
     def is_feasible(self, x):
         return x.sum() - float(self._d) >= 0
 
     def fitness(self, x):
-        return (vectorize(lambda x : pow(x,2))(x)).sum()
+        return self._power(x).sum()
 
     def optimum_fitness(self):
         return float(self._d)

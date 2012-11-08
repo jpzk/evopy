@@ -38,7 +38,10 @@ class TimeseriesAggregator():
         for i in range(0, self._amount):
             time_series = self._time_series[i]
             for k in range(0, len(time_series)):
-                if(type(time_series[k]) != type(None)):
+                if(type(time_series[k]) != type(None)):  
+                    if(type(minimum_time_serie[k]) == type(None)):                    
+                        minimum_time_serie[k] = time_series[k]
+                        continue
                     if(time_series[k] < minimum_time_serie[k]):
                         minimum_time_serie[k] = time_series[k]
 
@@ -59,6 +62,9 @@ class TimeseriesAggregator():
             time_series = self._time_series[i]
             for k in range(0, len(time_series)):
                 if(type(time_series[k]) != type(None)):
+                    if(type(maximum_time_serie[k]) == type(None)):
+                        maximum_time_serie[k] = time_series[k]
+                        continue           
                     if(time_series[k] > maximum_time_serie[k]):
                         maximum_time_serie[k] = time_series[k]
 
