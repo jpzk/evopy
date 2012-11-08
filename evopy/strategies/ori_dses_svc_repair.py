@@ -32,7 +32,7 @@ SIGMA = 1
 class ORIDSESSVCR(EvolutionStrategy):
 
     description =\
-        "Ori. Death Penalty Step Control Evolution Strategy (DSES) with SVC and repair"
+        "Ori. DSES with SVC and repair"
 
     description_short = "Ori. DSES with SVC and repair"
 
