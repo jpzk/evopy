@@ -209,7 +209,6 @@ generations_without_s = range(0, len(accuracies_without_s))
 figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 plt.xlabel("Generation")
 plt.ylabel("CV Genauigkeit")
-plt.ylim([0.0, 1.0])
 plt.xlim([0, 50])
 plt.ylim([0.0, 1.0])
 
