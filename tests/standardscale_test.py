@@ -1,7 +1,7 @@
 ''' 
 This file is part of evopy.
 
-Copyright 2012, Jendrik Poloczek
+Copyright 2012 - 2013, Jendrik Poloczek
 
 evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
@@ -16,6 +16,7 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
+
 from numpy import matrix
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 
@@ -28,3 +29,20 @@ def standardscore_scaling_test():
     m = scaling.scale(i1)
 
     assert True
+
+def standardscore_descaling_test():
+    i1, i2 = matrix([[1.0, 1.0]]), matrix([[2.0, 2.0]])
+    individuals = [i1, i2]
+
+    scaling = ScalingStandardscore()
+    scaling.setup(individuals)
+    if(i1.A1.tolist() == scaling.descale(scaling.scale(i1)).A1.tolist()):
+        assert True
+    else: 
+        assert False
+
+    if(i2.A1.tolist() == scaling.descale(scaling.scale(i2)).A1.tolist()):
+        assert True
+    else: 
+        assert False
+

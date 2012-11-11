@@ -25,8 +25,13 @@ class ScalingStandardscore():
 
     def __init__(self):
         # only scale if std != 0 
+        # xval = (val - mean / std)
+        # val = (xval * std) + mean
+
         scale = lambda val, mean, std : (val - mean) / std if std != 0 else val
-        self._mat_scale = vectorize(scale)        
+        descale = lambda val, mean, std : (val * std) + mean if std != 0 else val
+        self._mat_scale = vectorize(scale) 
+        self._mat_descale = vectorize(descale) 
 
     def setup(self, values):
         dimensions = values[0].size
@@ -41,3 +46,5 @@ class ScalingStandardscore():
     def scale(self, valx):
         return self._mat_scale(valx, self._mean, self._std)   
 
+    def descale(self, valx):
+        return self._mat_descale(valx, self._mean, self._std)
