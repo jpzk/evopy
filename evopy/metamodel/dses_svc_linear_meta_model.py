@@ -1,7 +1,7 @@
 ''' 
 This file is part of evopy.
 
-Copyright 2012, Jendrik Poloczek
+Copyright 2012 - 2013, Jendrik Poloczek
 
 evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
@@ -104,7 +104,11 @@ class DSESSVCLinearMetaModel(MetaModel):
         points = ivalues + fvalues
         labels = [-1] * len(ivalues) + [1] * len(fvalues) 
 
-        self._clf = svm.SVC(kernel = 'linear', C = self._best_parameter_C, tol = 1.0)
+        self._clf = svm.SVC(\
+            kernel = 'linear',\
+            C = self._best_parameter_C, \
+            tol = 1.0,\
+            verbose = False)
         self._clf.fit(points, labels)
 
         self.logger.log()
@@ -128,7 +132,7 @@ class DSESSVCLinearMetaModel(MetaModel):
 
     def repair(self, individual):
 
-        x = individual
+        x = self._scaling.scale(individual)
         w = self._clf.coef_[0]
         nw = self.get_normal()
         b = self._clf.intercept_[0] / w[1]
@@ -144,5 +148,5 @@ class DSESSVCLinearMetaModel(MetaModel):
             raise Exception("no repair_mode selected: " + repair_mode)
 
         nx = x + (nw * s)
-        return nx
+        return self._scaling.descale(nx)
 

@@ -43,7 +43,7 @@ class SVCCVSkGridLinear():
         X = array([f.getA1() for f in feasible] + [i.getA1() for i in infeasible])
         y = array([1] * len(feasible) + [-1] * len(infeasible))
 
-        clf = GridSearchCV(SVC(), tuned_parameters, cv=self._cv_method)
+        clf = GridSearchCV(SVC(), tuned_parameters, cv=self._cv_method, verbose=0)
 
         clf.fit(X, y)
         best_accuracy = clf.best_score_
