@@ -130,7 +130,7 @@ class DSESSVCLinearMetaModel(MetaModel):
         if sklearn_version != '0.10' and sklearn_version != '0.11':
             raise Exception("sklearn version is not supported")
 
-    def repair(self, individual):
+    def repair(self, individual, sigma):
 
         x = self._scaling.scale(individual)
         w = self._clf.coef_[0]
@@ -148,5 +148,5 @@ class DSESSVCLinearMetaModel(MetaModel):
             raise Exception("no repair_mode selected: " + repair_mode)
 
         nx = x + (nw * s)
-        return self._scaling.descale(nx)
+        return (self._scaling.descale(nx))# + (nw * sigma.min()))
 
