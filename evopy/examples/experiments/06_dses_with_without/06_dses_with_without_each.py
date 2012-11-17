@@ -208,25 +208,24 @@ zs26, ps26 = wilcoxon(\
 lines = [
     "\\begin{tabularx}{\\textwidth}{l X X X X X X}\n", 
     "\\toprule\n", 
-    "\\textbf{Ergebnisse}\\\\\n",
+    "\\textbf{Problem} & SVK & Minimum & Mittel & Maximum & Varianz  \\\\\n",
     "\midrule\n",
-    "\\textbf{Problem} & z-Wert & SVK & Minimum & Mittel & Maximum & Varianz  \\\\\n",
-    "TR2 & %f & nein & $%i$ & $%i$ & $%i$ & $%f$ \\\\\n"\
-        % (zTR, variables['min'][TRProblem][get_method_TR],\
+    "TR2 & nein & $%i$ & $%i$ & $%i$ & $%f$ \\\\\n"\
+        % (variables['min'][TRProblem][get_method_TR],\
         variables['mean'][TRProblem][get_method_TR],\
         variables['max'][TRProblem][get_method_TR],\
         variables['var'][TRProblem][get_method_TR]),\
-    "&& ja & $%i$ & $%i$ & $%i$ & $%f$ \\\\\n"\
+    "& ja & $%i$ & $%i$ & $%i$ & $%f$ \\\\\n"\
         % (variables['min'][TRProblem][get_method_TR_svc],\
         variables['mean'][TRProblem][get_method_TR_svc],\
         variables['max'][TRProblem][get_method_TR_svc],\
         variables['var'][TRProblem][get_method_TR_svc]),\
-    "Schwefels 2.6 & %f & nein & $%i$ & $%i$ & $%i$ & $%f$ \\\\\n"\
-        % (zs26, variables['min'][SchwefelsProblem26][get_method_Schwefel26],\
+    "2.6 & nein & $%i$ & $%i$ & $%i$ & $%f$ \\\\\n"\
+        % (variables['min'][SchwefelsProblem26][get_method_Schwefel26],\
         variables['mean'][SchwefelsProblem26][get_method_Schwefel26],\
         variables['max'][SchwefelsProblem26][get_method_Schwefel26],\
         variables['var'][SchwefelsProblem26][get_method_Schwefel26]),\
-    "&& ja & $%i$ & $%i$ & $%i$ & $%f$ \\\\\n"\
+    "& ja & $%i$ & $%i$ & $%i$ & $%f$ \\\\\n"\
         % (variables['min'][SchwefelsProblem26][get_method_Schwefel26_svc],\
         variables['mean'][SchwefelsProblem26][get_method_Schwefel26_svc],\
         variables['max'][SchwefelsProblem26][get_method_Schwefel26_svc],\
