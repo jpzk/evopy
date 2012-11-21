@@ -69,6 +69,7 @@ class ORIDSESSVC(EvolutionStrategy):
         self.logger.add_binding('_acc', 'acc')
         self.logger.add_binding('_savings', 'savings')
         self.logger.add_binding('_confusion_matrix', 'confusion_matrix')
+        self.logger.add_binding('_precision', 'precision')
 
         # prepare operators, numpy.vectorize for use with matrices
         reducer = lambda sigma : self._delta if sigma < self._delta else sigma
@@ -236,6 +237,7 @@ class ORIDSESSVC(EvolutionStrategy):
         self._acc = self._confusion_matrix.acc()
         self._nacc = self._confusion_matrix.nacc()
         self._savings = self._confusion_matrix.savings()
+        self._precision = self._confusion_matrix.precision()
 
         self._pending_apos_solutions = []
 

@@ -51,6 +51,12 @@ class ConfusionMatrix():
         else:
             return self.tn / float(self.fp + self.tn)
 
+    def precision(self):
+        if(self.tp + self.fp == 0):
+            return 0.0
+        else:
+            return self.tp / float(self.tp + self.fp)
+
     def acc(self):
         all_sum = self.matrix().sum()
         if(all_sum == 0):

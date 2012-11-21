@@ -163,15 +163,15 @@ accuracies_without_s = []
 
 for simulator in simulators_with_n:
     accuracies_with_n.append(\
-        simulator.optimizer.logger.all()['savings'])
+        simulator.optimizer.logger.all()['precision'])
 
 for simulator in simulators_with_s:
     accuracies_with_s.append(\
-        simulator.optimizer.logger.all()['savings'])
+        simulator.optimizer.logger.all()['precision'])
 
 for simulator in simulators_without_s:
     accuracies_without_s.append(\
-        simulator.optimizer.logger.all()['savings'])
+        simulator.optimizer.logger.all()['precision'])
 
 none = lambda x : type(x) != type(None)
 worst_acc_with_n = min(filter(none, TimeseriesAggregator(accuracies_with_n).\
@@ -216,7 +216,7 @@ generations_without_s = range(0, len(accuracies_without_s))
 
 figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 plt.xlabel("Generation")
-plt.ylabel("$RN / (RN + FP)$ in einer Generation")
+plt.ylabel("$RP / (RP + FP)$ in einer Generation")
 plt.xlim([0, 50])
 plt.ylim([0.0, 1.0])
 
@@ -264,11 +264,11 @@ b2p = poly1d(b2z)
 b2ls = linspace(generations_without_s[0], generations_without_s[-1], 100)
 #b2p = plot(b2ls, b2p(b2ls), color="#004997", linestyle="-")
 
-pp = PdfPages("tnfp.pdf")
+pp = PdfPages("rpfp.pdf")
 plt.savefig(pp, format='pdf')
 pp.close()
 
-f = open('tnfp_results.tex', 'w')
+f = open('rpfp_results.tex', 'w')
 
 lines = [
     "\\begin{tabularx}{\\textwidth}{l X X X X}\n", 
