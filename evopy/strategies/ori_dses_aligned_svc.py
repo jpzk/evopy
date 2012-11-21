@@ -35,7 +35,7 @@ SIGMA = 1
 class ORIDSESAlignedSVC(EvolutionStrategy):
 
     description =\
-        "Ori. Death Penalty Step Control Evolution Strategy (DSES) with",\
+        "Ori. Death Penalty Step Control Evolution Strategy (DSES) with"\
         "SVC alignment"
 
     description_short = "Ori. DSES with SVC alignment"
@@ -57,8 +57,8 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
         self._new_basis = eye(self._d)
 
         # for logging proposes
-        self._normal = matrix([[1.0 for i in range(0, self._d)]])
-        self._angles = matrix([[0.0 for i in range(0, self._d)]])
+        self._normal = [0.0] * self._d
+        self._angles = [0.0] * (self._d - 1) 
 
         # SVC Metamodel
         self.meta_model = meta_model
@@ -205,7 +205,7 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
         """ ask pending solutions; solutions which need a checking for true 
             feasibility """
         
-        individual = [] 
+        individuals = [] 
         while(len(individuals) < 1):
             if((random.random() < self._beta) and self.meta_model_trained):
                 individual = self._generate_individual()
@@ -215,42 +215,11 @@ class ORIDSESAlignedSVC(EvolutionStrategy):
                 else:
                     self._pending_apos_solutions.append((individual, False))
             else:
-                individual = self._generate_individiual()
+                individual = self._generate_individual()
                 individuals.append(individual)
 
         return individuals                            
 
-        if(self.meta_model_trained):
-            max_amount_meta_feasible = int(floor(self._beta * difference))
-            max_amount_pending_solutions = difference - max_amount_meta_feasible        
-
-            while(len(pending_meta_feasible) < max_amount_meta_feasible):
-                individual = self._generate_individual() 
-
-                if(self.meta_model.check_feasibility(individual[POS])):
-                    pending_meta_feasible.append(individual)
-
-                    # appending meta-feasible solution to a_posteriori pending
-                    self._pending_apos_solutions.append((individual, True))
-                else:
-                    # appending meta-infeasible solution to a_posteriori pending 
-                    self._pending_apos_solutions.append((individual, False))
-
-                    individual[POS] = self.meta_model.repair(individual[POS])
-                    self._count_repaired += 1
-                    pending_meta_feasible.append(individual)
-
-                    # appending meta-feasible solution to a_posteriori pending
-                    self._pending_apos_solutions.append((individual, True))
-        else: 
-            max_amount_pending_solutions = difference
-
-        while(len(pending_solutions) < max_amount_pending_solutions):
-            individual = self._generate_individual()
-            pending_solutions.append(individual)
-
-        return pending_meta_feasible + pending_solutions            
-   
     def tell_feasibility(self, feasibility_information):
         """ tell feasibilty; return True if there are no pending solutions, 
             otherwise False """
