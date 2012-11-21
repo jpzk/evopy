@@ -211,7 +211,6 @@ accuracies_without_s, errors_without_s =\
 mean_without_scaling = array(accuracies_without_s).mean()
 var_without_scaling = array(accuracies_without_s).std()
 
-
 generations_without_s = range(0, len(accuracies_without_s))
 
 figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")

@@ -172,14 +172,16 @@ plt.ylabel('Wahrscheinlichkeit')
 ax = figure_hist.add_subplot(111)
 ax.xaxis.set_major_formatter((ticker.FormatStrFormatter('$2^{%d}$')))
 
-pdfs1, bins1, patches1 = hist(log_best_tr2, normed=True, alpha=0.5, edgecolor="none", facecolor="#dddddd")
+pdfs1, bins1, patches1 = hist(log_best_tr2, normed=True, alpha=0.5,\
+    histtype='step', edgecolor="g")
 
 h = 1.06 * array(log_best_tr2).std() * (len(log_best_tr2)**(-1.0/5.0))
 x = linspace(-10, -1, 100)
 y = map(lambda x : nadaraya(x, bins1, pdfs1, h), x)
-plot(x,y, linestyle="--")
+plot(x,y, linestyle="--", color="g")
 
-pdfs2, bins2, pachtes2 = hist(log_best_tr2_svc, normed=True, alpha=0.5, edgecolor="none", facecolor="#dddddd")
+pdfs2, bins2, pachtes2 = hist(log_best_tr2_svc, normed=True, alpha=0.5,\
+    histtype='step', edgecolor="#044997")
 
 h = 1.06 * array(log_best_tr2_svc).std() * (len(log_best_tr2_svc)**(-1.0/5.0))
 x = linspace(-10, -1, 100)
