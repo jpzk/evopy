@@ -62,7 +62,7 @@ for problem in problems:
         for simulator in simulators_:
             simulator.simulate()
             precision = simulator.optimizer.logger.all()['precision']
-            cv_accuracy = simulator.optimizer.metamodel.logger.all()['best_acc']
+            cv_accuracy = simulator.optimizer.meta_model.logger.all()['best_acc']
             precisions[problem][optimizer].append(precision)
             cv_accuracies[problem][optimizer].append(cv_accuracy)
 
