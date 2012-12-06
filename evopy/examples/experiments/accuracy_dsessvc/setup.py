@@ -407,3 +407,4 @@ simulators = {\
 }
 
 precisions = create_problem_optimizer_map([])
+cv_accuracies = create_problem_optimizer_map([])

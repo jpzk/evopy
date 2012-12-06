@@ -62,8 +62,14 @@ for problem in problems:
         for simulator in simulators_:
             simulator.simulate()
             precision = simulator.optimizer.logger.all()['precision']
+            cv_accuracy = simulator.optimizer.metamodel.logger.all()['best_acc']
             precisions[problem][optimizer].append(precision)
+            cv_accuracies[problem][optimizer].append(cv_accuracy)
 
 c_file = open("output/precision_file.save", "w")
 dump(precisions, c_file)
 c_file.close()
+
+a_file = open("output/accuracies_file.save", "w")
+dump(cv_accuracies, a_file)
+a_file.close()
