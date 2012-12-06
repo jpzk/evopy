@@ -61,7 +61,7 @@ for problem in problems:
         for simulator in simulators_:
             print problem, "beta: %f" % beta
             simulator.simulate()
-            cfc = simulator.optimizer.logger.all()['count_cfc']
+            cfc = simulator.logger.all()['count_cfc']
             cfcs[problem][beta].append(cfc)
 
 c_file = open("output/cfcs_file.save", "w")
