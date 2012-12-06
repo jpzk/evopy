@@ -46,7 +46,7 @@ from evopy.operators.termination.convergence import Convergence
 
 def get_method_SphereProblemR1_svc(beta):
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-3, 11, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -72,7 +72,7 @@ def get_method_SphereProblemR1_svc(beta):
 
 def get_method_SphereProblemR2_svc(beta):
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-3, 11, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -98,7 +98,7 @@ def get_method_SphereProblemR2_svc(beta):
 
 def get_method_TR_svc(beta):
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-3, 11, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -124,7 +124,7 @@ def get_method_TR_svc(beta):
 
 def get_method_Schwefel26_svc(beta):
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-3, 11, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
