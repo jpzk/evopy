@@ -64,6 +64,7 @@ class ORIDSESSVC(EvolutionStrategy):
         self.logger.add_const_binding('_tau0', 'tau0')
         self.logger.add_const_binding('_tau1', 'tau1')
         self.logger.add_binding('_delta', 'delta')
+        self.logger.add_binding('_sp', 'successprob')
         self.logger.add_binding('_ppv', 'ppv')
         self.logger.add_binding('_npv', 'npv')
 
@@ -229,6 +230,7 @@ class ORIDSESSVC(EvolutionStrategy):
 
     def tell_a_posteriori_feasibility(self, apos_feasibility):
         self._confusion_matrix = ConfusionMatrix(apos_feasibility)
+        self._sp = self._confusion_matrix.success_probability()
         self._ppv = self._confusion_matrix.ppv()
         self._npv = self._confusion_matrix.npv()
         self._pending_apos_solutions = []
