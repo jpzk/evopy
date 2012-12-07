@@ -64,12 +64,8 @@ class ORIDSESSVC(EvolutionStrategy):
         self.logger.add_const_binding('_tau0', 'tau0')
         self.logger.add_const_binding('_tau1', 'tau1')
         self.logger.add_binding('_delta', 'delta')
-        self.logger.add_binding('_mcc', 'mcc')
-        self.logger.add_binding('_nacc', 'nacc')
-        self.logger.add_binding('_acc', 'acc')
-        self.logger.add_binding('_savings', 'savings')
-        self.logger.add_binding('_confusion_matrix', 'confusion_matrix')
-        self.logger.add_binding('_precision', 'precision')
+        self.logger.add_binding('_ppv', 'ppv')
+        self.logger.add_binding('_npv', 'npv')
 
         # prepare operators, numpy.vectorize for use with matrices
         reducer = lambda sigma : self._delta if sigma < self._delta else sigma
@@ -232,13 +228,8 @@ class ORIDSESSVC(EvolutionStrategy):
         return self._best_child, self._best_fitness
 
     def tell_a_posteriori_feasibility(self, apos_feasibility):
-        self._confusion_matrix = ConfusionMatrix(apos_feasibility)
-        self._mcc = self._confusion_matrix.mcc()
-        self._acc = self._confusion_matrix.acc()
-        self._nacc = self._confusion_matrix.nacc()
-        self._savings = self._confusion_matrix.savings()
-        self._precision = self._confusion_matrix.precision()
-
+        self._ppv = self._confusion_matrix.ppv()
+        self._npv = self._confusion_matrix.npv()
         self._pending_apos_solutions = []
 
         # log all bindings
