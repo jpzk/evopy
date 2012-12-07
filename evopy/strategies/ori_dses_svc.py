@@ -228,6 +228,7 @@ class ORIDSESSVC(EvolutionStrategy):
         return self._best_child, self._best_fitness
 
     def tell_a_posteriori_feasibility(self, apos_feasibility):
+        self._confusion_matrix = ConfusionMatrix(apos_feasibility)
         self._ppv = self._confusion_matrix.ppv()
         self._npv = self._confusion_matrix.npv()
         self._pending_apos_solutions = []
