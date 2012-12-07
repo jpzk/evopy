@@ -45,6 +45,15 @@ class ConfusionMatrix():
         else:            
             self._mcc = top / bottom            
 
+    def success_probability(self):
+        sum_b = self.tn + self.fn + self.tp + self.fp
+        sum_t = self.tp + self.fn
+
+        if(sum_b == 0):
+            return 0.0
+        else
+            return sum_t / float(sum_b)
+
     # negative prediction value
     def npv(self):
         sum_ = self.tn + self.fn 
