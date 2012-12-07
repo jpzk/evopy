@@ -51,7 +51,7 @@ class ConfusionMatrix():
 
         if(sum_b == 0):
             return 0.0
-        else
+        else:
             return sum_t / float(sum_b)
 
     # negative prediction value
