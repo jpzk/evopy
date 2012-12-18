@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import pdb
-
 from collections import deque
 
 from sklearn import svm
@@ -107,8 +105,7 @@ class DSESSVCLinearMetaModel(MetaModel):
         self._clf = svm.SVC(\
             kernel = 'linear',\
             C = self._best_parameter_C, \
-            tol = 1.0,\
-            verbose = False)
+            tol = 1.0)
         self._clf.fit(points, labels)
 
         self.logger.log()
@@ -136,7 +133,7 @@ class DSESSVCLinearMetaModel(MetaModel):
         w = self._clf.coef_[0]
         nw = self.get_normal()
         b = self._clf.intercept_[0] / w[1]
-      
+     
         to_hp = (self._clf.decision_function(x) * (1/sqrt(sum(w ** 2))))
         if self._repair_mode == 'mirror':
             s = 2 * to_hp
@@ -147,6 +144,6 @@ class DSESSVCLinearMetaModel(MetaModel):
         if self._repair_mode == None: 
             raise Exception("no repair_mode selected: " + repair_mode)
 
-        nx = x + (nw * s)
-        return (self._scaling.descale(nx))# + (nw * sigma.min()))
+        nx = x + (-nw * 2*s)  #(-nw * (1/sqrt(sum(w ** 2))))
+        return (self._scaling.descale(nx)) #+ (-nw * sigma.min())
 
