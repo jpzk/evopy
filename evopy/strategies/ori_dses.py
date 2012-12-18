@@ -56,20 +56,29 @@ class ORIDSES(EvolutionStrategy):
         self.logger.add_const_binding('_tau1', 'tau1')
         self.logger.add_binding('_delta', 'delta')
 
-        # prepare operators, numpy.vectorize for use with matrices
-        reducer = lambda sigma : self._delta if sigma < self._delta else sigma
-        mutate_pos = lambda coord, sigma : coord + normal(0, sigma) 
-        mutate_sig = lambda sigma : sigma * exp(self._tau1 * normal(0, 1)) 
-
-        self._mat_reducer = vectorize(reducer)
-        self._mat_mutate_pos = vectorize(mutate_pos)
-        self._mat_mutate_sig = vectorize(mutate_sig)
-
         # log constants
         self.logger.const_log()
         
         # initialize population
         self._initialize_population()                    
+
+    # cPickle cannot serialize lambda functions 
+    def _mat_mutate_sig(self, sig):
+        mutate_sig = lambda sigma : sigma * exp(self._tau1 * normal(0, 1)) 
+        _lmutatesig = vectorize(mutate_sig)
+        return _lmutatesig(sig)
+
+    # cPickle cannot serialize lambda functions 
+    def _mat_mutate_pos(self, coord, sigma):
+        mutate_pos = lambda coord, sigma : coord + normal(0, sigma) 
+        _lmutatepos = vectorize(mutate_pos)
+        return _lmutatepos(coord, sigma)
+
+    # cPickle cannot serialize lambda functions 
+    def _mat_reducer(self, x):
+        reducer = lambda sigma : self._delta if sigma < self._delta else sigma
+        _lmatreducer = vectorize(reducer)
+        return _lmatreducer(x)
 
     def _initialize_population(self):
         init_pos, init_sigma = self._init_pos, self._init_sigma
