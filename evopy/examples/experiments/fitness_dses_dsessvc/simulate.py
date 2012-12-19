@@ -44,6 +44,7 @@ from evopy.operators.termination.or_combinator import ORCombinator
 from evopy.operators.termination.accuracy import Accuracy
 from evopy.operators.termination.generations import Generations
 from evopy.operators.termination.convergence import Convergence 
+from evopy.external.playdoh import map as pmap
 
 from setup import *  
 
@@ -56,14 +57,16 @@ for problem in problems:
             simulators_op.append(simulator)
         simulators[problem][optimizer] = simulators_op
 
+simulate = lambda simulator : simulator.simulate()
+
 # run simulators 
 for problem in problems:
     for optimizer, simulators_ in simulators[problem].iteritems():
-        for simulator in simulators_:
-            simulator.simulate()
+        resulting_simulators = pmap(simulate, simulators_)
+        for simulator in resulting_simulators:
             fitness = simulator.optimizer.logger.all()['best_fitness'][-1]
             best_fitness[problem][optimizer].append(fitness)
-
+           
 bf_file = open("output/best_fitness_file.save", "w")
 dump(best_fitness, bf_file)
 bf_file.close()
