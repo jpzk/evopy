@@ -27,13 +27,13 @@ class SphereProblemOriginR2():
     def __init__(self, dimensions = 2, size = 10):
         self._d = dimensions
         self._size = 10
-        self._power = vectorize(lambda x : pow(x,2))
 
     def is_feasible(self, x):
         return x[0,0] >= 0
 
     def fitness(self, x):
-        return self._power(x).sum()
+        _power = vectorize(lambda x : pow(x,2))
+        return _power(x).sum()
 
     def optimum_fitness(self):
         return float(0)
