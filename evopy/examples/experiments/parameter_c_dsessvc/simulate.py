@@ -28,6 +28,7 @@ from evopy.strategies.ori_dses_svc_repair import ORIDSESSVCR
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
 from evopy.strategies.ori_dses import ORIDSES
 from evopy.simulators.simulator import Simulator
+from evopy.external.playdoh import map as pmap
 
 from evopy.problems.sphere_problem_origin_r1 import SphereProblemOriginR1
 from evopy.problems.sphere_problem_origin_r2 import SphereProblemOriginR2
@@ -56,11 +57,13 @@ for problem in problems:
             simulators_op.append(simulator)
         simulators[problem][optimizer] = simulators_op
 
+simulate = lambda simulator : simulator.simulate()
+
 # run simulators 
 for problem in problems:
     for optimizer, simulators_ in simulators[problem].iteritems():
+        resulting_simulators = pmap(simulate, simulators_)
         for simulator in simulators_:
-            simulator.simulate()
             cs = simulator.optimizer.meta_model.logger.all()['best_parameter_C']
             parameter_c[problem][optimizer].append(cs)
 
