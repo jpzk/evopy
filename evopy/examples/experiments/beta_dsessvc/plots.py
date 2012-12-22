@@ -70,9 +70,9 @@ o_markers = {
     SchwefelsProblem26: "s"}
 
 figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
-plt.xlabel("Einflussfaktor")
-plt.ylabel("Gemittelte kumulierte Restriktionsaufrufe")
-plt.xlim([0, 0.9])
+plt.xlabel("Einflussfaktor $\\beta$" )
+plt.ylabel("Gemittelte Restriktionsaufrufe pro Generation")
+plt.xlim([0, 1.0])
 plt.ylim([100.0, 200.0])
 
 for problem in cfcs.keys():

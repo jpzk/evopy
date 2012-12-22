@@ -148,7 +148,7 @@ def get_method_Schwefel26_svc(beta):
 
     return method
 
-betas = map(lambda b : b / 100.0, range(0, 100))
+betas = map(lambda b : b / 10.0, range(0, 11))
 
 def create_problem_optimizer_map(typeofelements):
     t = typeofelements    
@@ -161,7 +161,7 @@ def create_problem_optimizer_map(typeofelements):
         SphereProblemOriginR2: deepcopy(beta_map),\
         SchwefelsProblem26: deepcopy(beta_map)}
 
-samples = 50
+samples = 100
 termination = Generations(50)
 
 problems = [TRProblem, SphereProblemOriginR1,\
