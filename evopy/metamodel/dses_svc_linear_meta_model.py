@@ -144,6 +144,6 @@ class DSESSVCLinearMetaModel(MetaModel):
         if self._repair_mode == None: 
             raise Exception("no repair_mode selected: " + repair_mode)
 
-        nx = x + (-nw * 2*s)  #(-nw * (1/sqrt(sum(w ** 2))))
+        nx = x + (-nw * s)  #(-nw * (1/sqrt(sum(w ** 2))))
         return (self._scaling.descale(nx)) #+ (-nw * sigma.min())
 
