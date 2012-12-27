@@ -58,7 +58,7 @@ def get_method_cmaesrsvc():
         C_range = [2 ** i for i in range(-5, 15, 2)],
         cv_method = KFold(20, 5))
 
-    meta_model = SVCLinearMetaModel(\
+    meta_model = CMASVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
