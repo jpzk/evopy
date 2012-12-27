@@ -24,22 +24,7 @@ from pickle import dump
 from copy import deepcopy
 from numpy import matrix, log10
 
-from evopy.strategies.ori_dses_svc_repair import ORIDSESSVCR
-from evopy.strategies.ori_dses_svc import ORIDSESSVC
-from evopy.strategies.ori_dses import ORIDSES
 from evopy.simulators.simulator import Simulator
-
-from evopy.problems.sphere_problem_origin_r1 import SphereProblemOriginR1
-from evopy.problems.sphere_problem_origin_r2 import SphereProblemOriginR2
-from evopy.problems.schwefels_problem_26 import SchwefelsProblem26
-from evopy.problems.tr_problem import TRProblem
-
-from evopy.metamodel.dses_svc_linear_meta_model import DSESSVCLinearMetaModel
-from sklearn.cross_validation import KFold
-from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
-from evopy.operators.scaling.scaling_dummy import ScalingDummy
-from evopy.metamodel.cv.svc_cv_sklearn_grid_linear import SVCCVSkGridLinear
-
 from evopy.operators.termination.or_combinator import ORCombinator
 from evopy.operators.termination.accuracy import Accuracy
 from evopy.operators.termination.generations import Generations
@@ -64,7 +49,7 @@ for problem in problems:
     for optimizer, simulators_ in simulators[problem].iteritems():
         resulting_simulators = pmap(simulate, simulators_)
         for simulator in resulting_simulators:
-            fitness = simulator.optimizer.logger.all()['best_fitness'][-1]
+            fitness = simulator.logger.all()['best_fitness']
             best_fitness[problem][optimizer].append(fitness)
            
 bf_file = open("output/best_fitness_file.save", "w")

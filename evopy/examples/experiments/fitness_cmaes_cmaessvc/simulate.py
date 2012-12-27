@@ -49,7 +49,7 @@ for problem in problems:
     for optimizer, simulators_ in simulators[problem].iteritems():
         resulting_simulators = pmap(simulate, simulators_)
         for simulator in resulting_simulators:
-            fitness = simulator.optimizer.logger.all()['best_fitness'][-1]
+            fitness = simulator.logger.all()['best_fitness']
             best_fitness[problem][optimizer].append(fitness)
            
 bf_file = open("output/best_fitness_file.save", "w")
