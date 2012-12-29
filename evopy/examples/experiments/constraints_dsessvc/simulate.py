@@ -61,7 +61,7 @@ simulate = lambda simulator : simulator.simulate()
 
 # run simulators 
 for problem in problems:
-    resulting_simulators = map(simulate, simulators[problem])
+    resulting_simulators = pmap(simulate, simulators[problem])
     for simulator in resulting_simulators:
         cfcs[problem].append(simulator.logger.all()['count_cfc'])
 

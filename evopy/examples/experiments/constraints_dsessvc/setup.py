@@ -153,7 +153,7 @@ termination = Generations(50)
 problems = [TRProblem, SphereProblemOriginR1,\
     SphereProblemOriginR2, SchwefelsProblem26]
 
-samples = 2 
+samples = 50  
 
 cfcs = {
     TRProblem: [],
