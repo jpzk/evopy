@@ -46,6 +46,9 @@ from evopy.operators.termination.accuracy import Accuracy
 from evopy.operators.termination.generations import Generations
 from evopy.operators.termination.convergence import Convergence 
 
+from os.path import exists
+from os import mkdir
+
 from setup import *  
 
 # create simulators
@@ -66,6 +69,9 @@ for problem in problems:
         for simulator in simulators_:
             cs = simulator.optimizer.meta_model.logger.all()['best_parameter_C']
             parameter_c[problem][optimizer].append(cs)
+
+if not exists("output/"): 
+    mkdir("output/")
 
 c_file = open("output/parameterc_file.save", "w")
 dump(parameter_c, c_file)

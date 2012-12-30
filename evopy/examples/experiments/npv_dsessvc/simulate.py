@@ -45,6 +45,9 @@ from evopy.operators.termination.accuracy import Accuracy
 from evopy.operators.termination.generations import Generations
 from evopy.operators.termination.convergence import Convergence 
 
+from os.path import exists
+from os import mkdir
+
 from setup import *  
 
 # create simulators
@@ -63,6 +66,9 @@ for problem in problems:
             simulator.simulate()
             npv = simulator.optimizer.logger.all()['npv']
             npvs[problem][optimizer].append(npv)
+
+if not exists("output/"): 
+    mkdir("output/")
 
 c_file = open("output/npvs.save", "w")
 dump(npvs, c_file)
