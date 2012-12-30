@@ -31,6 +31,9 @@ from evopy.operators.termination.generations import Generations
 from evopy.operators.termination.convergence import Convergence 
 from evopy.external.playdoh import map as pmap
 
+from os.path import exists
+from os import mkdir
+
 from setup import *  
 
 # create simulators
@@ -51,7 +54,10 @@ for problem in problems:
         for simulator in resulting_simulators:
             fitness = simulator.logger.all()['best_fitness']
             best_fitness[problem][optimizer].append(fitness)
-           
+
+if not exists("output/"): 
+    mkdir("output/")
+          
 bf_file = open("output/best_fitness_file.save", "w")
 dump(best_fitness, bf_file)
 bf_file.close()

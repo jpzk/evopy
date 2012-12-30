@@ -47,6 +47,9 @@ from evopy.operators.termination.accuracy import Accuracy
 from evopy.operators.termination.generations import Generations
 from evopy.operators.termination.convergence import Convergence 
 
+from os.path import exists
+from os import mkdir
+
 from setup import *  
 
 # create simulators
@@ -67,6 +70,9 @@ for problem in problems:
         for simulator in resulting_simulators:
             cfc = simulator.logger.all()['count_cfc']
             cfcs[problem][optimizer].append(cfc)
+ 
+if not exists("output/"): 
+    mkdir("output/")
        
 cfc_file = open("output/cfcs_file.save", "w")
 dump(cfcs, cfc_file)

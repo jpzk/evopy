@@ -46,6 +46,9 @@ from evopy.operators.termination.accuracy import Accuracy
 from evopy.operators.termination.generations import Generations
 from evopy.operators.termination.convergence import Convergence 
 
+from os.path import exists
+from os import mkdir
+
 from setup import *  
 
 # create simulators
@@ -68,6 +71,9 @@ for problem in problems:
             cv_accuracy = simulator.optimizer.meta_model.logger.all()['best_acc']
             precisions[problem][optimizer].append(precision)
             cv_accuracies[problem][optimizer].append(cv_accuracy)
+
+if not exists("output/"): 
+    mkdir("output/")
 
 c_file = open("output/precision_file.save", "w")
 dump(precisions, c_file)
