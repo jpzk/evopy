@@ -69,7 +69,7 @@ for problem in problems:
         variables['mean'][problem][optimizer] = array(precisionses).mean()
         variables['var'][problem][optimizer] = array(precisionses).var()
 
-results = file("output/results.tex", "w")
+results = file("output/results_precisions.tex", "w")
 lines = [
     "\\begin{tabularx}{\\textwidth}{l l X X X X}\n", 
     "\\toprule\n", 

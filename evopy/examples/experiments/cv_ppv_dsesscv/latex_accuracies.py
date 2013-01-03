@@ -73,7 +73,7 @@ for problem in problems:
         variables['mean'][problem][optimizer] = array(accuracieses).mean()
         variables['var'][problem][optimizer] = array(accuracieses).var()
 
-results = file("output/accuracies_results.tex", "w")
+results = file("output/results_accuracies.tex", "w")
 lines = [
     "\\begin{tabularx}{\\textwidth}{l l X X X X}\n", 
     "\\toprule\n", 
@@ -109,7 +109,7 @@ lines = [
     variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2_nor],\
     variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_nor],\
     variables['var'][SphereProblemOriginR2][get_method_SphereProblemR2_nor]),\
-    "TR2 & Ohne & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "TR2 & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
     % (variables['min'][TRProblem][get_method_TR_none],\
     variables['mean'][TRProblem][get_method_TR_none],\
     variables['max'][TRProblem][get_method_TR_none],\
