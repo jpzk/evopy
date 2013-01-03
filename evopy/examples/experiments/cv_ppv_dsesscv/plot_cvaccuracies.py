@@ -62,7 +62,7 @@ none = lambda x : type(x) != type(None)
 for problem in cv_accuracies.keys():    
     figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
     plt.xlabel("Generation")
-    plt.ylabel("Gemittelter CV Vohersagefehler")
+    plt.ylabel("Gemittelte empirische Vohersagegenauigkeit")
     plt.xlim([0, 50])
     plt.ylim([0.0, 1.0])
 
