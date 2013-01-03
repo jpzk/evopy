@@ -62,7 +62,7 @@ none = lambda x : type(x) != type(None)
 for problem in cv_accuracies.keys():    
     figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
     plt.xlabel("Generation")
-    plt.ylabel("Gemittelter CV Vohersagefehler")
+    plt.ylabel("Gemittelte empirische Vohersagegenauigkeit")
     plt.xlim([0, 50])
     plt.ylim([0.0, 1.0])
 
@@ -109,7 +109,7 @@ for problem in cv_accuracies.keys():
             linestyle="none",
             yerr=errors_agg)
 
-    pp = PdfPages("output/cv_accuracies_%s.pdf" % str(problem))
+    pp = PdfPages("output/cv_%s.pdf" % str(problem).split('.')[-1])
     plt.savefig(pp, format='pdf')
     pp.close()
 

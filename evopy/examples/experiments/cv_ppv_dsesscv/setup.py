@@ -377,7 +377,7 @@ def create_problem_optimizer_map(typeofelements):
         get_method_Schwefel26_nor: deepcopy(t),
         get_method_Schwefel26_none: deepcopy(t)}}
 
-samples = 2 
+samples = 100
 termination = Generations(50)
 
 problems = [TRProblem, SphereProblemOriginR1,\
