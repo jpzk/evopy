@@ -74,10 +74,10 @@ lines = [
     "\\toprule\n", 
     "\\textbf{Problem} & Minimum & Maximum \\\\\n",
     "\midrule\n",
-    "Kugel R. 1 & $2^{%i}$ & $2^{%i}$ \\\\\n"\
+    "Kugel. R. 1 & $2^{%i}$ & $2^{%i}$ \\\\\n"\
         % (variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_svc]),\
-    "Kugel R. 2 & $2^{%i}$ & $2^{%i}$ \\\\\n"\
+    "Kugel. R. 2 & $2^{%i}$ & $2^{%i}$ \\\\\n"\
         % (variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_svc]),\
     "TR2 & $2^{%i}$ & $2^{%i}$ \\\\\n"\

@@ -109,7 +109,7 @@ for problem in precisions.keys():
             linestyle="none",
             yerr=errors_agg)
 
-    pp = PdfPages("output/%s.pdf" % str(problem))
+    pp = PdfPages("output/p_%s.pdf" % str(problem).split('.')[-1])
     plt.savefig(pp, format='pdf')
     pp.close()
 

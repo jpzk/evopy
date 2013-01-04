@@ -50,32 +50,36 @@ from evopy.operators.termination.convergence import Convergence
 from evopy.helper.timeseries_aggregator import TimeseriesAggregator
 
 from setup import * 
+import pdb
 
-precisionfile = file("output/precision_file.save", "r")
-precisions = load(precisionfile)
+accuraciefile = file("output/accuracies_file.save", "r")
+accuracies = load(accuraciefile)
 
 variable_names = ['min', 'max', 'mean', 'var', 'h']
 variables = {}
 for variable in variable_names:
     variables[variable] = create_problem_optimizer_map(0.0)
 
+none_filter = lambda accuracy : type(accuracy) != type(None)
+
 for problem in problems:
     for optimizer in optimizers[problem]:
-        precisionses = precisions[problem][optimizer]
-        precisionses = list(chain.from_iterable(precisionses))
+        accuracieses = accuracies[problem][optimizer]
+        accuracieses = list(chain.from_iterable(accuracieses))
+        accuracieses = filter(none_filter, accuracieses)
 
-        variables['min'][problem][optimizer] = min(precisionses)
-        variables['max'][problem][optimizer] = max(precisionses)
-        variables['mean'][problem][optimizer] = array(precisionses).mean()
-        variables['var'][problem][optimizer] = array(precisionses).var()
+        variables['min'][problem][optimizer] = min(accuracieses)
+        variables['max'][problem][optimizer] = max(accuracieses)
+        variables['mean'][problem][optimizer] = array(accuracieses).mean()
+        variables['var'][problem][optimizer] = array(accuracieses).var()
 
-results = file("output/results.tex", "w")
+results = file("output/results_accuracies.tex", "w")
 lines = [
     "\\begin{tabularx}{\\textwidth}{l l X X X X}\n", 
     "\\toprule\n", 
     "\\textbf{Problem} & Skalierung & Minimum & Mittel & Maximum & Varianz \\\\\n",
     "\midrule\n",
-    "Kugel R. 1 & Ohne Skalierung& %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "Kugel. R. 1 & Ohne Skalierung& %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
     % (variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1_none],\
     variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1_none],\
     variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_none],\
@@ -90,7 +94,7 @@ lines = [
     variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1_nor],\
     variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_nor],\
     variables['var'][SphereProblemOriginR1][get_method_SphereProblemR1_nor]),\
-    "Kugel R. 2 & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "Kugel. R. 2 & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
     % (variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2_none],\
     variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2_none],\
     variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_none],\
@@ -105,7 +109,7 @@ lines = [
     variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2_nor],\
     variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_nor],\
     variables['var'][SphereProblemOriginR2][get_method_SphereProblemR2_nor]),\
-    "TR2 & Ohne & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "TR2 & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
     % (variables['min'][TRProblem][get_method_TR_none],\
     variables['mean'][TRProblem][get_method_TR_none],\
     variables['max'][TRProblem][get_method_TR_none],\
