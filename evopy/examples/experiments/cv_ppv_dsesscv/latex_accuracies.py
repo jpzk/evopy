@@ -79,7 +79,7 @@ lines = [
     "\\toprule\n", 
     "\\textbf{Problem} & Skalierung & Minimum & Mittel & Maximum & Varianz \\\\\n",
     "\midrule\n",
-    "Kugel R. 1 & Ohne Skalierung& %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "Kugel. R. 1 & Ohne Skalierung& %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
     % (variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1_none],\
     variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1_none],\
     variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_none],\
@@ -94,7 +94,7 @@ lines = [
     variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1_nor],\
     variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_nor],\
     variables['var'][SphereProblemOriginR1][get_method_SphereProblemR1_nor]),\
-    "Kugel R. 2 & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "Kugel. R. 2 & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
     % (variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2_none],\
     variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2_none],\
     variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_none],\
