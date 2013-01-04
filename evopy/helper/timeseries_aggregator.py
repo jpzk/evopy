@@ -16,8 +16,10 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
-from numpy import sqrt
+from numpy import sqrt, array
 from copy import deepcopy
+
+import pdb 
 
 class TimeseriesAggregator():
     def __init__(self, time_series):
@@ -70,43 +72,24 @@ class TimeseriesAggregator():
 
         return maximum_time_serie                        
 
-    def get_aggregate(self):
+    def get_aggregate(self):                     
+
         max_length = 0
         for time_serie in self._time_series:
             length = len(time_serie)
             if(length > max_length):
                 max_length = length
-
-        std_time_series = [0 for i in range(0, max_length)]
-        sum_time_series = [0 for i in range(0, max_length)] 
-        amount_time_series = [0 for i in range(0, max_length)]
-        mean_time_series = [0 for i in range(0, max_length)]
-
+        
+        y = [[] for i in range(0, max_length)]
         for i in range(0, self._amount):
             time_series = self._time_series[i]
             for k in range(0, len(time_series)):
                 if(type(time_series[k]) != type(None)):
-                    amount_time_series[k] += 1
-                    sum_time_series[k] += time_series[k]
-
-        for i in range(0, max_length):
-            sums = sum_time_series[i]
-            amount = amount_time_series[i]
-            if(amount >= 1):
-                mean_time_series[i] = float(sums) / float(amount)
-            else:
-                mean_time_series[i] = 0
-
-        variance_sums = [0 for i in range(0, max_length)]
-        for i in range(0, max_length):
-            for k in range(0, self._amount):
-                if(len(self._time_series[k]) > i):
-                    if(type(self._time_series[k][i]) != type(None)):
-                        variance_sums[i] +=\
-                            (self._time_series[k][i] - mean_time_series[i]) ** 2
+                    y[k].append(time_series[k])
         
-        variance_avgs = map(lambda x : x / float(len(variance_sums)), variance_sums)
-        stds = map(lambda x : sqrt(x), variance_avgs)  
-
-        return mean_time_series, stds
+        y_means = map(lambda y_entry : array(y_entry).mean(), y)
+        y_stds = map(lambda y_entry : array(y_entry).std(), y)
+        y_vars = map(lambda y_entry : array(y_entry).var(), y)
+        
+        return y_means, y_stds 
 
