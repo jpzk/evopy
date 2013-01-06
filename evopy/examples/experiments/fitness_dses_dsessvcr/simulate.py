@@ -68,7 +68,7 @@ for problem in problems:
     for optimizer, simulators_ in simulators[problem].iteritems():
         resulting_simulators = pmap(simulate, simulators_)
         for simulator in resulting_simulators:
-            fitness = simulator.logger.all()['best_fitness']
+            fitness = simulator.optimizer.logger.all()['best_fitness']
             best_fitness[problem][optimizer].append(fitness)
 
 if not exists("output/"): 
