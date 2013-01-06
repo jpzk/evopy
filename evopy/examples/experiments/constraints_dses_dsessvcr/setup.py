@@ -68,7 +68,7 @@ def get_method_SphereProblemR1_svc():
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'project')
 
     method = ORIDSESSVCR(\
         mu = 15,
@@ -108,7 +108,7 @@ def get_method_SphereProblemR2_svc():
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'project')
 
     method = ORIDSESSVCR(\
         mu = 15,
@@ -148,7 +148,7 @@ def get_method_TR_svc():
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'project')
 
     method = ORIDSESSVCR(\
         mu = 15,
@@ -188,7 +188,7 @@ def get_method_Schwefel26_svc():
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'project')
 
     method = ORIDSESSVCR(\
         mu = 15,
@@ -213,7 +213,7 @@ def create_problem_optimizer_map(typeofelements):
     SphereProblemOriginR2: {get_method_SphereProblemR2: deepcopy(t), get_method_SphereProblemR2_svc: deepcopy(t)},
     SchwefelsProblem26: {get_method_Schwefel26: deepcopy(t), get_method_Schwefel26_svc: deepcopy(t)}}
 
-samples = 30 
+samples = 50 
 termination = Generations(50)
 
 problems = [TRProblem, SphereProblemOriginR1,\
