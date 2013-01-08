@@ -46,7 +46,7 @@ from evopy.operators.termination.convergence import Convergence
 
 def get_method_SphereProblemR1_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -60,8 +60,8 @@ def get_method_SphereProblemR1_svc():
         lambd = 100,
         theta = 0.3,
         pi = 15,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[5.0, 5.0]]),
+        delta = 5.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
@@ -72,7 +72,7 @@ def get_method_SphereProblemR1_svc():
 
 def get_method_SphereProblemR2_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -86,8 +86,8 @@ def get_method_SphereProblemR2_svc():
         lambd = 100,
         theta = 0.3,
         pi = 15,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[5.0, 5.0]]),
+        delta = 5.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
@@ -98,7 +98,7 @@ def get_method_SphereProblemR2_svc():
 
 def get_method_TR_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -124,7 +124,7 @@ def get_method_TR_svc():
 
 def get_method_Schwefel26_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -138,8 +138,8 @@ def get_method_Schwefel26_svc():
         lambd = 100,
         theta = 0.3,
         pi = 15,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[34.0, 36.0]]),
+        delta = 36.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[100.0, 100.0]]),
@@ -153,7 +153,7 @@ termination = Generations(50)
 problems = [TRProblem, SphereProblemOriginR1,\
     SphereProblemOriginR2, SchwefelsProblem26]
 
-samples = 50  
+samples = 100
 
 cfcs = {
     TRProblem: [],
