@@ -66,7 +66,7 @@ simulate = lambda simulator : simulator.simulate()
 for problem in problems:
     for optimizer, simulators_ in simulators[problem].iteritems():
         resulting_simulators = pmap(simulate, simulators_)
-        for simulator in simulators_:
+        for simulator in resulting_simulators:
             cs = simulator.optimizer.meta_model.logger.all()['best_parameter_C']
             parameter_c[problem][optimizer].append(cs)
 
