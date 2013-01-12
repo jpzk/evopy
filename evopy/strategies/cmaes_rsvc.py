@@ -166,14 +166,6 @@ class CMAESRSVC(EvolutionStrategy):
                 else:                    
                     # appending meta-infeasible solution to a_posteriori pending  
                     self._pending_apos_solutions.append((individual, False))
-
-                    reduced_repaired = self.meta_model.repair(reduced_individual)
-                    repaired = self._unreduce(reduced_repaired)
-                    self._count_repaired += 1
-                    pending_meta_feasible.append(repaired)
-
-                    # appending meta-feasible solution to a_posteriori pending
-                    self._pending_apos_solutions.append((individual, True))
         else: 
             max_amount_pending_solutions = difference
 
