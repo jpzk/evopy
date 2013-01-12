@@ -23,7 +23,7 @@ path.append("../../../..")
 from pickle import load 
 from copy import deepcopy
 from numpy import matrix, log10, array
-from scipy.stats import wilcoxon 
+from scipy.stats import wilcoxon, ranksums 
 
 from evopy.strategies.ori_dses_svc_repair import ORIDSESSVCR
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
@@ -76,13 +76,13 @@ pvalues = {}
 for problem in problems:
     x = best_fitness[problem][optimizers[problem][0]]
     y = best_fitness[problem][optimizers[problem][1]]
-    z, pvalues[problem] = wilcoxon(x,y)
+    z, pvalues[problem] = ranksums(x,y)
 
 results = file("output/results.tex","w")
 lines = [
     "\\begin{tabularx}{\\textwidth}{l X X X X X X X }\n", 
     "\\toprule\n", 
-    "\\textbf{Problem} & $p_w$ & SVK & Minimum & Mittel & Maximum & Varianz & $h$\\\\\n",
+    "\\textbf{Problem} & p-Wert & SVK & Minimum & Mittel & Maximum & Varianz & h\\\\\n",
     "\midrule\n",
     "Kugel R. 1 & %1.2f & nein & %1.2e & %1.2e & %1.2e & %1.2e & %1.2e \\\\\n"\
         % (pvalues[SphereProblemOriginR1],\
