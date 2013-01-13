@@ -50,7 +50,7 @@ simulate = lambda simulator : simulator.simulate()
 # run simulators 
 for problem in problems:
     for optimizer, simulators_ in simulators[problem].iteritems():
-        resulting_simulators = map(simulate, simulators_)
+        resulting_simulators = pmap(simulate, simulators_)
         for simulator in resulting_simulators:
             fitness = simulator.optimizer.logger.all()['best_fitness'][-1]
             best_fitness[problem][optimizer].append(fitness)
