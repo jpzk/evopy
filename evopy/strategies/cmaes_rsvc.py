@@ -26,7 +26,7 @@ from math import floor
 
 from numpy import array, mean, log, eye, diag, transpose, vectorize
 from numpy import identity, matrix, dot, exp, zeros, ones
-from numpy.random import normal, rand
+from numpy.random import normal, rand, random
 from numpy.linalg import eigh, norm, inv
 
 from evolution_strategy import EvolutionStrategy
@@ -155,8 +155,6 @@ class CMAESRSVC(EvolutionStrategy):
                 individuals.append(individual)
 
         return individuals 
-
-
 
     def tell_feasibility(self, feasibility_information):
         """ tell feasibilty; return True if there are no pending solutions, 
