@@ -48,7 +48,7 @@ def get_method_SphereProblemR1():
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),        
-        sigma = 4.5)
+        sigma = 5.0)
 
     return method
 
@@ -57,7 +57,7 @@ def get_method_SphereProblemR2():
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),        
-        sigma = 4.5)
+        sigma = 5.0)
 
     return method
 
@@ -75,7 +75,7 @@ def get_method_Schwefel26():
         mu = 15,
         lambd = 100,
         xmean = matrix([[100.0, 100.0]]),        
-        sigma = 4.5)
+        sigma = 36.0)
 
     return method
 
@@ -94,7 +94,7 @@ def get_method_SphereProblemR1_svc():
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),
-        sigma = 4.5,
+        sigma = 5.0,
         beta = 0.80,
         meta_model = meta_model) 
 
@@ -109,13 +109,13 @@ def get_method_SphereProblemR2_svc():
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'none')
 
     method = CMAESSVC(\
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),
-        sigma = 4.5,
+        sigma = 5.0,
         beta = 0.80,
         meta_model = meta_model) 
     
@@ -130,7 +130,7 @@ def get_method_TR_svc():
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'none')
 
     method = CMAESSVC(\
         mu = 15,
@@ -151,13 +151,13 @@ def get_method_Schwefel26_svc():
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'none')
 
     method = CMAESSVC(\
         mu = 15,
         lambd = 100,
         xmean = matrix([[100.0, 100.0]]),
-        sigma = 4.5,
+        sigma = 36.0,
         beta = 0.80,
         meta_model = meta_model) 
     

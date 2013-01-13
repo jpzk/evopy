@@ -48,7 +48,7 @@ def get_method_SphereProblemR1():
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),        
-        sigma = 4.5)
+        sigma = 5.0)
 
     return method
 
@@ -57,7 +57,7 @@ def get_method_SphereProblemR2():
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),        
-        sigma = 4.5)
+        sigma = 5.0)
 
     return method
 
@@ -75,90 +75,90 @@ def get_method_Schwefel26():
         mu = 15,
         lambd = 100,
         xmean = matrix([[100.0, 100.0]]),        
-        sigma = 4.5)
+        sigma = 36.0)
 
     return method
 
 def get_method_SphereProblemR1_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = CMASVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'none')
 
     method = CMAESSVC(\
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),
         sigma = 4.5,
-        beta = 0.95,
+        beta = 0.80,
         meta_model = meta_model) 
 
     return method
 
 def get_method_SphereProblemR2_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = CMASVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'none')
 
     method = CMAESSVC(\
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),
         sigma = 4.5,
-        beta = 0.95,
+        beta = 0.80,
         meta_model = meta_model) 
     
     return method
     
 def get_method_TR_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = CMASVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'none')
 
     method = CMAESSVC(\
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),
         sigma = 4.5,
-        beta = 0.95,
+        beta = 0.80,
         meta_model = meta_model) 
     
     return method
  
 def get_method_Schwefel26_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = CMASVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'mirror')
+        repair_mode = 'none')
 
     method = CMAESSVC(\
         mu = 15,
         lambd = 100,
         xmean = matrix([[100.0, 100.0]]),
-        sigma = 4.5,
-        beta = 0.95,
+        sigma = 36.0,
+        beta = 0.80,
         meta_model = meta_model) 
     
     return method
@@ -171,8 +171,8 @@ def create_problem_optimizer_map(typeofelements):
     SphereProblemOriginR2: {get_method_SphereProblemR2: deepcopy(t), get_method_SphereProblemR2_svc: deepcopy(t)},
     SchwefelsProblem26: {get_method_Schwefel26: deepcopy(t), get_method_Schwefel26_svc: deepcopy(t)}}
 
-samples = 50 
-termination = Generations(50)
+samples = 100
+termination = Generations(100)
 
 problems = [TRProblem, SphereProblemOriginR1,\
     SphereProblemOriginR2, SchwefelsProblem26]
