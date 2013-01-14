@@ -67,6 +67,8 @@ def nadaraya(x, data, labels, h):
     print data, labels
     bottom = sum(map(lambda sample : (1/h)*gauss((x - sample)/h), data))
     top = sum(map(lambda sample, label : label * (1/h)* gauss((x - sample)/h), data, labels))
+    if(bottom == 0.0):
+        return 0
     return float(top)/float(bottom)
 
 for problem in problems:
@@ -83,10 +85,10 @@ for problem in problems:
     minimum = min(x1 + x2)
     maximum = max(x1 + x2)
 
-    plt.xlim([minimum - 20, maximum + 20])
+    plt.xlim([minimum - 20, 250])
 
     pdfs1, bins1, patches1 = hist(x1, normed=False, alpha=0.5,\
-        histtype='step', edgecolor="g")
+        histtype='step', edgecolor="g", bins = range(0, 250+10, 10))
 
     h = 1.06 * array(x1).std() * (len(x1)**(-1.0/5.0))
     x = linspace(minimum - 20, maximum + 20, 100)
@@ -94,7 +96,7 @@ for problem in problems:
     plot(x,y, linestyle="--", color="g")
 
     pdfs2, bins2, patches2 = hist(x2, normed=False, alpha=0.5,\
-        histtype='step', edgecolor="#004779")
+        histtype='step', edgecolor="#004779", bins = range(0, 250+10, 10))
 
     h = 1.06 * array(x2).std() * (len(x2)**(-1.0/5.0))
     x = linspace(minimum - 20, maximum + 20, 100)
