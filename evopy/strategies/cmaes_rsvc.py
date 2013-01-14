@@ -26,7 +26,7 @@ from math import floor
 
 from numpy import array, mean, log, eye, diag, transpose, vectorize
 from numpy import identity, matrix, dot, exp, zeros, ones
-from numpy.random import normal, rand
+from numpy.random import normal, rand, random
 from numpy.linalg import eigh, norm, inv
 
 from evolution_strategy import EvolutionStrategy
@@ -141,47 +141,20 @@ class CMAESRSVC(EvolutionStrategy):
     def ask_pending_solutions(self):
         """ ask pending solutions; solutions which need a checking for true 
             feasibility """
-
-        # testing beta percent of generated children on meta model first.
-        pending_meta_feasible = []
-        pending_solutions = []
-
-        difference = self._lambd - len(self._valid_solutions)
-
-        if(self.meta_model_trained):
-            max_amount_meta_feasible = int(floor(self._beta * difference))
-            max_amount_pending_solutions = difference - max_amount_meta_feasible        
-
-            while(len(pending_meta_feasible) < max_amount_meta_feasible):
-
+        individuals = []
+        while(len(individuals) < 1):
+            if((random() < self._beta) and self.meta_model_trained):
                 individual = self._generate_individual()
-                # reducing individual, back rotation to standard basis
-                reduced_individual = self._reduce(individual)
-
-                if(self.meta_model.check_feasibility(reduced_individual)):
-                    pending_meta_feasible.append(individual)
-
-                    # appending meta-feasible solution to a_posteriori pending
-                    self._pending_apos_solutions.append((individual, True))                   
-                else:                    
-                    # appending meta-infeasible solution to a_posteriori pending  
-                    self._pending_apos_solutions.append((individual, False))
-
-                    reduced_repaired = self.meta_model.repair(reduced_individual)
-                    repaired = self._unreduce(reduced_repaired)
-                    self._count_repaired += 1
-                    pending_meta_feasible.append(repaired)
-
-                    # appending meta-feasible solution to a_posteriori pending
+                if(self.meta_model.check_feasibility(individual)):
+                    individuals.append(individual)
                     self._pending_apos_solutions.append((individual, True))
-        else: 
-            max_amount_pending_solutions = difference
+                else:
+                    self._pending_apos_solutions.append((individual, False))
+            else:
+                individual = self._generate_individual()
+                individuals.append(individual)
 
-        while(len(pending_solutions) < max_amount_pending_solutions):
-            individual = self._generate_individual()
-            pending_solutions.append(individual)
-
-        return pending_meta_feasible + pending_solutions            
+        return individuals 
 
     def tell_feasibility(self, feasibility_information):
         """ tell feasibilty; return True if there are no pending solutions, 
