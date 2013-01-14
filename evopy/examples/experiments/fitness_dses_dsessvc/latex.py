@@ -64,6 +64,8 @@ for variable in variable_names:
 
 for problem in problems:
     for optimizer in optimizers[problem]:
+        import pdb
+        pdb.set_trace()
         best_fitnesses = best_fitness[problem][optimizer]
         variables['min'][problem][optimizer] = min(best_fitnesses)
         variables['max'][problem][optimizer] = max(best_fitnesses)

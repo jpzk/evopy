@@ -75,62 +75,62 @@ lines = [
     "\\toprule\n", 
     "\\textbf{Problem} & Skalierung & Minimum & Mittel & Maximum & Varianz \\\\\n",
     "\midrule\n",
-    "Kugel. R. 1 & Ohne Skalierung& %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "Kugel. R. 1 & Ohne Skalierung& %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1_none],\
     variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1_none],\
     variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_none],\
     variables['var'][SphereProblemOriginR1][get_method_SphereProblemR1_none]),\
-    "& Standardisierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "& Standardisierung & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1_ssc],\
     variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1_ssc],\
     variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_ssc],\
     variables['var'][SphereProblemOriginR1][get_method_SphereProblemR1_ssc]),\
-    "& Normalisierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "& Normalisierung & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1_nor],\
     variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1_nor],\
     variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_nor],\
     variables['var'][SphereProblemOriginR1][get_method_SphereProblemR1_nor]),\
-    "Kugel. R. 2 & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "Kugel. R. 2 & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2_none],\
     variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2_none],\
     variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_none],\
     variables['var'][SphereProblemOriginR2][get_method_SphereProblemR2_none]),\
-    "& Standardisierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "& Standardisierung & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2_ssc],\
     variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2_ssc],\
     variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_ssc],\
     variables['var'][SphereProblemOriginR2][get_method_SphereProblemR2_ssc]),\
-    "& Normalisierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "& Normalisierung & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2_nor],\
     variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2_nor],\
     variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_nor],\
     variables['var'][SphereProblemOriginR2][get_method_SphereProblemR2_nor]),\
-    "TR2 & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "TR2 & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][TRProblem][get_method_TR_none],\
     variables['mean'][TRProblem][get_method_TR_none],\
     variables['max'][TRProblem][get_method_TR_none],\
     variables['var'][TRProblem][get_method_TR_none]),\
-    "& Standardisierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "& Standardisierung & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][TRProblem][get_method_TR_ssc],\
     variables['mean'][TRProblem][get_method_TR_ssc],\
     variables['max'][TRProblem][get_method_TR_ssc],\
     variables['var'][TRProblem][get_method_TR_ssc]),\
-    "& Normalisierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "& Normalisierung & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][TRProblem][get_method_TR_nor],\
     variables['mean'][TRProblem][get_method_TR_nor],\
     variables['max'][TRProblem][get_method_TR_nor],\
     variables['var'][TRProblem][get_method_TR_nor]),\
-    "2.60 mit R. & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2e\\\\\n"\
+    "2.60 mit R. & Ohne Skalierung & %1.2f & %1.2f & %1.2f & %1.2f\\\\\n"\
     % (variables['min'][SchwefelsProblem26][get_method_Schwefel26_none],\
     variables['mean'][SchwefelsProblem26][get_method_Schwefel26_none],\
     variables['max'][SchwefelsProblem26][get_method_Schwefel26_none],\
     variables['var'][SchwefelsProblem26][get_method_Schwefel26_none]),\
-    "& Standardisierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "& Standardisierung & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][SchwefelsProblem26][get_method_Schwefel26_ssc],\
     variables['mean'][SchwefelsProblem26][get_method_Schwefel26_ssc],\
     variables['max'][SchwefelsProblem26][get_method_Schwefel26_ssc],\
     variables['var'][SchwefelsProblem26][get_method_Schwefel26_ssc]),\
-    "& Normalisierung & %1.2f & %1.2f & %1.2f & %1.2e \\\\\n"\
+    "& Normalisierung & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
     % (variables['min'][SchwefelsProblem26][get_method_Schwefel26_nor],\
     variables['mean'][SchwefelsProblem26][get_method_Schwefel26_nor],\
     variables['max'][SchwefelsProblem26][get_method_Schwefel26_nor],\
