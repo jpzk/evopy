@@ -64,13 +64,19 @@ for variable in variable_names:
 
 for problem in problems:
     for optimizer in optimizers[problem]:
+        p = problem()
+        opt = p.optimum_fitness()
+ 
         best_fitnesses = best_fitness[problem][optimizer]
-        variables['min'][problem][optimizer] = min(best_fitnesses)
-        variables['max'][problem][optimizer] = max(best_fitnesses)
-        variables['mean'][problem][optimizer] = array(best_fitnesses).mean()
-        variables['var'][problem][optimizer] = array(best_fitnesses).var()
+        best_fitnesses_log10 = map(lambda x : log10(x - opt), best_fitnesses)        
+
+        variables['min'][problem][optimizer] = min(best_fitnesses_log10)
+        variables['max'][problem][optimizer] = max(best_fitnesses_log10)
+        variables['mean'][problem][optimizer] = array(best_fitnesses_log10).mean()
+        variables['var'][problem][optimizer] = array(best_fitnesses_log10).var()
         variables['h'][problem][optimizer] =\
-            1.06 * array(best_fitnesses).std() * (len(best_fitnesses)**(-1.0/5.0))
+            1.06 * array(best_fitnesses_log10).std() *\
+            (len(best_fitnesses_log10)**(-1.0/5.0))
 
 pvalues = {}
 for problem in problems:
@@ -84,56 +90,56 @@ lines = [
     "\\toprule\n", 
     "\\textbf{Problem} & p-Wert & SVK & Minimum & Mittel & Maximum & Varianz & h\\\\\n",
     "\midrule\n",
-    "Kugel R. 1 & %1.2f & nein & %1.2e & %1.2e & %1.2e & %1.2e & %1.2e \\\\\n"\
+    "Kugel R. 1 & %1.2f & nein & %1.2f & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
         % (pvalues[SphereProblemOriginR1],\
         variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1],\
         variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1],\
         variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1],\
         variables['var'][SphereProblemOriginR1][get_method_SphereProblemR1],\
         variables['h'][SphereProblemOriginR1][get_method_SphereProblemR1]),\
-    "&& ja & %1.2e & %1.2e & %1.2e & %1.2e & %1.2e \\\\\n"\
+    "&& ja & %1.2f & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
         % (variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['var'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['h'][SphereProblemOriginR1][get_method_SphereProblemR1_svc]),\
-    "Kugel R. 2 & %1.2f & nein & %1.2e & %1.2e & %1.2e & %1.2e & %1.2e \\\\\n"\
+    "Kugel R. 2 & %1.2f & nein & %1.2f & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
         % (pvalues[SphereProblemOriginR2],\
         variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2],\
         variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2],\
         variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2],\
         variables['var'][SphereProblemOriginR2][get_method_SphereProblemR2],\
         variables['h'][SphereProblemOriginR2][get_method_SphereProblemR2_svc]),\
-    "&& ja & %1.2e & %1.2e & %1.2e & %1.2e & %1.2e \\\\\n"\
+    "&& ja & %1.2f & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
         % (variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['var'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['h'][SphereProblemOriginR2][get_method_SphereProblemR2_svc]),\
-    "TR2 & %1.2f & nein & %1.2e & %1.2e & %1.2e & %1.2e & %1.2e \\\\\n"\
+    "TR2 & %1.2f & nein & %1.2f & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
         % (pvalues[TRProblem],\
-        variables['min'][TRProblem][get_method_TR]-2.0,\
-        variables['mean'][TRProblem][get_method_TR]-2.0,\
-        variables['max'][TRProblem][get_method_TR]-2.0,\
+        variables['min'][TRProblem][get_method_TR],\
+        variables['mean'][TRProblem][get_method_TR],\
+        variables['max'][TRProblem][get_method_TR],\
         variables['var'][TRProblem][get_method_TR],\
         variables['h'][TRProblem][get_method_TR]),\
-    "&& ja & %1.2e & %1.2e & %1.2e & %1.2e & %1.2e \\\\\n"\
-        % (variables['min'][TRProblem][get_method_TR_svc]-2.0,\
-        variables['mean'][TRProblem][get_method_TR_svc]-2.0,\
-        variables['max'][TRProblem][get_method_TR_svc]-2.0,\
+    "&& ja & %1.2f & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
+        % (variables['min'][TRProblem][get_method_TR_svc],\
+        variables['mean'][TRProblem][get_method_TR_svc],\
+        variables['max'][TRProblem][get_method_TR_svc],\
         variables['var'][TRProblem][get_method_TR_svc],\
         variables['h'][TRProblem][get_method_TR_svc]),\
-    "2.60 mit R. & %1.2f & nein & %1.2e & %1.2e & %1.2e & %1.2e & %1.2e\\\\\n"\
+    "2.60 mit R. & %1.2f & nein & %1.2f & %1.2f & %1.2f & %1.2f & %1.2f\\\\\n"\
         % (pvalues[SchwefelsProblem26],\
-        variables['min'][SchwefelsProblem26][get_method_Schwefel26]-99.0,\
-        variables['mean'][SchwefelsProblem26][get_method_Schwefel26]-99.0,\
-        variables['max'][SchwefelsProblem26][get_method_Schwefel26]-99.0,\
+        variables['min'][SchwefelsProblem26][get_method_Schwefel26],\
+        variables['mean'][SchwefelsProblem26][get_method_Schwefel26],\
+        variables['max'][SchwefelsProblem26][get_method_Schwefel26],\
         variables['var'][SchwefelsProblem26][get_method_Schwefel26],\
         variables['h'][SchwefelsProblem26][get_method_Schwefel26]),\
-    "&& ja & %1.2e & %1.2e & %1.2e & %1.2e & %1.2e \\\\\n"\
-        % (variables['min'][SchwefelsProblem26][get_method_Schwefel26_svc]-99.0,\
-        variables['mean'][SchwefelsProblem26][get_method_Schwefel26_svc]-99.0,\
-        variables['max'][SchwefelsProblem26][get_method_Schwefel26_svc]-99.0,\
+    "&& ja & %1.2f & %1.2f & %1.2f & %1.2f & %1.2f \\\\\n"\
+        % (variables['min'][SchwefelsProblem26][get_method_Schwefel26_svc],\
+        variables['mean'][SchwefelsProblem26][get_method_Schwefel26_svc],\
+        variables['max'][SchwefelsProblem26][get_method_Schwefel26_svc],\
         variables['var'][SchwefelsProblem26][get_method_Schwefel26_svc],\
         variables['h'][SchwefelsProblem26][get_method_Schwefel26_svc]),\
     "\\bottomrule\n",\
