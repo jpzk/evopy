@@ -108,76 +108,9 @@ class CMASVCLinearMetaModel(MetaModel):
 
         # Update new basis of meta model
         self._normal = self.get_normal()
-        self._prepare_inverse_rotations(self._normal)
 
         self.logger.log()
         return True
-
-    def givens(self, i, j, alpha, d):
-        mat = []
-        for a in range(0, d):
-            row = []
-            for b in range(0, d):
-                if a == i and b == i:
-                    row.append(cos(alpha))
-                elif a == j and b == j:
-                    row.append(cos(alpha))
-                elif a == j and b == i:
-                    row.append(sin(alpha))
-                elif a == i and b == j:
-                    row.append(-sin(alpha))                    
-                elif a == b and a != j and b != j: 
-                    row.append(1)   
-                else:
-                    row.append(0)
-            mat.append(row)                                                
-        return matrix(mat)
-
-    def rotations(self, normal, d):       
-        rotations = []
-        self.angles = []            
-        enormals = [transpose(normal)]
-
-        for x, y in [(0, i) for i in range(1,d)]:
-            lnormal = enormals[-1]
-            lnormal_as_list = lnormal.getA1()
-
-            # calculate radian of last embedded normal
-            angle = arctan2(lnormal_as_list[y], lnormal_as_list[x])
-
-            # append angles for info
-            # (2 * pi + angle) for CMA-ES left-hand-coordinates
-            # -angle for DSES right-hand-coordinates
-            self.angles.append((2 * pi + angle) * 180.0/pi)
-
-            # (2 * pi + angle) for CMA-ES left-hand-coordinates
-            # -angle for DSES right-hand-coordinates 
-            # embed normal into next axis combination
-            rotation = self.givens(x,y, 2 * pi + angle, d)
-
-            # append embedded normal
-            enormals.append(rotation * lnormal)
-
-            # append rotation
-            rotations.append(rotation)
-
-        rotations.reverse()            
-        return rotations
-   
-    def _prepare_inverse_rotations(self, hyperplane_normal):
-        inormal = -hyperplane_normal
-        d = len(inormal)
-        inormal = matrix(inormal)
-        rotations = self.rotations(inormal, d)
-        self.inverse_rotations = []
-
-        for rotation in rotations:
-            # transpose(rotation matrix) is inverse
-            inv_rotation = transpose(rotation)
-            self.inverse_rotations.append(inv_rotation)
-
-        # left-associative reduce (important!)
-        self.new_basis = reduce(lambda r1, r2 : r1 * r2, self.inverse_rotations)
 
     def distance_to_hp(self, x):
         """ Returns the distance from a point to hyperplane """
