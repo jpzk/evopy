@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from numpy import vectorize
+from numpy import vectorize, float64
 
 class TRProblem():
 
@@ -34,10 +34,10 @@ class TRProblem():
         return _lpower(x)
 
     def is_feasible(self, x):
-        return x.sum() - float(self._d) >= 0
+        return float64(x.sum()) - float64(self._d) >= 0
 
     def fitness(self, x):
         return self._power(x).sum()
 
     def optimum_fitness(self):
-        return float(self._d)
+        return float64(self._d)

@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from numpy import float64
+
 class SchwefelsProblem26:
 
     description = "Schwefel's problem 2.6"
@@ -27,7 +29,7 @@ class SchwefelsProblem26:
         self._size = size
 
     def is_feasible(self, x):
-        return x.sum() - 70 >= 0
+        return float64(x.sum()) - float64(70) >= 0
 
     def fitness(self, x):
         return max(\
@@ -35,4 +37,4 @@ class SchwefelsProblem26:
             abs(2 * x[0,0] + x[0,1] - 5))
                                
     def optimum_fitness(self):
-        return 99.0 
+        return float64(99.0)
