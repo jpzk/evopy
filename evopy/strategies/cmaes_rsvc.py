@@ -145,7 +145,8 @@ class CMAESRSVC(EvolutionStrategy):
         while(len(individuals) < 1):
             if((random() < self._beta) and self.meta_model_trained):
                 individual = self._generate_individual()
-                if(self.meta_model.check_feasibility(individual)):
+                reduced_invidual = self._reduce(individual)
+                if(self.meta_model.check_feasibility(reduced_individual)):
                     individuals.append(individual)
                     self._pending_apos_solutions.append((individual, True))
                 else:

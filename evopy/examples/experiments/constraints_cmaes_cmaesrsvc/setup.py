@@ -32,8 +32,8 @@ from evopy.problems.sphere_problem_origin_r1 import SphereProblemOriginR1
 from evopy.problems.sphere_problem_origin_r2 import SphereProblemOriginR2
 from evopy.problems.schwefels_problem_26 import SchwefelsProblem26
 from evopy.problems.tr_problem import TRProblem
+from evopy.metamodel.rsvc_linear_meta_model import RSVCLinearMetaModel
 
-from evopy.metamodel.cma_svc_linear_meta_model import CMASVCLinearMetaModel
 from sklearn.cross_validation import KFold
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.operators.scaling.scaling_dummy import ScalingDummy
@@ -85,7 +85,7 @@ def get_method_SphereProblemR1_svc():
         C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
-    meta_model = CMASVCLinearMetaModel(\
+    meta_model = RSVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
@@ -106,7 +106,7 @@ def get_method_SphereProblemR2_svc():
         C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
-    meta_model = CMASVCLinearMetaModel(\
+    meta_model = RSVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
@@ -127,7 +127,7 @@ def get_method_TR_svc():
         C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
-    meta_model = CMASVCLinearMetaModel(\
+    meta_model = RSVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
@@ -148,7 +148,7 @@ def get_method_Schwefel26_svc():
         C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
-    meta_model = CMASVCLinearMetaModel(\
+    meta_model = RSVCLinearMetaModel(\
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
