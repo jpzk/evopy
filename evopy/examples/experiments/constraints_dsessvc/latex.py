@@ -20,16 +20,18 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from sys import path
 path.append("../../../..")
 
-from pickle import dump
+from pickle import load 
 from copy import deepcopy
-from numpy import matrix, log10
+from numpy import matrix, log10, array
+from scipy.stats import wilcoxon 
+from itertools import chain
+from pylab import errorbar 
+from matplotlib.backends.backend_pdf import PdfPages
 
 from evopy.strategies.ori_dses_svc_repair import ORIDSESSVCR
 from evopy.strategies.ori_dses_svc import ORIDSESSVC
 from evopy.strategies.ori_dses import ORIDSES
-
 from evopy.simulators.simulator import Simulator
-from evopy.external.playdoh import map as pmap
 
 from evopy.problems.sphere_problem_origin_r1 import SphereProblemOriginR1
 from evopy.problems.sphere_problem_origin_r2 import SphereProblemOriginR2
@@ -47,35 +49,54 @@ from evopy.operators.termination.accuracy import Accuracy
 from evopy.operators.termination.generations import Generations
 from evopy.operators.termination.convergence import Convergence 
 
-from os.path import exists
-from os import mkdir
+from evopy.helper.timeseries_aggregator import TimeseriesAggregator
 
-from setup import *  
+import matplotlib.pyplot as plt
+from setup import * 
 
-# create simulators
-for problem in problems:
-    for optimizer in optimizers[problem]:
-        simulators_op = []
-        for i in range(0, samples):
-            opt = problem().optimum_fitness()
-            termination = Accuracy(opt, pow(10, -15))
-            simulator = Simulator(optimizer(), problem(), termination)
-            simulators_op.append(simulator)
-        simulators[problem][optimizer] = simulators_op
+problems_order = [SphereProblemOriginR1, SphereProblemOriginR2,\
+    TRProblem, SchwefelsProblem26]
 
-simulate = lambda simulator : simulator.simulate()
+problem_titles = {
+    TRProblem : "TR2 Problem",\
+    SphereProblemOriginR1: "Kugel. R. 1",\
+    SphereProblemOriginR2: "Kugel. R. 2",\
+    SchwefelsProblem26: "2.6 mit R."
+    }
 
-# run simulators 
-for problem in problems:
-    for optimizer, simulators_ in simulators[problem].iteritems():
-        resulting_simulators = pmap(simulate, simulators_)
-        for simulator in resulting_simulators:
-            cfc = simulator.logger.all()['count_cfc']
-            cfcs[problem][optimizer].append(cfc)
+lines_p = []
+
+cfcs_file = file("output/cfcs_file.save", "r")
+cfcs = load(cfcs_file)
+
+
+for problem in problems_order:
+    cfcs_agg, errors_agg =\
+        TimeseriesAggregator(cfcs[problem]).get_aggregate()
+
+    minimum = array(cfcs_agg).min()
+    maximum = array(cfcs_agg).max()
+    mean = array(cfcs_agg).mean()
+    variance = array(cfcs_agg).var()
+
+    lines_p.append("%s & %1.2f & %1.2f & %1.2f & %1.2f\\\\\n"\
+    % (problem_titles[problem], minimum, mean, maximum, variance))
+
+results = file("output/results.tex", "w")
+lines = [
+    "\\begin{tabularx}{\\textwidth}{l X X X X}\n", 
+    "\\toprule\n", 
+    "\\textbf{Problem} & Minimum & Mittelwert & Maximum & Varianz\\\\\n",
+    "\midrule\n"]
+
+endlines = [
+    "\\bottomrule\n",\
+    "\end{tabularx}\n"]
+
+lines = lines + lines_p + endlines
+
+results.writelines(lines)
+results.close()
+
+
  
-if not exists("output/"): 
-    mkdir("output/")
-      
-cfc_file = open("output/cfcs_file.save", "w")
-dump(cfcs, cfc_file)
-cfc_file.close()

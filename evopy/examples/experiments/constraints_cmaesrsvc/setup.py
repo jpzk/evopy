@@ -25,7 +25,6 @@ from numpy import matrix, log10
 
 from evopy.strategies.cmaes import CMAES
 from evopy.strategies.cmaes_svc import CMAESSVC
-from evopy.strategies.cmaes_rsvc import CMAESRSVC
 from evopy.simulators.simulator import Simulator
 
 from evopy.problems.sphere_problem_origin_r1 import SphereProblemOriginR1
@@ -89,9 +88,9 @@ def get_method_SphereProblemR1_svc():
         window_size = 10,
         scaling = ScalingStandardscore(),
         crossvalidation = sklearn_cv,
-        repair_mode = 'none')
+        repair_mode = 'mirror')
 
-    method = CMAESRSVC(\
+    method = CMAESSVC(\
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),
@@ -112,7 +111,7 @@ def get_method_SphereProblemR2_svc():
         crossvalidation = sklearn_cv,
         repair_mode = 'none')
 
-    method = CMAESRSVC(\
+    method = CMAESSVC(\
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),
@@ -133,7 +132,7 @@ def get_method_TR_svc():
         crossvalidation = sklearn_cv,
         repair_mode = 'none')
 
-    method = CMAESRSVC(\
+    method = CMAESSVC(\
         mu = 15,
         lambd = 100,
         xmean = matrix([[10.0, 10.0]]),
@@ -154,7 +153,7 @@ def get_method_Schwefel26_svc():
         crossvalidation = sklearn_cv,
         repair_mode = 'none')
 
-    method = CMAESRSVC(\
+    method = CMAESSVC(\
         mu = 15,
         lambd = 100,
         xmean = matrix([[100.0, 100.0]]),
