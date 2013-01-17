@@ -41,6 +41,8 @@ for problem in problems:
     for optimizer in optimizers[problem]:
         simulators_op = []
         for i in range(0, samples):
+            opt_fit = problem().optimum_fitness()
+            termination = Accuracy(opt_fit, accuracy)
             simulator = Simulator(optimizer(), problem(), termination)
             simulators_op.append(simulator)
         simulators[problem][optimizer] = simulators_op
@@ -52,12 +54,12 @@ for problem in problems:
     for optimizer, simulators_ in simulators[problem].iteritems():
         resulting_simulators = pmap(simulate, simulators_)
         for simulator in resulting_simulators:
-            fitness = simulator.optimizer.logger.all()['best_fitness'][-1]
-            best_fitness[problem][optimizer].append(fitness)
+            generation = simulator.logger.all()['generations']
+            generations[problem][optimizer].append(generation)
 
 if not exists("output/"): 
     mkdir("output/")
 
-bf_file = open("output/best_fitness_file.save", "w")
-dump(best_fitness, bf_file)
+bf_file = open("output/generations_file.save", "w")
+dump(generations, bf_file)
 bf_file.close()

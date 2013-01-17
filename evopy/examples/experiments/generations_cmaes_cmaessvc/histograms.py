@@ -30,8 +30,8 @@ import matplotlib.pyplot as plt
 from pylab import hist, plot
 from setup import *
 
-bff = file("output/best_fitness_file.save", "r")
-best_fitness = load(bff)
+gens = file("output/generations_file.save", "r")
+generations = load(gens)
 
 def gauss(u):
     return (1.0 / sqrt(2 * pi)) * exp((-(1.0/2.0) * (u**2)))
@@ -47,34 +47,30 @@ def nadaraya(x, data, labels, h):
 
 for problem in problems:
     figure_hist = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
-    logit = lambda value, optimum : log10(value - optimum)
-    opt = problem().optimum_fitness()
 
-    plt.xlabel('Genauigkeit in $\\log_{10}(f(\\vec{b}) - f(\\vec{x}^*))$')
+    plt.xlabel('Generationen')
     plt.ylabel('absolute H' + u'ä' + 'ufigkeit')
 
-    x1 = best_fitness[problem][optimizers[problem][0]]
-    x2 = best_fitness[problem][optimizers[problem][1]]  
-    x1_log = map(logit, x1, len(x1) * [opt])
-    x2_log = map(logit, x2, len(x2) * [opt])
+    x1 = generations[problem][optimizers[problem][0]]
+    x2 = generations[problem][optimizers[problem][1]]  
 
-    minimum = min(x1_log + x2_log)
-    maximum = max(x1_log + x2_log)
+    minimum = min(x1 + x2)
+    maximum = max(x1 + x2)
 
     plt.xlim([minimum - 2, maximum + 2])
 
-    pdfs1, bins1, patches1 = hist(x1_log, normed=False, alpha=0.5,\
+    pdfs1, bins1, patches1 = hist(x1, normed=False, alpha=0.5,\
         histtype='step', edgecolor="g")
 
-    h = 1.06 * array(x1_log).std() * (len(x1_log)**(-1.0/5.0))
+    h = 1.06 * array(x1).std() * (len(x1)**(-1.0/5.0))
     x = linspace(minimum - 2, maximum + 2, 100)
     y = map(lambda x : nadaraya(x, bins1, pdfs1, h), x)
     plot(x,y, linestyle="--", color="g")
 
-    pdfs2, bins2, patches2 = hist(x2_log, normed=False, alpha=0.5,\
+    pdfs2, bins2, patches2 = hist(x2, normed=False, alpha=0.5,\
         histtype='step', edgecolor="#004779")
 
-    h = 1.06 * array(x2_log).std() * (len(x2_log)**(-1.0/5.0))
+    h = 1.06 * array(x2).std() * (len(x2)**(-1.0/5.0))
     x = linspace(minimum - 2, maximum + 2, 100)
     y = map(lambda x : nadaraya(x, bins2, pdfs2, h), x)
     plot(x,y, linestyle="-", color="#004779")
