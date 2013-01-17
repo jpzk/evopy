@@ -25,7 +25,7 @@ from copy import deepcopy
 from math import floor
 
 from numpy import array, mean, log, eye, diag, transpose, vectorize
-from numpy import identity, matrix, dot, exp, zeros, ones
+from numpy import identity, matrix, dot, exp, zeros, ones, sqrt
 from numpy.random import normal, rand, random
 from numpy.linalg import eigh, norm, inv
 
@@ -115,6 +115,9 @@ class CMAESRSVC(EvolutionStrategy):
         # covariance matrix, rotation of mutation ellipsoid
         self._C = identity(N)
         self._invsqrtC = identity(N)  # C^-1/2 
+
+        # approx. norm of random vector
+        self._norm = sqrt(N) * (1.0 - (1.0/(4*N)) + (1.0/21*(N**2)))
 
         ### FIRST RUN
         self._D, self._B = eigh(self._C)
@@ -227,9 +230,10 @@ class CMAESRSVC(EvolutionStrategy):
 
         self._C = (1 - self._c1 - self._cmu) * self._C + term_cov1 + term_covmu
 
-        #update sigma page. 20, equation (30)
-        self._sigma *= exp(min(0.6, (self._cs / self._damps) *\
-            sum(x ** 2 for x in self._ps.getA1())/(N - 1) / 2))
+        # update global sigma by comparing evolution path 
+        # with approx. norm of random vector
+        self._sigma *= exp(self._cs / self._damps) *\
+            ((norm(self._ps.getA1()) / self._norm) - 1)
 
         ### UPDATE FOR NEXT ITERATION
         self._valid_solutions = []
