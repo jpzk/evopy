@@ -191,4 +191,4 @@ simulators = {\
     SchwefelsProblem26: {}
 }
 
-best_fitness = create_problem_optimizer_map([])
+generations = create_problem_optimizer_map([])
