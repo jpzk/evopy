@@ -173,7 +173,7 @@ def create_problem_optimizer_map(typeofelements):
     SchwefelsProblem26: {get_method_Schwefel26: deepcopy(t), get_method_Schwefel26_svc: deepcopy(t)}}
 
 samples = 100
-termination = Generations(100)
+accuracy = 10**(-15)
 
 problems = [TRProblem, SphereProblemOriginR1,\
     SphereProblemOriginR2, SchwefelsProblem26]
@@ -192,4 +192,4 @@ simulators = {\
     SchwefelsProblem26: {}
 }
 
-best_fitness = create_problem_optimizer_map([])
+generations = create_problem_optimizer_map([])
