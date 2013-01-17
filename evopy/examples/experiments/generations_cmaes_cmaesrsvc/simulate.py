@@ -61,5 +61,5 @@ if not exists("output/"):
     mkdir("output/")
 
 bf_file = open("output/generations_file.save", "w")
-dump(best_fitness, bf_file)
+dump(generations, bf_file)
 bf_file.close()
