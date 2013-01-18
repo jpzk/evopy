@@ -33,9 +33,6 @@ from setup import *
 gens = file("output/generations_file.save", "r")
 generations = load(gens)
 
-import pdb
-pdb.set_trace()
-
 def gauss(u):
     return (1.0 / sqrt(2 * pi)) * exp((-(1.0/2.0) * (u**2)))
  
@@ -50,6 +47,8 @@ def nadaraya(x, data, labels, h):
     top = sum(map(lambda sample, label : label * (1/h)* gauss((x - sample)/h), data, labels))
     return float(top)/float(bottom)
 
+bins = range(0,150+2,2)
+
 for problem in problems:
     figure_hist = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 
@@ -62,21 +61,21 @@ for problem in problems:
     minimum = min(x1 + x2)
     maximum = max(x1 + x2)
 
-    plt.xlim([minimum - 2, maximum + 2])
-
+    plt.xlim([minimum - 10, maximum + 10])
+    
     pdfs1, bins1, patches1 = hist(x1, normed=False, alpha=0.5,\
-        histtype='step', edgecolor="g")
+        histtype='step', edgecolor="g", bins = bins)
 
     h = 1.06 * array(x1).std() * (len(x1)**(-1.0/5.0))
-    x = linspace(minimum - 2, maximum + 2, 100)
+    x = linspace(0, 150, 100)
     y = map(lambda x : nadaraya(x, bins1, pdfs1, h), x)
     plot(x,y, linestyle="--", color="g")
 
     pdfs2, bins2, patches2 = hist(x2, normed=False, alpha=0.5,\
-        histtype='step', edgecolor="#004779")
+        histtype='step', edgecolor="#004779", bins = bins)
 
     h = 1.06 * array(x2).std() * (len(x2)**(-1.0/5.0))
-    x = linspace(minimum - 2, maximum + 2, 100)
+    x = linspace(0, 150, 100)
     y = map(lambda x : nadaraya(x, bins2, pdfs2, h), x)
     plot(x,y, linestyle="-", color="#004779")
 

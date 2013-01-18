@@ -53,8 +53,8 @@ from evopy.external.playdoh import map as pmap
 
 from setup import * 
 
-bff = file("output/best_fitness_file.save", "r")
-best_fitness = load(bff)
+bff = file("output/generations_file.save", "r")
+generations = load(bff)
 
 # statistics
 variable_names = ['min', 'max', 'mean', 'var', 'h']
@@ -64,24 +64,20 @@ for variable in variable_names:
 
 for problem in problems:
     for optimizer in optimizers[problem]:
-        p = problem()
-        opt = p.optimum_fitness()
- 
-        best_fitnesses = best_fitness[problem][optimizer]      
-        best_fitnesses_log10 = map(lambda x : log10(x - opt), best_fitnesses)        
-
-        variables['min'][problem][optimizer] = min(best_fitnesses_log10)
-        variables['max'][problem][optimizer] = max(best_fitnesses_log10)
-        variables['mean'][problem][optimizer] = array(best_fitnesses_log10).mean()
-        variables['var'][problem][optimizer] = array(best_fitnesses_log10).var()
+        
+        generation = map(lambda l : l[-1], generations[problem][optimizer])
+        variables['min'][problem][optimizer] = min(generation)
+        variables['max'][problem][optimizer] = max(generation)
+        variables['mean'][problem][optimizer] = array(generation).mean()
+        variables['var'][problem][optimizer] = array(generation).var()
         variables['h'][problem][optimizer] =\
-            1.06 * array(best_fitnesses_log10).std() *\
-            (len(best_fitnesses_log10)**(-1.0/5.0))
+            1.06 * array(generation).std() *\
+            (len(generations)**(-1.0/5.0))
 
 pvalues = {}
 for problem in problems:
-    x = best_fitness[problem][optimizers[problem][0]]
-    y = best_fitness[problem][optimizers[problem][1]]
+    x = map(lambda l : l[-1], generations[problem][optimizers[problem][0]])
+    y = map(lambda l : l[-1], generations[problem][optimizers[problem][1]])
     z, pvalues[problem] = ranksums(x,y)
 
 results = file("output/results.tex","w")

@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 from pylab import hist, plot
 from setup import *
 
-bff = file("output/generations.save", "r")
+bff = file("output/generations_file.save", "r")
 generations = load(bff)
 
 def gauss(u):
@@ -47,38 +47,37 @@ def nadaraya(x, data, labels, h):
         return 0
     return float(top)/float(bottom)
 
+bins = range(0,150+2,2)
+
 for problem in problems:
     figure_hist = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
     logit = lambda value, optimum : log10(value - optimum)
     opt = problem().optimum_fitness()
 
-    plt.xlabel('Genauigkeit in $\\log_{10}(f(\\vec{b}) - f(\\vec{x}^*))$')
+    plt.xlabel('Generationen')
     plt.ylabel('absolute H' + u'ä' + 'ufigkeit')
 
     x1 = map(lambda l : l[-1], generations[problem][optimizers[problem][0]])
     x2 = map(lambda l : l[-1], generations[problem][optimizers[problem][1]])
 
-    x1_log = map(logit, x1, len(x1) * [opt])
-    x2_log = map(logit, x2, len(x2) * [opt])
+    minimum = min(x1 + x2)
+    maximum = max(x1 + x2)
 
-    minimum = min(x1_log + x2_log)
-    maximum = max(x1_log + x2_log)
+    plt.xlim([minimum - 10, maximum + 10])
 
-    plt.xlim([minimum - 2, maximum + 2])
+    pdfs1, bins1, patches1 = hist(x1, normed=False, alpha=0.5,\
+        histtype='step', edgecolor="g", bins = bins)
 
-    pdfs1, bins1, patches1 = hist(x1_log, normed=False, alpha=0.5,\
-        histtype='step', edgecolor="g")
-
-    h = 1.06 * array(x1_log).std() * (len(x1_log)**(-1.0/5.0))
-    x = linspace(minimum - 2, maximum + 2, 100)
+    h = 1.06 * array(x1).std() * (len(x1)**(-1.0/5.0))
+    x = linspace(0, 120, 100)
     y = map(lambda x : nadaraya(x, bins1, pdfs1, h), x)
     plot(x,y, linestyle="--", color="g")
 
-    pdfs2, bins2, patches2 = hist(x2_log, normed=False, alpha=0.5,\
-        histtype='step', edgecolor="#004779")
+    pdfs2, bins2, patches2 = hist(x2, normed=False, alpha=0.5,\
+        histtype='step', edgecolor="#004779", bins = bins)
 
-    h = 1.06 * array(x2_log).std() * (len(x2_log)**(-1.0/5.0))
-    x = linspace(minimum - 2, maximum + 2, 100)
+    h = 1.06 * array(x2).std() * (len(x2)**(-1.0/5.0))
+    x = linspace(0, 120, 100)
     y = map(lambda x : nadaraya(x, bins2, pdfs2, h), x)
     plot(x,y, linestyle="-", color="#004779")
 
