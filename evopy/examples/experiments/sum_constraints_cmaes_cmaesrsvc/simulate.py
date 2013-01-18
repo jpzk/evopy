@@ -58,7 +58,7 @@ for problem in problems:
         simulators_op = []
         for i in range(0, samples):
             opt = problem().optimum_fitness()
-            termination = Accuracy(opt, pow(10, -15))
+            termination = Accuracy(opt, accuracy)
             simulator = Simulator(optimizer(), problem(), termination)
             simulators_op.append(simulator)
         simulators[problem][optimizer] = simulators_op
