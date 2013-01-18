@@ -54,7 +54,7 @@ import matplotlib.pyplot as plt
 from pylab import hist, plot
 from setup import *
 
-cfcsf = file("output/cfcs_file.save", "r")
+cfcsf = file("output/sum_cfcs_file.save", "r")
 cfcs = load(cfcsf)
 
 def gauss(u):
@@ -67,6 +67,8 @@ def nadaraya(x, data, labels, h):
     print data, labels
     bottom = sum(map(lambda sample : (1/h)*gauss((x - sample)/h), data))
     top = sum(map(lambda sample, label : label * (1/h)* gauss((x - sample)/h), data, labels))
+    if(bottom == 0.0):
+        return 0
     return float(top)/float(bottom)
 
 for problem in problems:
@@ -74,19 +76,19 @@ for problem in problems:
     logit = lambda value, optimum : log10(value - optimum)
     opt = problem().optimum_fitness()
 
-    plt.xlabel('Restriktionsaufrufe pro Generation')
+    plt.xlabel('kumulierte Restriktionsaufrufe')
     plt.ylabel('absolute H' + u'ä' + 'ufigkeit')
 
-    x1 = list(chain.from_iterable(cfcs[problem][optimizers[problem][0]]))
-    x2 = list(chain.from_iterable(cfcs[problem][optimizers[problem][1]]))
+    x1 = cfcs[problem][optimizers[problem][0]]
+    x2 = cfcs[problem][optimizers[problem][1]]
 
     minimum = min(x1 + x2)
     maximum = max(x1 + x2)
 
-    plt.xlim([minimum - 20, maximum + 20])
+    plt.xlim([minimum - 20, 250])
 
     pdfs1, bins1, patches1 = hist(x1, normed=False, alpha=0.5,\
-        histtype='step', edgecolor="g")
+        histtype='step', edgecolor="g", bins = range(0, 250+10, 10))
 
     h = 1.06 * array(x1).std() * (len(x1)**(-1.0/5.0))
     x = linspace(minimum - 20, maximum + 20, 100)
@@ -94,7 +96,7 @@ for problem in problems:
     plot(x,y, linestyle="--", color="g")
 
     pdfs2, bins2, patches2 = hist(x2, normed=False, alpha=0.5,\
-        histtype='step', edgecolor="#004779")
+        histtype='step', edgecolor="#004779", bins = range(0, 250+10, 10))
 
     h = 1.06 * array(x2).std() * (len(x2)**(-1.0/5.0))
     x = linspace(minimum - 20, maximum + 20, 100)
@@ -106,5 +108,3 @@ for problem in problems:
     pp.close()
     plt.clf()
 
-   
- 

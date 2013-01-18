@@ -51,7 +51,7 @@ from evopy.operators.termination.convergence import Convergence
 
 from setup import * 
 
-cfcsf = file("output/cfcs_file.save", "r")
+cfcsf = file("output/sum_cfcs_file.save", "r")
 cfcs = load(cfcsf)
 
 # statistics
@@ -62,8 +62,7 @@ for variable in variable_names:
 
 for problem in problems:
     for optimizer in optimizers[problem]:
-        cfc = cfcs[problem][optimizer]
-        cfc = list(chain.from_iterable(cfc))
+        cfc = cfcs[problem][optimizer]       
 
         variables['min'][problem][optimizer] = min(cfc)
         variables['max'][problem][optimizer] = max(cfc)
@@ -75,8 +74,8 @@ for problem in problems:
 
 pvalues = {}
 for problem in problems:
-    x = list(chain.from_iterable(cfcs[problem][optimizers[problem][0]]))
-    y = list(chain.from_iterable(cfcs[problem][optimizers[problem][1]]))  
+    x = cfcs[problem][optimizers[problem][0]]
+    y = cfcs[problem][optimizers[problem][1]]
     z, pvalues[problem] = ranksums(x,y)
 
 results = file("output/results.tex","w")

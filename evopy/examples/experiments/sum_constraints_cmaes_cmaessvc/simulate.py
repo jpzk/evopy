@@ -70,12 +70,12 @@ for problem in problems:
     for optimizer, simulators_ in simulators[problem].iteritems():
         resulting_simulators = pmap(simulate, simulators_)
         for simulator in resulting_simulators:
-            cfc = simulator.logger.all()['count_cfc']
+            cfc = sum(simulator.logger.all()['count_cfc'])
             cfcs[problem][optimizer].append(cfc)
  
 if not exists("output/"): 
     mkdir("output/")
       
-cfc_file = open("output/cfcs_file.save", "w")
+cfc_file = open("output/sum_cfcs_file.save", "w")
 dump(cfcs, cfc_file)
 cfc_file.close()

@@ -30,8 +30,8 @@ import matplotlib.pyplot as plt
 from pylab import hist, plot
 from setup import *
 
-bff = file("output/best_fitness_file.save", "r")
-best_fitness = load(bff)
+bff = file("output/generations.save", "r")
+generations = load(bff)
 
 def gauss(u):
     return (1.0 / sqrt(2 * pi)) * exp((-(1.0/2.0) * (u**2)))
@@ -43,6 +43,8 @@ def nadaraya(x, data, labels, h):
     print data, labels
     bottom = sum(map(lambda sample : (1/h)*gauss((x - sample)/h), data))
     top = sum(map(lambda sample, label : label * (1/h)* gauss((x - sample)/h), data, labels))
+    if(bottom == 0):
+        return 0
     return float(top)/float(bottom)
 
 for problem in problems:
@@ -53,8 +55,9 @@ for problem in problems:
     plt.xlabel('Genauigkeit in $\\log_{10}(f(\\vec{b}) - f(\\vec{x}^*))$')
     plt.ylabel('absolute H' + u'ä' + 'ufigkeit')
 
-    x1 = best_fitness[problem][optimizers[problem][0]]
-    x2 = best_fitness[problem][optimizers[problem][1]]  
+    x1 = map(lambda l : l[-1], generations[problem][optimizers[problem][0]])
+    x2 = map(lambda l : l[-1], generations[problem][optimizers[problem][1]])
+
     x1_log = map(logit, x1, len(x1) * [opt])
     x2_log = map(logit, x2, len(x2) * [opt])
 
