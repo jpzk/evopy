@@ -54,6 +54,9 @@ from setup import *
 cfcsf = file("output/sum_cfcs_file.save", "r")
 cfcs = load(cfcsf)
 
+import pdb
+pdb.set_trace()
+
 # statistics
 variable_names = ['min', 'max', 'mean', 'var', 'h']
 variables = {}
