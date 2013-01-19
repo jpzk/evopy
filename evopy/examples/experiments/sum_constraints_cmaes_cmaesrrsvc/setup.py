@@ -171,7 +171,7 @@ def create_problem_optimizer_map(typeofelements):
     SphereProblemOriginR2: {get_method_SphereProblemR2: deepcopy(t), get_method_SphereProblemR2_svc: deepcopy(t)},
     SchwefelsProblem26: {get_method_Schwefel26: deepcopy(t), get_method_Schwefel26_svc: deepcopy(t)}}
 
-samples = 1
+samples = 100
 accuracy = 10**(-15)
 
 problems = [TRProblem, SphereProblemOriginR1,\
