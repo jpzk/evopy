@@ -130,7 +130,7 @@ class CMASVCLinearMetaModel(MetaModel):
 
     def repair(self, individual):
 
-        x = individual
+        x = self._scaling.scale(individual)
         w = self._clf.coef_[0]
         nw = self.get_normal()
         b = self._clf.intercept_[0] / w[1]
@@ -145,7 +145,7 @@ class CMASVCLinearMetaModel(MetaModel):
         if self._repair_mode == None: 
             raise Exception("no repair_mode selected: " + repair_mode)
 
-        nx = x + (nw * s)
+        nx = x + (-nw * s)
         
-        return nx
+        return self._scaling.scale(nx)
 
