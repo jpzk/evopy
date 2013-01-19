@@ -128,7 +128,7 @@ class RSVCLinearMetaModel(MetaModel):
 
     def repair(self, individual):
         repair_mode = self._repair_mode
-        x = matrix([[ self._scaling.scale(individual[0,0])]])
+        x = self._scaling.scale(matrix([[ individual[0,0]]]))
 
         w = self._clf.coef_[0]
         nw = self.get_normal()
@@ -143,7 +143,8 @@ class RSVCLinearMetaModel(MetaModel):
         if repair_mode == None: 
             raise Exception("no repair_mode selected: " + repair_mode)
 
-        nx = x + (-nw * s)
+        # be aware
+        nx = x + (nw * s)
         individual[0, 0] = self._scaling.descale(nx)
         return individual
 
