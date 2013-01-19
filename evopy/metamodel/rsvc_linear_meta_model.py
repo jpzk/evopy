@@ -143,8 +143,7 @@ class RSVCLinearMetaModel(MetaModel):
         if repair_mode == None: 
             raise Exception("no repair_mode selected: " + repair_mode)
 
-        nx = x + (nw * s)
-       
+        nx = x + (-nw * s)
         individual[0, 0] = nx
         return individual
 
