@@ -143,11 +143,6 @@ class CMAESSVC(EvolutionStrategy):
                 else:
                     # appending meta-infeasible solution to a_posteriori pending 
                     self._pending_apos_solutions.append((individual, False))
-                    individual = self.meta_model.repair(individual)
-                    self._count_repaired += 1
-                    individuals.append(individual)
-                    # appending meta-feasible solution to a_posteriori pending
-                    self._pending_apos_solutions.append((individual, True))
             else:
                 individual = self._generate_individual()
                 individuals.append(individual)
