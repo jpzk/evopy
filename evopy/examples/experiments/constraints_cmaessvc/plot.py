@@ -67,6 +67,7 @@ o_markers = {
 figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 plt.xlabel("Generation")
 plt.ylabel("Restriktionsaufrufe")
+plt.xlim([0, 100])
 plt.ylim([100, 200])
 
 for problem in problems:
@@ -88,6 +89,7 @@ pp.close()
 figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 plt.xlabel("Generation")
 plt.ylabel("Restriktionsaufrufe")
+plt.xlim([0, 100])
 plt.ylim([100, 200])
 
 for problem in problems:
