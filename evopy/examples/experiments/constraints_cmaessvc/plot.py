@@ -62,7 +62,7 @@ o_markers = {
     TRProblem: ".",\
     SphereProblemOriginR1: "x",\
     SphereProblemOriginR2: "+",\
-    SchwefelsProblem26: "s"}
+    SchwefelsProblem26: "."}
 
 figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 plt.xlabel("Generation")
