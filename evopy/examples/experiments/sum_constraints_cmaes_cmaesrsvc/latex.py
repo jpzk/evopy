@@ -84,53 +84,53 @@ lines = [
     "\\toprule\n", 
     "\\textbf{Problem} & p-Wert & SVK & Minimum & Mittel & Maximum & Varianz & h\\\\\n",
     "\midrule\n",
-    "Kugel R. 1 & %1.2f & nein & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
+    "Kugel R. 1 & %1.2f & nein & %i & %1.2f & %i & %1.2e & %1.2f \\\\\n"\
         % (pvalues[SphereProblemOriginR1],\
         variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1],\
         variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1],\
         variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1],\
         variables['var'][SphereProblemOriginR1][get_method_SphereProblemR1],\
         variables['h'][SphereProblemOriginR1][get_method_SphereProblemR1]),\
-    "&& ja & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
+    "&& ja & %i & %1.2f & %i & %1.2e & %1.2f \\\\\n"\
         % (variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['var'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['h'][SphereProblemOriginR1][get_method_SphereProblemR1_svc]),\
-    "Kugel R. 2 & %1.2f & nein & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
+    "Kugel R. 2 & %1.2f & nein & %i & %1.2f & %i & %1.2e & %1.2f \\\\\n"\
         % (pvalues[SphereProblemOriginR2],\
         variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2],\
         variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2],\
         variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2],\
         variables['var'][SphereProblemOriginR2][get_method_SphereProblemR2],\
         variables['h'][SphereProblemOriginR2][get_method_SphereProblemR2_svc]),\
-    "&& ja & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
+    "&& ja & %i & %1.2f & %i & %1.2e & %1.2f \\\\\n"\
         % (variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['var'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['h'][SphereProblemOriginR2][get_method_SphereProblemR2_svc]),\
-    "TR2 & %1.2f & nein & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
+    "TR2 & %1.2f & nein & %i & %1.2f & %i & %1.2e & %1.2f \\\\\n"\
         % (pvalues[TRProblem],\
         variables['min'][TRProblem][get_method_TR],\
         variables['mean'][TRProblem][get_method_TR],\
         variables['max'][TRProblem][get_method_TR],\
         variables['var'][TRProblem][get_method_TR],\
         variables['h'][TRProblem][get_method_TR]),\
-    "&& ja & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
+    "&& ja & %i & %1.2f & %i & %1.2e & %1.2f \\\\\n"\
         % (variables['min'][TRProblem][get_method_TR_svc],\
         variables['mean'][TRProblem][get_method_TR_svc],\
         variables['max'][TRProblem][get_method_TR_svc],\
         variables['var'][TRProblem][get_method_TR_svc],\
         variables['h'][TRProblem][get_method_TR_svc]),\
-    "2.60 mit R. & %1.2f & nein & %i & %1.2f & %i & %1.2f & %1.2f\\\\\n"\
+    "2.60 mit R. & %1.2f & nein & %i & %1.2f & %i & %1.2e & %1.2f\\\\\n"\
         % (pvalues[SchwefelsProblem26],\
         variables['min'][SchwefelsProblem26][get_method_Schwefel26],\
         variables['mean'][SchwefelsProblem26][get_method_Schwefel26],\
         variables['max'][SchwefelsProblem26][get_method_Schwefel26],\
         variables['var'][SchwefelsProblem26][get_method_Schwefel26],\
         variables['h'][SchwefelsProblem26][get_method_Schwefel26]),\
-    "&& ja & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
+    "&& ja & %i & %1.2f & %i & %1.2e & %1.2f \\\\\n"\
         % (variables['min'][SchwefelsProblem26][get_method_Schwefel26_svc],\
         variables['mean'][SchwefelsProblem26][get_method_Schwefel26_svc],\
         variables['max'][SchwefelsProblem26][get_method_Schwefel26_svc],\
