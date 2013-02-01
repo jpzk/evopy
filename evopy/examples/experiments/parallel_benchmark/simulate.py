@@ -76,13 +76,13 @@ def simulate(samples, parallel):
         for optimizer, simulators_ in simulators[problem].iteritems():
             if(parallel):            
                 resulting_simulators = pmap(simulate, simulators_)
-            else
-                resulting_simulators = pmap(simulate, simulators_)
+            else:
+                resulting_simulators = map(simulate, simulators_)
 
 parallel_options = [True]
 samples_sizes = range(10, 110, 10)
 
-for parallel_option in parallel_options 
+for parallel_option in parallel_options:
     for sample_size in sample_sizes:
         cProfile.run('simulate(%i, %s)'\
             % (sample_size, parallel_option),\
