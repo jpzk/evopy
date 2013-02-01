@@ -80,7 +80,7 @@ def simulate(samples, parallel):
                 resulting_simulators = map(simulate, simulators_)
 
 parallel_options = [True]
-samples_sizes = range(10, 110, 10)
+sample_sizes = range(10, 110, 10)
 
 for parallel_option in parallel_options:
     for sample_size in sample_sizes:
