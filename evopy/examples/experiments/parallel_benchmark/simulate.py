@@ -52,6 +52,8 @@ from os import mkdir
 
 from setup import *  
 
+import cProfile
+
 def simulate(samples, parallel):
     # create simulators
     simulators = {\
