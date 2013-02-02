@@ -47,12 +47,11 @@ from evopy.operators.termination.accuracy import Accuracy
 from evopy.operators.termination.generations import Generations
 from evopy.operators.termination.convergence import Convergence 
 
+from time import time
 from os.path import exists
 from os import mkdir
 
 from setup import *  
-
-import cProfile
 
 def simulate(samples, parallel):
     # create simulators
@@ -81,12 +80,20 @@ def simulate(samples, parallel):
             else:
                 resulting_simulators = map(simulate, simulators_)
 
-parallel_options = [True]
-sample_sizes = range(10, 110, 10)
-
 for parallel_option in parallel_options:
     for sample_size in sample_sizes:
-        cProfile.run('simulate(%i, %s)'\
-            % (sample_size, parallel_option),\
-            '%i%s' % (sample_size, parallel_option))
+        start = time() 
+        simulate(sample_size, parallel_option)
+        end = time()
+        duration = end - start
+        durations[parallel_option][sample_size] = int(round(duration * 1000))       
+
+if not exists("output/"): 
+    mkdir("output/")
+
+durations_file = open("output/durations.save", "w")
+dump(durations, durations_file)
+durations_file.close()
+
+
 

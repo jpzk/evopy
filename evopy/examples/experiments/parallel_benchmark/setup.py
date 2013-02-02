@@ -233,4 +233,15 @@ simulators = {\
     SchwefelsProblem26: {}
 }
 
+parallel_options = [True, False]
+sample_sizes = range(10, 110, 10)
+
+sample_map = {}
+for sample_size in sample_sizes:
+    sample_map[sample_size] = 0
+
+durations = {
+    True : deepcopy(sample_map),\
+    False : deepcopy(sample_map)}
+
 best_fitness = create_problem_optimizer_map([])
