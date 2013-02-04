@@ -22,6 +22,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from sys import path
 path.append("../../../..")
 
+from scipy import stats
 from copy import deepcopy
 from numpy import matrix, log10, array, linspace, sqrt, pi, exp
 from pickle import load 
@@ -33,27 +34,12 @@ from setup import *
 gens = file("output/generations_file.save", "r")
 generations = load(gens)
 
-def gauss(u):
-    return (1.0 / sqrt(2 * pi)) * exp((-(1.0/2.0) * (u**2)))
- 
-def nadaraya(x, data, labels, h):
-    labels = [0] + labels.tolist() + [0]   
-    data = data.tolist()
-    data = [data[0] - (data[1] - data[0])] + data 
-    print data, labels
-    bottom = sum(map(lambda sample : (1/h)*gauss((x - sample)/h), data))
-    if(bottom == 0):
-        return 0
-    top = sum(map(lambda sample, label : label * (1/h)* gauss((x - sample)/h), data, labels))
-    return float(top)/float(bottom)
-
-bins = range(0,150+2,2)
 
 for problem in problems:
     figure_hist = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 
     plt.xlabel('Generationen')
-    plt.ylabel('absolute H' + u'ä' + 'ufigkeit')
+    plt.ylabel('relative H' + u'ä' + 'ufigkeit')
 
     x1 = map(lambda l : l[-1], generations[problem][optimizers[problem][0]])
     x2 = map(lambda l : l[-1], generations[problem][optimizers[problem][1]])
@@ -61,23 +47,38 @@ for problem in problems:
     minimum = min(x1 + x2)
     maximum = max(x1 + x2)
 
-    plt.xlim([minimum - 10, maximum + 10])
+    x1, x2 = map(float, x1), map (float, x2)
+
+    minimum, maximum = minimum - 10, maximum + 10 
+    plt.xlim([minimum, maximum])
     
-    pdfs1, bins1, patches1 = hist(x1, normed=False, alpha=0.5,\
-        histtype='step', edgecolor="g", bins = bins)
+    pdfs1, bins1, patches1 = hist(x1, normed=True, alpha=0.5,\
+        histtype='step', bins = range(minimum, maximum + 5, 5),\
+        edgecolor="g")
 
-    h = 1.06 * array(x1).std() * (len(x1)**(-1.0/5.0))
-    x = linspace(0, 150, 100)
-    y = map(lambda x : nadaraya(x, bins1, pdfs1, h), x)
-    plot(x,y, linestyle="--", color="g")
+    kernel1 = stats.gaussian_kde(x1)
 
-    pdfs2, bins2, patches2 = hist(x2, normed=False, alpha=0.5,\
-        histtype='step', edgecolor="#004779", bins = bins)
+    # scipy 0.10.1 requires setting the bandwith manually
+    # @deprecated bw_method attribute in scipy 0.11    
+    kernel1.covariance_factor = stats.gaussian_kde.silverman_factor
 
-    h = 1.06 * array(x2).std() * (len(x2)**(-1.0/5.0))
-    x = linspace(0, 150, 100)
-    y = map(lambda x : nadaraya(x, bins2, pdfs2, h), x)
-    plot(x,y, linestyle="-", color="#004779")
+    X1 = linspace(minimum, maximum, 1000)
+    Y1 = kernel1(X1)    
+    plot(X1,Y1, linestyle="--", color="g")
+
+    pdfs2, bins2, patches2 = hist(x2, normed=True, alpha=0.5,\
+        histtype='step', bins = range(minimum, maximum + 5, 5),\
+        edgecolor="#004779")
+
+    kernel2 = stats.gaussian_kde(x2)
+
+    # scipy 0.10.1 requires setting the bandwith manually
+    # @deprecated bw_method attribute in scipy 0.11    
+    kernel2.covariance_factor = stats.gaussian_kde.silverman_factor
+
+    X2 = linspace(minimum, maximum, 1000)
+    Y2 = kernel2(X2)    
+    plot(X2,Y2, linestyle="-", color="#004779")
 
     pp = PdfPages("output/%s.pdf" % str(problem).replace('.', '-'))
     plt.savefig(pp, format='pdf')
