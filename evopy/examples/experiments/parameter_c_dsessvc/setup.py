@@ -60,8 +60,8 @@ def get_method_SphereProblemR1_svc():
         lambd = 100,
         theta = 0.3,
         pi = 15,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[5.0, 5.0]]),
+        delta = 5.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
@@ -86,8 +86,8 @@ def get_method_SphereProblemR2_svc():
         lambd = 100,
         theta = 0.3,
         pi = 15,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[5.0, 5.0]]),
+        delta = 5.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
@@ -138,8 +138,8 @@ def get_method_Schwefel26_svc():
         lambd = 100,
         theta = 0.3,
         pi = 15,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[34.0, 36.0]]),
+        delta = 36.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[100.0, 100.0]]),
@@ -156,7 +156,7 @@ def create_problem_optimizer_map(typeofelements):
     SphereProblemOriginR2: {get_method_SphereProblemR2_svc: deepcopy(t)},
     SchwefelsProblem26: {get_method_Schwefel26_svc: deepcopy(t)}}
 
-samples = 30 
+samples = 100
 termination = Generations(50)
 
 problems = [TRProblem, SphereProblemOriginR1,\

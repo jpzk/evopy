@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from numpy import vectorize
+from numpy import vectorize, float64
 
 class SphereProblemOriginR2():
 
@@ -29,11 +29,11 @@ class SphereProblemOriginR2():
         self._size = 10
 
     def is_feasible(self, x):
-        return x[0,0] >= 0
+        return float64(x[0,0]) >= 0
 
     def fitness(self, x):
         _power = vectorize(lambda x : pow(x,2))
         return _power(x).sum()
 
     def optimum_fitness(self):
-        return float(0)
+        return float64(0.0)

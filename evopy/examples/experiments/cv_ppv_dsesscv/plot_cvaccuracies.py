@@ -109,7 +109,7 @@ for problem in cv_accuracies.keys():
             linestyle="none",
             yerr=errors_agg)
 
-    pp = PdfPages("output/cv_accuracies_%s.pdf" % str(problem))
+    pp = PdfPages("output/cv_%s.pdf" % str(problem).split('.')[-1])
     plt.savefig(pp, format='pdf')
     pp.close()
 

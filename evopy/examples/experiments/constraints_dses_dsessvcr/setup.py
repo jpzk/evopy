@@ -61,7 +61,7 @@ def get_method_SphereProblemR1():
 
 def get_method_SphereProblemR1_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -75,8 +75,8 @@ def get_method_SphereProblemR1_svc():
         lambd = 100,
         theta = 0.3,
         pi = 70,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[5.0, 5.0]]),
+        delta = 5.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
@@ -91,8 +91,8 @@ def get_method_SphereProblemR2():
         lambd = 100,
         theta = 0.3,
         pi = 15,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[5.0, 5.0]]),
+        delta = 5.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]])) 
@@ -101,7 +101,7 @@ def get_method_SphereProblemR2():
 
 def get_method_SphereProblemR2_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -115,8 +115,8 @@ def get_method_SphereProblemR2_svc():
         lambd = 100,
         theta = 0.3,
         pi = 70,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[5.0, 5.0]]),
+        delta = 5.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[10.0, 10.0]]),
@@ -141,7 +141,7 @@ def get_method_TR():
 
 def get_method_TR_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 13, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -171,8 +171,8 @@ def get_method_Schwefel26():
         lambd = 100,
         theta = 0.3,
         pi = 15,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[34.0, 36.0]]),
+        delta = 36.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[100.0, 100.0]])) 
@@ -181,7 +181,7 @@ def get_method_Schwefel26():
 
 def get_method_Schwefel26_svc():
     sklearn_cv = SVCCVSkGridLinear(\
-        C_range = [2 ** i for i in range(-5, 15, 2)],
+        C_range = [2 ** i for i in range(-3, 14, 2)],
         cv_method = KFold(20, 5))
 
     meta_model = DSESSVCLinearMetaModel(\
@@ -195,8 +195,8 @@ def get_method_Schwefel26_svc():
         lambd = 100,
         theta = 0.3,
         pi = 70,
-        initial_sigma = matrix([[4.5, 4.5]]),
-        delta = 4.5,
+        initial_sigma = matrix([[34.0, 36.0]]),
+        delta = 36.0,
         tau0 = 0.5, 
         tau1 = 0.6,
         initial_pos = matrix([[100.0, 100.0]]),
@@ -213,7 +213,7 @@ def create_problem_optimizer_map(typeofelements):
     SphereProblemOriginR2: {get_method_SphereProblemR2: deepcopy(t), get_method_SphereProblemR2_svc: deepcopy(t)},
     SchwefelsProblem26: {get_method_Schwefel26: deepcopy(t), get_method_Schwefel26_svc: deepcopy(t)}}
 
-samples = 30 
+samples = 100
 termination = Generations(50)
 
 problems = [TRProblem, SphereProblemOriginR1,\

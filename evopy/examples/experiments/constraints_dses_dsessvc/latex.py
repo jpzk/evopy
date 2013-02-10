@@ -25,7 +25,7 @@ import pdb
 from pickle import load 
 from copy import deepcopy
 from numpy import matrix, log10, array
-from scipy.stats import wilcoxon 
+from scipy.stats import wilcoxon, ranksums 
 from itertools import chain
 
 from evopy.strategies.ori_dses_svc_repair import ORIDSESSVCR
@@ -77,15 +77,15 @@ pvalues = {}
 for problem in problems:
     x = list(chain.from_iterable(cfcs[problem][optimizers[problem][0]]))
     y = list(chain.from_iterable(cfcs[problem][optimizers[problem][1]]))  
-    z, pvalues[problem] = wilcoxon(x,y)
+    z, pvalues[problem] = ranksums(x,y)
 
 results = file("output/results.tex","w")
 lines = [
     "\\begin{tabularx}{\\textwidth}{l X X X X X X X }\n", 
     "\\toprule\n", 
-    "\\textbf{Problem} & $p_w$ & SVK & Minimum & Mittel & Maximum & Varianz & $h$\\\\\n",
+    "\\textbf{Problem} & p-Wert & SVK & Minimum & Mittel & Maximum & Varianz & h\\\\\n",
     "\midrule\n",
-    "Kugel R. 1 & %1.0e & nein & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
+    "Kugel R. 1 & %1.2f & nein & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
         % (pvalues[SphereProblemOriginR1],\
         variables['min'][SphereProblemOriginR1][get_method_SphereProblemR1],\
         variables['mean'][SphereProblemOriginR1][get_method_SphereProblemR1],\
@@ -98,7 +98,7 @@ lines = [
         variables['max'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['var'][SphereProblemOriginR1][get_method_SphereProblemR1_svc],\
         variables['h'][SphereProblemOriginR1][get_method_SphereProblemR1_svc]),\
-    "Kugel R. 2 & %1.0e & nein & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
+    "Kugel R. 2 & %1.2f & nein & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
         % (pvalues[SphereProblemOriginR2],\
         variables['min'][SphereProblemOriginR2][get_method_SphereProblemR2],\
         variables['mean'][SphereProblemOriginR2][get_method_SphereProblemR2],\
@@ -111,7 +111,7 @@ lines = [
         variables['max'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['var'][SphereProblemOriginR2][get_method_SphereProblemR2_svc],\
         variables['h'][SphereProblemOriginR2][get_method_SphereProblemR2_svc]),\
-    "TR2 & %1.0e & nein & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
+    "TR2 & %1.2f & nein & %i & %1.2f & %i & %1.2f & %1.2f \\\\\n"\
         % (pvalues[TRProblem],\
         variables['min'][TRProblem][get_method_TR],\
         variables['mean'][TRProblem][get_method_TR],\
@@ -124,7 +124,7 @@ lines = [
         variables['max'][TRProblem][get_method_TR_svc],\
         variables['var'][TRProblem][get_method_TR_svc],\
         variables['h'][TRProblem][get_method_TR_svc]),\
-    "2.60 mit R. & %1.0e & nein & %i & %1.2f & %i & %1.2f & %1.2f\\\\\n"\
+    "2.60 mit R. & %1.2f & nein & %i & %1.2f & %i & %1.2f & %1.2f\\\\\n"\
         % (pvalues[SchwefelsProblem26],\
         variables['min'][SchwefelsProblem26][get_method_Schwefel26],\
         variables['mean'][SchwefelsProblem26][get_method_Schwefel26],\

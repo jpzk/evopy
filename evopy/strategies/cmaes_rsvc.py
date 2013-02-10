@@ -25,8 +25,8 @@ from copy import deepcopy
 from math import floor
 
 from numpy import array, mean, log, eye, diag, transpose, vectorize
-from numpy import identity, matrix, dot, exp, zeros, ones
-from numpy.random import normal, rand
+from numpy import identity, matrix, dot, exp, zeros, ones, sqrt
+from numpy.random import normal, rand, random
 from numpy.linalg import eigh, norm, inv
 
 from evolution_strategy import EvolutionStrategy
@@ -116,6 +116,9 @@ class CMAESRSVC(EvolutionStrategy):
         self._C = identity(N)
         self._invsqrtC = identity(N)  # C^-1/2 
 
+        # approx. norm of random vector
+        self._norm = sqrt(N) * (1.0 - (1.0/(4*N)) + (1.0/21*(N**2)))
+
         ### FIRST RUN
         self._D, self._B = eigh(self._C)
         self._B = matrix(self._B)
@@ -141,47 +144,21 @@ class CMAESRSVC(EvolutionStrategy):
     def ask_pending_solutions(self):
         """ ask pending solutions; solutions which need a checking for true 
             feasibility """
-
-        # testing beta percent of generated children on meta model first.
-        pending_meta_feasible = []
-        pending_solutions = []
-
-        difference = self._lambd - len(self._valid_solutions)
-
-        if(self.meta_model_trained):
-            max_amount_meta_feasible = int(floor(self._beta * difference))
-            max_amount_pending_solutions = difference - max_amount_meta_feasible        
-
-            while(len(pending_meta_feasible) < max_amount_meta_feasible):
-
+        individuals = []
+        while(len(individuals) < 1):
+            if((random() < self._beta) and self.meta_model_trained):
                 individual = self._generate_individual()
-                # reducing individual, back rotation to standard basis
                 reduced_individual = self._reduce(individual)
-
                 if(self.meta_model.check_feasibility(reduced_individual)):
-                    pending_meta_feasible.append(individual)
-
-                    # appending meta-feasible solution to a_posteriori pending
-                    self._pending_apos_solutions.append((individual, True))                   
-                else:                    
-                    # appending meta-infeasible solution to a_posteriori pending  
-                    self._pending_apos_solutions.append((individual, False))
-
-                    reduced_repaired = self.meta_model.repair(reduced_individual)
-                    repaired = self._unreduce(reduced_repaired)
-                    self._count_repaired += 1
-                    pending_meta_feasible.append(repaired)
-
-                    # appending meta-feasible solution to a_posteriori pending
+                    individuals.append(individual)
                     self._pending_apos_solutions.append((individual, True))
-        else: 
-            max_amount_pending_solutions = difference
+                else:
+                    self._pending_apos_solutions.append((individual, False))
+            else:
+                individual = self._generate_individual()
+                individuals.append(individual)
 
-        while(len(pending_solutions) < max_amount_pending_solutions):
-            individual = self._generate_individual()
-            pending_solutions.append(individual)
-
-        return pending_meta_feasible + pending_solutions            
+        return individuals 
 
     def tell_feasibility(self, feasibility_information):
         """ tell feasibilty; return True if there are no pending solutions, 
@@ -253,9 +230,10 @@ class CMAESRSVC(EvolutionStrategy):
 
         self._C = (1 - self._c1 - self._cmu) * self._C + term_cov1 + term_covmu
 
-        #update sigma page. 20, equation (30)
-        self._sigma *= exp(min(0.6, (self._cs / self._damps) *\
-            sum(x ** 2 for x in self._ps.getA1())/(N - 1) / 2))
+        # update global sigma by comparing evolution path 
+        # with approx. norm of random vector
+        self._sigma *= exp(self._cs / self._damps) *\
+            ((norm(self._ps.getA1()) / self._norm) - 1)
 
         ### UPDATE FOR NEXT ITERATION
         self._valid_solutions = []

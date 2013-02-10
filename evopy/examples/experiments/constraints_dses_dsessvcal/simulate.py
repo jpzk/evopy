@@ -44,6 +44,7 @@ from evopy.operators.termination.or_combinator import ORCombinator
 from evopy.operators.termination.accuracy import Accuracy
 from evopy.operators.termination.generations import Generations
 from evopy.operators.termination.convergence import Convergence 
+from evopy.external.playdoh import map as pmap
 
 from os.path import exists
 from os import mkdir
