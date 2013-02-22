@@ -54,11 +54,14 @@ from evopy.helper.timeseries_aggregator import TimeseriesAggregator
 import matplotlib.pyplot as plt
 from setup import * 
 
+durationsfile = file("output/durations.save", "r")
+durations = load(durationsfile)
+
 problems_order = [SphereProblemOriginR1, SphereProblemOriginR2,\
     TRProblem, SchwefelsProblem26]
 
 problem_titles = {
-    TRProblem : "TR2",\
+    TRProblem : "TR2 Problem",\
     SphereProblemOriginR1: "Kugel. R. 1",\
     SphereProblemOriginR2: "Kugel. R. 2",\
     SchwefelsProblem26: "2.6 mit R."
@@ -66,37 +69,31 @@ problem_titles = {
 
 lines_p = []
 
-cfcs_file = file("output/cfcs_file.save", "r")
-cfcs = load(cfcs_file)
+titles = {
+    True: "Mit Parallelisierung",
+    False: "Ohne Parallelisierung"
+}
 
-
-for problem in problems_order:
-    cfcs_agg, errors_agg =\
-        TimeseriesAggregator(cfcs[problem]).get_aggregate()
-
-    minimum = array(cfcs_agg).min()
-    maximum = array(cfcs_agg).max()
-    mean = array(cfcs_agg).mean()
-    variance = array(cfcs_agg).var()
-
-    lines_p.append("%s & %1.2f & %1.2f & %1.2f & %1.2f\\\\\n"\
-    % (problem_titles[problem], minimum, mean, maximum, variance))
+all_durations = []
+for use_par in parallel_options: 
+    durations_str = "%s " % titles[use_par]
+    for samples in sample_sizes:    
+        durations_str += "& %1.2f" % ((durations[use_par][samples] / 1000.0)/60.0) + " "
+    durations_str += "\\\\\n"                        
+    all_durations.append(durations_str)
 
 results = file("output/results.tex", "w")
 lines = [
-    "\\begin{tabularx}{\\textwidth}{l X X X X}\n", 
+    "\\begin{tabularx}{\\textwidth}{l X X X X X X X X X X}\n", 
     "\\toprule\n", 
-    "\\textbf{Problem} & Minimum & Mittelwert & Maximum & Varianz\\\\\n",
+    "\\textbf{Simulator} & 10 & 20 & 30 & 40 & 50 & 60 & 70 & 80 & 90 & 100 \\\\\n",
     "\midrule\n"]
 
 endlines = [
     "\\bottomrule\n",\
     "\end{tabularx}\n"]
 
-lines = lines + lines_p + endlines
-
+lines = lines + all_durations + endlines
 results.writelines(lines)
 results.close()
 
-
- 

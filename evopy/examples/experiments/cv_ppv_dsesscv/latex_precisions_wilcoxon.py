@@ -101,7 +101,7 @@ lines = [
     % SR1_nonessc_p[1],\
     "&& Kugel. R. 2 & %1.2f \\\\\n"\
     % SR2_nonessc_p[1],\
-    "&& TR2 Problem & %1.2f \\\\\n"\
+    "&& TR2 & %1.2f \\\\\n"\
     % TR_nonessc_p[1],\
     "&& Schwefels Problem 2.6 & %1.2f \\\\\n"\
     % Sch_nonessc_p[1],\
@@ -109,7 +109,7 @@ lines = [
     % SR1_norssc_p[1],\
     "&& Kugel. R. 2 & %1.2f \\\\\n"\
     % SR2_norssc_p[1],\
-    "&& TR2 Problem & %1.2f \\\\\n"\
+    "&& TR2 & %1.2f \\\\\n"\
     % TR_norssc_p[1],\
     "&& Schwefels Problem 2.6 & %1.2f \\\\\n"\
     % Sch_norssc_p[1],\

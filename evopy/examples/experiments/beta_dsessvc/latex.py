@@ -61,7 +61,7 @@ problems_order = [SphereProblemOriginR1, SphereProblemOriginR2,\
     TRProblem, SchwefelsProblem26]
 
 problem_titles = {
-    TRProblem : "TR2 Problem",\
+    TRProblem : "TR2",\
     SphereProblemOriginR1: "Kugel. R. 1",\
     SphereProblemOriginR2: "Kugel. R. 2",\
     SchwefelsProblem26: "2.6 mit R."

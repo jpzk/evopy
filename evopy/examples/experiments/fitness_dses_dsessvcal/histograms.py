@@ -61,7 +61,7 @@ for problem in problems:
     logit = lambda value, optimum : log10(value - optimum)
     opt = problem().optimum_fitness()
 
-    plt.xlabel('Genauigkeit in $\\log_{10}(f(\\vec{b}) - f(\\vec{x}^*))$')
+    plt.xlabel('Fitnessgenauigkeit')
     plt.ylabel('relative H' + u'ä' + 'ufigkeit')
 
     x1 = best_fitness[problem][optimizers[problem][0]]

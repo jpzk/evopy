@@ -71,7 +71,7 @@ o_markers = {
 
 figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 plt.xlabel("Generation")
-plt.ylabel("Fitness in $log_10(f(\vec{b}) - f(\vec{x}^*))$")
+plt.ylabel("Fitnessgenauigkeit")
 plt.xlim([0, 200])
 plt.ylim([-100, 0])
 
