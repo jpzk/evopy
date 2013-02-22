@@ -68,7 +68,7 @@ figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 plt.xlabel("Generation")
 plt.ylabel("Restriktionsaufrufe")
 plt.ylim([100, 200])
-plt.xlim([0, 100])
+plt.xlim([0, 60])
 
 for problem in problems:
     cfcs_agg, errors_agg =\
@@ -90,7 +90,7 @@ figure_accs = plt.figure(figsize=(8,6), dpi=10, facecolor="w", edgecolor="k")
 plt.xlabel("Generation")
 plt.ylabel("Restriktionsaufrufe")
 plt.ylim([100, 200])
-plt.xlim([0, 100])
+plt.xlim([0, 60])
 
 for problem in problems:
     cfcs_agg, errors_agg =\
