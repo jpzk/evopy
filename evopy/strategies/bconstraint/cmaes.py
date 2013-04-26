@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 
 Special thanks to Nikolaus Hansen for providing major part of the CMA-ES code.
-The CMA-ES algorithm is provided in many other languages and advanced versions at 
+The CMA-ES algorithm is provided in many other languages and advanced versions at
 http://www.lri.fr/~hansen/cmaesintro.html.
 '''
 
@@ -32,16 +32,16 @@ from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
 from evolution_strategy import EvolutionStrategy
 
 class CMAES(EvolutionStrategy):
- 
-    description =\
-        "Covariance matrix adaption evolution strategy (CMA-ES)"    
 
-    description_short = "CMA-ES"        
+    description =\
+        "Covariance matrix adaption evolution strategy (CMA-ES)"
+
+    description_short = "CMA-ES"
 
     def __init__(self, mu, lambd, xmean, sigma):
 
         # initialize super constructor
-        super(CMAES, self).__init__(mu, lambd) 
+        super(CMAES, self).__init__(mu, lambd)
 
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xmean, sigma)
@@ -62,37 +62,39 @@ class CMAES(EvolutionStrategy):
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
 
+        self.ask_pending_solutions
+
         # dimension of objective function
         N = xmean.size
-        self._xmean = xmean 
+        self._xmean = xmean
         self._sigma = sigma
 
         # recombination weights
-        self._weights = [log(self._mu + 0.5) - log(i + 1) for i in range(self._mu)]  
+        self._weights = [log(self._mu + 0.5) - log(i + 1) for i in range(self._mu)]
 
         # normalize recombination weights array
-        self._weights = [w / sum(self._weights) for w in self._weights]  
+        self._weights = [w / sum(self._weights) for w in self._weights]
 
         # variance-effectiveness of sum w_i x_i
         self._mueff = sum(self._weights) ** 2 / sum(w ** 2 for w in self._weights)
-        
+
         # time constant for cumulation for C
-        self._cc = (4 + self._mueff / N) / (N + 4 + 2 * self._mueff / N)  
+        self._cc = (4 + self._mueff / N) / (N + 4 + 2 * self._mueff / N)
 
         # t-const for cumulation for sigma control
         self._cs = (self._mueff + 2) / (N + self._mueff + 5)
 
         # learning rate for rank-one update of C
         self._c1 = 2 / ((N + 1.3) ** 2 + self._mueff)
-  
+
         # and for rank-mu update
         term_a = 1 - self._c1
         term_b = 2 * (self._mueff - 2 + 1 / self._mueff) / ((N + 2) ** 2 + self._mueff)
-        self._cmu = min(term_a, term_b)  
+        self._cmu = min(term_a, term_b)
 
         # damping for sigma, usually close to 1
-        self._damps = 2 * self._mueff / self._lambd + 0.3 + self._cs  
-        
+        self._damps = 2 * self._mueff / self._lambd + 0.3 + self._cs
+
         # evolution paths for C and sigma
         self._pc = zeros(N)
         self._ps = zeros(N)
@@ -100,12 +102,12 @@ class CMAES(EvolutionStrategy):
         # B-matrix of eigenvectors, defines the coordinate system
         self._B = identity(N)
 
-        # diagonal matrix of eigenvalues (sigmas of axes) 
+        # diagonal matrix of eigenvalues (sigmas of axes)
         self._D = ones(N)  # diagonal D defines the scaling
 
         # covariance matrix, rotation of mutation ellipsoid
         self._C = identity(N)
-        self._invsqrtC = identity(N)  # C^-1/2 
+        self._invsqrtC = identity(N)  # C^-1/2
 
         # approx. norm of random vector
         self._norm = sqrt(N) * (1.0 - (1.0/(4*N)) + (1.0/21*(N**2)))
@@ -113,14 +115,14 @@ class CMAES(EvolutionStrategy):
         ### FIRST RUN
         self._D, self._B = eigh(self._C)
         self._B = matrix(self._B)
-        self._D = [d ** 0.5 for d in self._D] 
+        self._D = [d ** 0.5 for d in self._D]
 
         invD = diag([1.0/d for d in self._D])
-        self._invsqrtC = self._B * invD * transpose(self._B) 
+        self._invsqrtC = self._B * invD * transpose(self._B)
 
     def ask_pending_solutions(self):
-        """ ask pending solutions; solutions which need a checking for 
-            true feasibility """        
+        """ ask pending solutions; solutions which need a checking for\
+            true feasibility """
 
         pending_solutions = []
         while(len(pending_solutions) < (self._lambd - len(self._valid_solutions))):
@@ -128,10 +130,10 @@ class CMAES(EvolutionStrategy):
             value = self._xmean + transpose(self._sigma * self._B * normals)
             pending_solutions.append(value)
 
-        return pending_solutions  
+        return pending_solutions
 
     def tell_feasibility(self, feasibility_information):
-        """ tell feasibilty; return True if there are no pending solutions, 
+        """ tell feasibilty; return True if there are no pending solutions,
             otherwise False """
 
         for (child, feasibility) in feasibility_information:
@@ -145,12 +147,12 @@ class CMAES(EvolutionStrategy):
             return False
         else:
             return True
-     
+
     def ask_valid_solutions(self):
         return self._valid_solutions
 
     def tell_fitness(self, fitnesses):
-        """ tell fitness; update all strategy specific attributes """        
+        """ tell fitness; update all strategy specific attributes """
 
         N = self._xmean.size
         oldxmean = deepcopy(self._xmean)
@@ -164,7 +166,7 @@ class CMAES(EvolutionStrategy):
         # new xmean
         values = sorted_children
 
-        self._xmean = matrix([[0.0 for i in range(0,N)]]) 
+        self._xmean = matrix([[0.0 for i in range(0,N)]])
         weighted_values = zip(self._weights, values)
         for weight, value in weighted_values:
             self._xmean += weight * value
@@ -181,13 +183,13 @@ class CMAES(EvolutionStrategy):
         # without hsig (!)
         c = (self._cc * (2 - self._cc) * self._mueff) ** 0.5 / self._sigma
         self._pc = (1 - self._cc) * self._pc + c * y
-        
+
         # adapt covariance matrix C
         # rank one update term
-        term_cov1 = self._c1 * (transpose(matrix(self._pc)) * matrix(self._pc))       
+        term_cov1 = self._c1 * (transpose(matrix(self._pc)) * matrix(self._pc))
 
         # ranke mu update term
-        valuesv = [(value - oldxmean) / self._sigma for value in values] 
+        valuesv = [(value - oldxmean) / self._sigma for value in values]
         term_covmu = self._cmu *\
             sum([self._weights[i] * (transpose(matrix(valuesv[i])) *\
             matrix(valuesv[i]))\
@@ -195,7 +197,7 @@ class CMAES(EvolutionStrategy):
 
         self._C = (1 - self._c1 - self._cmu) * self._C + term_cov1 + term_covmu
 
-        # update global sigma by comparing evolution path 
+        # update global sigma by comparing evolution path
         # with approx. norm of random vector
         self._sigma *= exp(self._cs / self._damps) *\
             ((norm(self._ps.getA1()) / self._norm) - 1)
@@ -206,21 +208,21 @@ class CMAES(EvolutionStrategy):
         ### STATISTICS
         self._selected_children = values
         self._best_child, self._best_fitness = sorted_fitnesses[0]
-        self._worst_child, self._worst_fitness = sorted_fitnesses[-1]        
+        self._worst_child, self._worst_fitness = sorted_fitnesses[-1]
 
         fitnesses = map(fitness, sorted_fitnesses)
         self._mean_fitness = array(fitnesses).mean()
 
         # log all bindings
         self.logger.log()
-        self._count_constraint_infeasibles = 0                
+        self._count_constraint_infeasibles = 0
 
         self._D, self._B = eigh(self._C)
         self._B = matrix(self._B)
-        self._D = [d ** 0.5 for d in self._D] 
+        self._D = [d ** 0.5 for d in self._D]
 
         invD = diag([1.0/d for d in self._D])
-        self._invsqrtC = self._B * invD * transpose(self._B) 
+        self._invsqrtC = self._B * invD * transpose(self._B)
 
         return self._best_child, self._best_fitness
 

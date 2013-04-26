@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -31,13 +31,13 @@ def get_method():
     method = CMAES(\
         mu = 15,
         lambd = 100,
-        xmean = matrix([[5.0, 5.0]]),        
+        xmean = matrix([[5.0, 5.0]]),
         sigma = 1.0)
 
     return method
 
 if __name__ == "__main__":
-    problem = TRProblem() 
+    problem = TRProblem()
     optfit = problem.optimum_fitness()
     sim = Simulator(get_method(), problem, Accuracy(optfit, 10**(-12)))
     results = sim.simulate()

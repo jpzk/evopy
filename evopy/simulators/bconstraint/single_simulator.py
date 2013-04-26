@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012 - 2013, Jendrik Poloczek
@@ -22,11 +22,10 @@ from sys import path
 from evopy.helper.logger import Logger
 path.append("../..")
 
-class Simulator(object):
-
+class SingleSimulator(object):
     name = "evopy: framework for experimention in evolutionary computing"
-    description = "Single-threaded Simulator"
-    description_short = "Simulator"
+    description = "Single-Threaded Simulator for Binary Constraint Handling"
+    description_short = "SingleSimulator"
 
     def __init__(self, optimizer, problem, termination):
         self.optimizer = optimizer
@@ -43,33 +42,33 @@ class Simulator(object):
 
     def _information(self):
         print ("-" * 80) + "\n" + self.name +"\n" + ("-" * 80)
-        print "simulator: " + self.description 
+        print "simulator: " + self.description
         print "optimizer: " + self.optimizer.description
         print "problem: " + self.problem.description
-        print "-" * 80    
+        print "-" * 80
 
     def simulate(self):
         self._information()
         while(True):
-            # Simulator and optimizer handling constraints
+            # SingleSimulator and optimizer handling constraints
             all_feasible = False
             while(not all_feasible):
-                # ASK for solutions (feasbile and infeasible) 
+                # ASK for solutions (feasbile and infeasible)
                 solutions = self.optimizer.ask_pending_solutions()
 
-                # CHECK solutions for feasibility 
+                # CHECK solutions for feasibility
                 feasibility =\
                     lambda solution, position :\
                         (solution, self.problem.is_feasible(position))
 
-                feasibility_information = []                   
+                feasibility_information = []
                 for solution in solutions:
-                    self._count_cfc += 1                    
+                    self._count_cfc += 1
                     information = vsplit(solution, solution.shape[0])
                     position = information[0]
                     feasibility_information.append(feasibility(solution, position))
- 
-                # TELL feasibility, returns True if all feasible, 
+
+                # TELL feasibility, returns True if all feasible,
                 # returns False if extra checks
                 all_feasible =\
                     self.optimizer.tell_feasibility(feasibility_information)
@@ -92,11 +91,11 @@ class Simulator(object):
                 apos_feasibility =\
                     lambda (position, meta_feasibility) :\
                     (position, meta_feasibility, self.problem.is_feasible(position))
- 
-                apos_solutions = self.optimizer.ask_a_posteriori_solutions() 
+
+                apos_solutions = self.optimizer.ask_a_posteriori_solutions()
                 feasibility_info = []
                 for solution in apos_solutions:
-                    information = vsplit(solution[0], solution[0].shape[0])      
+                    information = vsplit(solution[0], solution[0].shape[0])
                     position = information[0]
                     meta_feasibility = solution[1]
                     feasibility_info.append(apos_feasibility((position, meta_feasibility)))
@@ -108,11 +107,9 @@ class Simulator(object):
             self.logger.log()
             self._count_cfc = 0
             self._count_ffc = 0
-          
             print "%.20f" % (optimum_fitness)
 
             # TERMINATION
             if(self.termination.terminate(optimum_fitness, self._generations)):
                 break
-            
-        return self 
+        return self
