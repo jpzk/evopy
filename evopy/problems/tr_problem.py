@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -27,7 +27,6 @@ class TRProblem():
     def __init__(self, dimensions = 2, size = 10):
         self._d = dimensions
         self._size = 10
-        #self._power = vectorize(lambda x : pow(x,2))
 
     def _power(self, x):
         _lpower = vectorize(lambda x : pow(x,2))
@@ -35,6 +34,9 @@ class TRProblem():
 
     def is_feasible(self, x):
         return float64(x.sum()) - float64(self._d) >= 0
+
+    def penalty(self, x):
+        return max(0, -(x.sum() - self._d))
 
     def fitness(self, x):
         return self._power(x).sum()

@@ -31,8 +31,7 @@ from numpy.linalg import inv
 
 from meta_model import MetaModel
 
-class CMASVCLinearMetaModel(MetaModel):
-    """ CMA SVC meta model which classfies feasible and infeasible points """
+class CMASVRRBFMetaModel(MetaModel):
 
     def __init__(self, window_size, scaling, crossvalidation, repair_mode):
 
@@ -111,41 +110,3 @@ class CMASVCLinearMetaModel(MetaModel):
 
         self.logger.log()
         return True
-
-    def distance_to_hp(self, x):
-        """ Returns the distance from a point to hyperplane """
-        return (self._clf.decision_function(x) * (1/sqrt(sum(w ** 2))))
-
-    def get_normal(self):
-        # VERY IMPORTANT
-        w = self._clf.coef_[0]
-        nw = w / sqrt(sum(w ** 2))
-
-        if sklearn_version == '0.10':
-            return -nw
-        if sklearn_version == '0.11':
-            return nw
-        if sklearn_version != '0.10' and sklearn_version != '0.11':
-            raise Exception("sklearn version is not supported")
-
-    def repair(self, individual):
-
-        x = self._scaling.scale(individual)
-        w = self._clf.coef_[0]
-        nw = self.get_normal()
-        b = self._clf.intercept_[0] / w[1]
-
-        to_hp = (self._clf.decision_function(x) * (1/sqrt(sum(w ** 2))))
-        if self._repair_mode == 'mirror':
-            s = 2 * to_hp
-        if self._repair_mode == 'none':
-            return individual
-        if self._repair_mode == 'project':
-            s = to_hp
-        if self._repair_mode == None:
-            raise Exception("no repair_mode selected: " + repair_mode)
-
-        nx = x + (-nw * s)
-
-        return self._scaling.scale(nx)
-

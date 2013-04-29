@@ -21,6 +21,9 @@ The CMA-ES algorithm is provided in many other languages and advanced versions
 at http://www.lri.fr/~hansen/cmaesintro.html.
 '''
 
+from sys import path
+path.append("../../..")
+
 from copy import deepcopy
 
 from numpy import array, mean, log, eye, diag, transpose
@@ -28,16 +31,16 @@ from numpy import identity, matrix, dot, exp, zeros, ones, sqrt
 from numpy.random import normal, rand
 from numpy.linalg import eigh, norm
 
-from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
-from evolution_strategy import EvolutionStrategy
+from evopy.metamodel.svc.svc_linear_meta_model import SVCLinearMetaModel
+from evopy.strategies.evolution_strategy import EvolutionStrategy
 
 class CMAES(EvolutionStrategy):
 
     description =\
-        "Covariance matrix adaption evolution strategy (CMA-ES) "\
-        "with Death Penalty"
+        "Covariance matrix adaption evolution strategy (CMA-ES) with "\
+        "continuous constraint handling, adaptive 1/5 penalty rule"
 
-    description_short = "CMA-ES"
+    description_short = "CMA-ES with adaptive 1/5 penalty rule"
 
     def __init__(self, mu, lambd, xmean, sigma):
 
@@ -60,6 +63,10 @@ class CMAES(EvolutionStrategy):
 
         # log constants
         self.logger.const_log()
+
+        # initialize gamma
+        self._gamma = 10.0#16.0
+        self._tau = 1.0#20.0
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
 
@@ -133,36 +140,38 @@ class CMAES(EvolutionStrategy):
 
         return pending_solutions
 
-    def tell_feasibility(self, feasibility_information):
-        """ tell feasibilty; return True if there are no pending solutions,
-            otherwise False """
+    def tell_fitness_penalty(self, informations):
 
-        for (child, feasibility) in feasibility_information:
-            if(feasibility):
-                self._valid_solutions.append(child)
-            else:
-                self._count_constraint_infeasibles += 1
+        fitness = lambda (child, fitness, penalty) : fitness
+        child = lambda (child, fitness, penalty) : child
+        penalty = lambda (child, fitness, penalty) : penalty
 
-        # @todo shorten: return expression
-        if(len(self._valid_solutions) < self._lambd):
-            return False
-        else:
-            return True
+        # update penalty gamma with success ratio and adaptive 1/5 rule.
+        successratio = 0
+        successes = 0
 
-    def ask_valid_solutions(self):
-        return self._valid_solutions
+        for info in informations:
+            if penalty(info) == 0:
+                successes += 1
 
-    def tell_fitness(self, fitnesses):
-        """ tell fitness; update all strategy specific attributes """
+        successratio = float(successes) / len(informations)
+        if successratio < 0.2:
+            self._gamma = self._gamma * self._tau
+        if successratio > 0.2:
+            self._gamma = self._gamma / self._tau
+
+        # update CMA-ES specific parameters with penalty values
 
         N = self._xmean.size
         oldxmean = deepcopy(self._xmean)
 
-        fitness = lambda (child, fitness) : fitness
-        child = lambda (child, fitness) : child
+        addpenalty = lambda (child, fitness, penalty) :\
+                (child, fitness + self._gamma * penalty, penalty)
 
-        sorted_fitnesses = sorted(fitnesses, key = fitness)[:self._mu]
-        sorted_children = map(child, sorted_fitnesses)
+        fitnessespenalty = map(addpenalty, informations)
+
+        sorted_fitnessespenalty = sorted(fitnessespenalty, key = fitness)[:self._mu]
+        sorted_children = map(child, sorted_fitnessespenalty)
 
         # new xmean
         values = sorted_children
@@ -208,10 +217,10 @@ class CMAES(EvolutionStrategy):
 
         ### STATISTICS
         self._selected_children = values
-        self._best_child, self._best_fitness = sorted_fitnesses[0]
-        self._worst_child, self._worst_fitness = sorted_fitnesses[-1]
+        self._best_child, self._best_fitness, self._best_pen = sorted_fitnessespenalty[0]
+        self._worst_child, self._worst_fitness, self._worst_pen = sorted_fitnessespenalty[-1]
 
-        fitnesses = map(fitness, sorted_fitnesses)
+        fitnesses = map(fitness, sorted_fitnessespenalty)
         self._mean_fitness = array(fitnesses).mean()
 
         # log all bindings
@@ -225,5 +234,12 @@ class CMAES(EvolutionStrategy):
         invD = diag([1.0/d for d in self._D])
         self._invsqrtC = self._B * invD * transpose(self._B)
 
+        return True
+
+    def ask_best_solution(self):
         return self._best_child, self._best_fitness
+
+    def ask_valid_solutions(self):
+        return self._valid_solutions
+
 
