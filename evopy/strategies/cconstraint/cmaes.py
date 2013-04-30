@@ -38,11 +38,11 @@ class CMAES(EvolutionStrategy):
 
     description =\
         "Covariance matrix adaption evolution strategy (CMA-ES) with "\
-        "continuous constraint handling, adaptive 1/5 penalty rule"
+        "continuous constraint handling"
 
-    description_short = "CMA-ES with adaptive 1/5 penalty rule"
+    description_short = "CMA-ES"
 
-    def __init__(self, mu, lambd, xmean, sigma):
+    def __init__(self, mu, lambd, xmean, sigma, gamma):
 
         # initialize super constructor
         super(CMAES, self).__init__(mu, lambd)
@@ -65,8 +65,7 @@ class CMAES(EvolutionStrategy):
         self.logger.const_log()
 
         # initialize gamma
-        self._gamma = 10.0#16.0
-        self._tau = 1.0#20.0
+        self._gamma = gamma
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
 
@@ -145,20 +144,6 @@ class CMAES(EvolutionStrategy):
         fitness = lambda (child, fitness, penalty) : fitness
         child = lambda (child, fitness, penalty) : child
         penalty = lambda (child, fitness, penalty) : penalty
-
-        # update penalty gamma with success ratio and adaptive 1/5 rule.
-        successratio = 0
-        successes = 0
-
-        for info in informations:
-            if penalty(info) == 0:
-                successes += 1
-
-        successratio = float(successes) / len(informations)
-        if successratio < 0.2:
-            self._gamma = self._gamma * self._tau
-        if successratio > 0.2:
-            self._gamma = self._gamma / self._tau
 
         # update CMA-ES specific parameters with penalty values
 
