@@ -35,12 +35,24 @@ from evopy.strategies.evolution_strategy import EvolutionStrategy
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 
 class CMAESSVR(EvolutionStrategy):
+    """
+    Covariance matrix adaption evolution strategy (CMA-ES) with SVR surrogate
+    model for fitness function with penalty addition.
+
+    Beta solutions are evaluated on the surrogate model of fitness plus
+    penalty. Lambda - beta solutions are evaluated on the actual fitness
+    plus penalty function. The evaluations of the actual functions are used
+    to train the surrogate model. Because a surrogate model of low quality
+    can lead to premature termination due to wrong fitness prediction, the
+    optimal solution is based on solutions, which are validated by the
+    actual fitness function.
+    """
 
     description =\
         "Covariance matrix adaption evolution strategy (CMA-ES) with "\
-        "SVR & continuous constraint handling, adaptive 1/5 penalty rule"
+        "SVR & continuous constraint handling"
 
-    description_short = "CMA-ES & SVR with adaptive 1/5 penalty rule"
+    description_short = "CMA-ES & SVR"
 
     def __init__(self, mu, lambd, xmean, sigma, gamma, tau, beta, meta_model):
 
@@ -135,7 +147,7 @@ class CMAESSVR(EvolutionStrategy):
         """ ask pending solutions; solutions which need a checking for\
             true feasibility """
         if self._meta_model_trained:
-            beta = 5
+            beta = self._beta
             todo = self._lambd - beta
         else:
             beta = 0
@@ -183,6 +195,7 @@ class CMAESSVR(EvolutionStrategy):
         # merge fitnesses and mm_fitnesses
         merged_fitnesses = fitnessespenalty + mm_fitnesses
 
+        sorted_fitnesses = sorted(fitnessespenalty, key = fitness)
         sorted_merged_fitnesses = sorted(merged_fitnesses, key = fitness)[:self._mu]
         sorted_merged_children = map(child, sorted_merged_fitnesses)
 
@@ -230,8 +243,8 @@ class CMAESSVR(EvolutionStrategy):
 
         ### STATISTICS
         self._selected_children = values
-        self._best_child, self._best_fitness = sorted_merged_fitnesses[0]
-        self._worst_child, self._worst_fitness = sorted_merged_fitnesses[-1]
+        self._best_child, self._best_fitness = sorted_fitnesses[0]
+        self._worst_child, self._worst_fitness = sorted_fitnesses[-1]
 
         fitnesses = map(fitness, sorted_merged_fitnesses)
         self._mean_fitness = array(fitnesses).mean()
