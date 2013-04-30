@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -30,6 +30,9 @@ class SphereProblemOriginR2():
 
     def is_feasible(self, x):
         return float64(x[0,0]) >= 0
+
+    def penalty(self, x):
+        return max(0, -x[0,0])
 
     def fitness(self, x):
         _power = vectorize(lambda x : pow(x,2))

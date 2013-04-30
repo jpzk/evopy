@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -34,6 +34,9 @@ class SphereProblemOriginR1():
     def fitness(self, x):
         _power = vectorize(lambda x : pow(x,2))
         return _power(x).sum()
+
+    def penalty(self, x):
+        return max(0, -x.sum())
 
     def optimum_fitness(self):
         return float64(0.0)

@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -35,6 +35,9 @@ class SchwefelsProblem26:
         return max(\
             abs(x[0,0] + 2 * x[0,1] - 7),\
             abs(2 * x[0,0] + x[0,1] - 5))
-                               
+
+    def penalty(self, x):
+        return max(0, -(x.sum() - float64(70)))
+
     def optimum_fitness(self):
         return float64(99.0)
