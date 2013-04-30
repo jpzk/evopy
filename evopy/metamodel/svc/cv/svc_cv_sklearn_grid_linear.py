@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -37,7 +37,7 @@ class SVCCVSkGridLinear():
             is maximized. """
 
         tuned_parameters = [{
-            'kernel': ['linear'], 
+            'kernel': ['linear'],
             'C': self._C_range}]
 
         X = array([f.getA1() for f in feasible] + [i.getA1() for i in infeasible])
