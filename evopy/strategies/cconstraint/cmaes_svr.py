@@ -54,7 +54,7 @@ class CMAESSVR(EvolutionStrategy):
 
     description_short = "CMA-ES & SVR"
 
-    def __init__(self, mu, lambd, xmean, sigma, gamma, tau, beta, meta_model):
+    def __init__(self, mu, lambd, xmean, sigma, gamma, beta, meta_model):
 
         # initialize super constructor
         super(CMAESSVR, self).__init__(mu, lambd)
@@ -78,7 +78,6 @@ class CMAESSVR(EvolutionStrategy):
 
         # initialize gamma
         self._gamma = gamma
-        self._tau = tau
 
         # SVC Metamodel
         self._meta_model = meta_model
