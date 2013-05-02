@@ -25,7 +25,7 @@ from copy import deepcopy
 from numpy import array, mean, log, eye, diag, transpose
 from numpy import identity, matrix, dot, exp, zeros, ones, sqrt
 from numpy.random import normal, rand
-from numpy.linalg import eigh, norm
+from numpy.linalg import eigh, norm, inv
 
 from evopy.strategies.evolution_strategy import EvolutionStrategy
 
@@ -33,8 +33,8 @@ class CMAES11(EvolutionStrategy):
 
     description =\
         "Covariance matrix adaption evolution strategy (1+1-CMA-ES) with "\
-        "binary constraint handling from A (1+1)-CMA-ES for Constrained"\
-        "Optimisation"
+        "binary constraint handling from 'A (1+1)-CMA-ES for Constrained"\
+        "Optimisation'"
 
     description_short = "1+1-CMA-ES"
 
@@ -77,19 +77,56 @@ class CMAES11(EvolutionStrategy):
         self._cc = 1.0 / (n + 2.0)
         self._beta = 0.1 / (n + 2.0)
         self._psucc = 1.0
-        self._s = zeros(N)
+        self._s = matrix(zeros(N))
 
         # covariance matrix, rotation of mutation ellipsoid
-        self._C = identity(N)
+        self._A = matrix(identity(N))
+        self._cvec = matrix(zeros(N))
 
     def ask_pending_solutions(self):
         """ ask pending solutions; solutions which need a checking for\
             true feasibility """
 
-        pending_solutions = []
-        while(len(pending_solutions) < (self._lambd - len(self._valid_solutions))):
-            normals = transpose(matrix([normal(0.0, d) for d in self._D]))
-            value = self._xmean + transpose(self._sigma * self._B * normals)
-            pending_solutions.append(value)
+        normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+        value = self._xmean + transpose(self._sigma * self._A * normals)
 
-        return pending_solutions
+        return [value]
+
+    def tell_feasibility(self, feasibility_information):
+        for (child, feasibility) in feasibility_information:
+            if(feasibility):
+                self._feasible_child = child
+                return True
+            else:
+                # infeasible solution update constraint vectors
+                self._cvec = (1 - self._cc) * self._cvec + self._cc * child
+                return False
+
+    def ask_valid_solutions(self):
+        return [self._feasible_child]
+
+    def tell_fitness(self, fitnesses):
+        N = self._xmean.size
+        oldxmean = deepcopy(self._xmean)
+
+        # success in regard to fitness
+        # update A
+        A_inv = inv(self._A)
+        term_sq = sqrt(1 - self._ccovp)
+        term_a = term_sq * self._A
+        term_norm = norm(A_inv * s)
+        term_fac = term_sq / term_norm
+        term_b = sqrt(1 + (self._ccovp * term_norm) / (1 - self._ccovp) - 1)
+        term_c = s * s.T * A_inv.T
+        self._A = term_sq * self._A + term_fac * term_b + term_c
+
+        child, fitness = fitnesses[0]
+
+        import pdb
+        pdb.set_trace()
+
+        # unsuccess in regard to fitness
+
+        # update sigma with success probability
+        term_frac = (self._psucc - self._ptarget) / (1.0 - self._ptarget)
+        self._sigma = self._sigma * exp((1.0/self.d)) * term_frac
