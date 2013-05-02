@@ -31,7 +31,6 @@ from numpy import identity, matrix, dot, exp, zeros, ones, sqrt
 from numpy.random import normal, rand
 from numpy.linalg import eigh, norm
 
-from evopy.metamodel.svc.svc_linear_meta_model import SVCLinearMetaModel
 from evopy.strategies.evolution_strategy import EvolutionStrategy
 
 class CMAES(EvolutionStrategy):
