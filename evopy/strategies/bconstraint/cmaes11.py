@@ -53,9 +53,7 @@ class CMAES11(EvolutionStrategy):
         self.logger.add_const_binding('_xmean', 'initial_xmean')
         self.logger.add_const_binding('_sigma', 'initial_sigma')
 
-        self.logger.add_binding('_D', 'D')
-        self.logger.add_binding('_C', 'C')
-        self.logger.add_binding('_B', 'B')
+        self.logger.add_binding('_A', 'A')
 
         # log constants
         self.logger.const_log()
@@ -68,6 +66,7 @@ class CMAES11(EvolutionStrategy):
         self._sigma = sigma
 
         # damping parameter
+        self._n = N
         n = float(N)
         self._d = 1.0 + (n/2.0)
         self._c = 2.0 / (n + 2)
@@ -87,7 +86,7 @@ class CMAES11(EvolutionStrategy):
         """ ask pending solutions; solutions which need a checking for\
             true feasibility """
 
-        normals = transpose(matrix([normal(0.0, d) for d in self._D]))
+        normals = transpose(matrix([normal(0.0, 1.0) for i in range(0, self._n)]))
         value = self._xmean + transpose(self._sigma * self._A * normals)
 
         return [value]
@@ -114,16 +113,13 @@ class CMAES11(EvolutionStrategy):
         A_inv = inv(self._A)
         term_sq = sqrt(1 - self._ccovp)
         term_a = term_sq * self._A
-        term_norm = norm(A_inv * s)
+        term_norm = norm(A_inv * self._s.T)
         term_fac = term_sq / term_norm
         term_b = sqrt(1 + (self._ccovp * term_norm) / (1 - self._ccovp) - 1)
-        term_c = s * s.T * A_inv.T
+        term_c = self._s.T * self._s * A_inv.T
         self._A = term_sq * self._A + term_fac * term_b + term_c
 
         child, fitness = fitnesses[0]
-
-        import pdb
-        pdb.set_trace()
 
         # unsuccess in regard to fitness
 
