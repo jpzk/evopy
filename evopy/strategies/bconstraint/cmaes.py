@@ -1,7 +1,7 @@
 '''
 This file is part of evopy.
 
-Copyright 2012, Jendrik Poloczek
+Copyright 2012 - 2013, Jendrik Poloczek
 
 evopy is free software: you can redistribute it
 and/or modify it under the terms of the GNU General Public License as published
@@ -62,8 +62,6 @@ class CMAES(EvolutionStrategy):
         self.logger.const_log()
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
-
-        self.ask_pending_solutions
 
         # dimension of objective function
         N = xmean.size
