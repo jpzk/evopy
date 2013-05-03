@@ -22,6 +22,7 @@ path.append("../../..")
 
 from copy import deepcopy
 
+from collections import deque
 from numpy import array, mean, log, eye, diag, transpose
 from numpy import identity, matrix, dot, exp, zeros, ones, sqrt
 from numpy.random import normal, rand
@@ -38,19 +39,19 @@ class CMAES11(EvolutionStrategy):
 
     description_short = "1+1-CMA-ES"
 
-    def __init__(self, mu, lambd, xmean, sigma):
+    def __init__(self, mu, lambd, xstart, sigma):
 
         # initialize super constructor
         super(CMAES11, self).__init__(mu, lambd)
 
         # initialize CMA-ES specific strategy parameters
-        self._init_cma_strategy_parameters(xmean, sigma)
+        self._init_cma_strategy_parameters(xstart, sigma)
 
         # valid solutions
         self._valid_solutions = []
 
         # statistics
-        self.logger.add_const_binding('_xmean', 'initial_xmean')
+#        self.logger.add_const_binding('_xstart', 'initial_start')
         self.logger.add_const_binding('_sigma', 'initial_sigma')
 
         self.logger.add_binding('_A', 'A')
@@ -58,11 +59,10 @@ class CMAES11(EvolutionStrategy):
         # log constants
         self.logger.const_log()
 
-    def _init_cma_strategy_parameters(self, xmean, sigma):
+    def _init_cma_strategy_parameters(self, xstart, sigma):
 
         # dimension of objective function
-        N = xmean.size
-        self._xmean = xmean
+        N = xstart.size
         self._sigma = sigma
 
         # damping parameter
@@ -76,18 +76,24 @@ class CMAES11(EvolutionStrategy):
         self._cc = 1.0 / (n + 2.0)
         self._beta = 0.1 / (n + 2.0)
         self._psucc = 1.0
-        self._s = matrix(zeros(N))
+        self._s = matrix([1.0 for i in range(0, self._n)]).T
 
         # covariance matrix, rotation of mutation ellipsoid
         self._A = matrix(identity(N))
         self._cvec = matrix(zeros(N))
+        self._best_known = False
+        self._best_child = xstart
+        self._last_best = deque(maxlen=5)
 
     def ask_pending_solutions(self):
         """ ask pending solutions; solutions which need a checking for\
             true feasibility """
 
         normals = transpose(matrix([normal(0.0, 1.0) for i in range(0, self._n)]))
-        value = self._xmean + transpose(self._sigma * self._A * normals)
+        self._z = normals
+        value = self._best_child + transpose(self._sigma * self._A * normals)
+
+        print value
 
         return [value]
 
@@ -105,24 +111,61 @@ class CMAES11(EvolutionStrategy):
         return [self._feasible_child]
 
     def tell_fitness(self, fitnesses):
-        N = self._xmean.size
-        oldxmean = deepcopy(self._xmean)
-
-        # success in regard to fitness
-        # update A
-        A_inv = inv(self._A)
-        term_sq = sqrt(1 - self._ccovp)
-        term_a = term_sq * self._A
-        term_norm = norm(A_inv * self._s.T)
-        term_fac = term_sq / term_norm
-        term_b = sqrt(1 + (self._ccovp * term_norm) / (1 - self._ccovp) - 1)
-        term_c = self._s.T * self._s * A_inv.T
-        self._A = term_sq * self._A + term_fac * term_b + term_c
+        N = self._best_child.size
 
         child, fitness = fitnesses[0]
 
-        # unsuccess in regard to fitness
+        # check if fitness is better then last 5
+        better = True
+        for last_fit in self._last_best:
+            if(fitness > last_fit):
+                better = False
+
+        if better:
+            # success in regard to fitness
+            A_inv = inv(self._A)
+            term_sq = sqrt(1 - self._ccovp)
+            term_a = term_sq * self._A
+            term_norm = norm(A_inv * self._s) ** 2
+            term_fac = term_sq / term_norm
+            term_b = sqrt(1 + ((self._ccovp * term_norm) / (1 - self._ccovp))) - 1
+            term_c = self._s * self._s.T * A_inv.T
+            self._A = term_a + term_fac * term_b * term_c
+        else:
+            term_norm = norm(self._z) ** 2
+            self._ccovn = min((0.4/(float(N) ** 1.6 + 1)), (1.0/(2*term_norm-1)))
+            term_sq = sqrt(1 + self._ccovn)
+            term_a = term_sq * self._A
+            term_fac = term_sq / term_norm
+            print "term_norm", term_norm
+            term_b = sqrt(1 - ((self._ccovn * term_norm)/(1 + self._ccovn))) - 1
+            term_c = self._A * self._z * self._z.T
+            self._A = term_a + term_fac * term_b * term_c
+
+        if self._best_known and fitness < self._best_fitness:
+            self._best_fitness = fitness
+            self._best_child = child
+            self._last_best.append(fitness)
+            # update search path
+            self._s = (1 - self._c) * self._s +\
+                sqrt(self._c * (2 - self._c)) * self._A * self._z
+            # update success prob
+            self._psucc = (1.0 - self._cp) * self._psucc + self._cp * 1
+
+        elif self._best_known and fitness >= self._best_fitness:
+            return self._best_child, self._best_fitness
+
+        elif not self._best_known:
+            self._best_child = child
+            self._best_fitness = fitness
+            self._best_known = True
+            self._s = (1 - self._c) * self._s +\
+                sqrt(self._c * (2 - self._c)) * self._A * self._z
+            self._last_best.append(fitness)
 
         # update sigma with success probability
         term_frac = (self._psucc - self._ptarget) / (1.0 - self._ptarget)
-        self._sigma = self._sigma * exp((1.0/self.d)) * term_frac
+        self._sigma = self._sigma * exp((1.0/self._d)) * term_frac
+
+        return self._best_child, self._best_fitness
+
