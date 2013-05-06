@@ -107,9 +107,12 @@ class SingleSimulator(object):
             self.logger.log()
             self._count_cfc = 0
             self._count_ffc = 0
-            print "%.20f" % (optimum_fitness)
+            print optimum, "%.20f" % (optimum_fitness)
 
             # TERMINATION
             if(self.termination.terminate(optimum_fitness, self._generations)):
+                print "%i generations " % (self._generations)
+                print "%i cfcs " % sum(self.logger.all()['count_cfc'])
+                print "%i ffcs " % sum(self.logger.all()['count_ffc'])
                 break
         return self
