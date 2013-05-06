@@ -15,6 +15,9 @@ Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
+
+Based on the paper "A (1+1)-CMA-ES for Constrained Optimisation" by
+Arnold, Dirk, V. and Hansen, Nikolaus
 '''
 
 from sys import path
@@ -51,7 +54,6 @@ class CMAES11(EvolutionStrategy):
         self._valid_solutions = []
 
         # statistics
-#        self.logger.add_const_binding('_xstart', 'initial_start')
         self.logger.add_const_binding('_sigma', 'initial_sigma')
 
         self.logger.add_binding('_A', 'A')
@@ -80,7 +82,7 @@ class CMAES11(EvolutionStrategy):
 
         # covariance matrix, rotation of mutation ellipsoid
         self._A = matrix(identity(N))
-        self._cvec = matrix(zeros(N))
+        self._cvec = matrix(zeros(N)).T
         self._best_known = False
         self._best_child = xstart
         self._last_best = deque(maxlen=5)
@@ -91,20 +93,19 @@ class CMAES11(EvolutionStrategy):
 
         normals = transpose(matrix([normal(0.0, 1.0) for i in range(0, self._n)]))
         self._z = normals
-        value = self._best_child + transpose(self._sigma * self._A * normals)
-
-        print value
-
+        value = self._best_child + (self._sigma * self._A * normals).T
         return [value]
 
     def tell_feasibility(self, feasibility_information):
         for (child, feasibility) in feasibility_information:
-            if(feasibility):
+            if(feasibility and (norm(self._z) **2) > 0.5): ### mistake in paper?
                 self._feasible_child = child
                 return True
             else:
                 # infeasible solution update constraint vectors
-                self._cvec = (1 - self._cc) * self._cvec + self._cc * child
+                self._cvec = (1 - self._cc) * self._cvec + self._cc * (self._A * self._z)
+                wj = (inv(self._A) * self._cvec)
+                self._A = self._A - (0.1/4.0) * ((self._cvec * wj.T) / (wj.T * wj))
                 return False
 
     def ask_valid_solutions(self):
@@ -115,7 +116,7 @@ class CMAES11(EvolutionStrategy):
 
         child, fitness = fitnesses[0]
 
-        # check if fitness is better then last 5
+        # check if fitness is inferior to last 5 ancestors
         better = True
         for last_fit in self._last_best:
             if(fitness > last_fit):
@@ -129,20 +130,20 @@ class CMAES11(EvolutionStrategy):
             term_norm = norm(A_inv * self._s) ** 2
             term_fac = term_sq / term_norm
             term_b = sqrt(1 + ((self._ccovp * term_norm) / (1 - self._ccovp))) - 1
-            term_c = self._s * self._s.T * A_inv.T
+            term_c = self._s * (A_inv * self._s).T
             self._A = term_a + term_fac * term_b * term_c
+
         else:
             term_norm = norm(self._z) ** 2
             self._ccovn = min((0.4/(float(N) ** 1.6 + 1)), (1.0/(2*term_norm-1)))
             term_sq = sqrt(1 + self._ccovn)
             term_a = term_sq * self._A
             term_fac = term_sq / term_norm
-            print "term_norm", term_norm
             term_b = sqrt(1 - ((self._ccovn * term_norm)/(1 + self._ccovn))) - 1
             term_c = self._A * self._z * self._z.T
             self._A = term_a + term_fac * term_b * term_c
 
-        if self._best_known and fitness < self._best_fitness:
+        if self._best_known and fitness <= self._best_fitness:
             self._best_fitness = fitness
             self._best_child = child
             self._last_best.append(fitness)
@@ -152,7 +153,8 @@ class CMAES11(EvolutionStrategy):
             # update success prob
             self._psucc = (1.0 - self._cp) * self._psucc + self._cp * 1
 
-        elif self._best_known and fitness >= self._best_fitness:
+        elif self._best_known and fitness > self._best_fitness:
+            self._psucc = (1.0 - self._cp) * self._psucc + self._cp * 0
             return self._best_child, self._best_fitness
 
         elif not self._best_known:
@@ -165,7 +167,7 @@ class CMAES11(EvolutionStrategy):
 
         # update sigma with success probability
         term_frac = (self._psucc - self._ptarget) / (1.0 - self._ptarget)
-        self._sigma = self._sigma * exp((1.0/self._d)) * term_frac
+        self._sigma = self._sigma * exp((1.0/self._d) * term_frac)
 
         return self._best_child, self._best_fitness
 
