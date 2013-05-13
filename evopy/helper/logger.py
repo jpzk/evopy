@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -23,7 +23,7 @@ class Logger(object):
         self.scope = scope
 
     def add_const_binding(self, var_name, name):
-        self.const_bindings[name] = var_name       
+        self.const_bindings[name] = var_name
 
     def add_binding(self, var_name, name):
         self.bindings[name] = var_name
@@ -35,7 +35,7 @@ class Logger(object):
 
     def log(self):
         for k, v in self.bindings.iteritems():
-            self.logs[k].append(self.scope.__getattribute__(v))                
+            self.logs[k].append(self.scope.__getattribute__(v))
 
     def all(self):
         return self.logs
@@ -45,7 +45,7 @@ class Logger(object):
         for k in self.logs.keys():
             if(type(self.logs[k]) == list):
                 last[k] = self.logs[k][-1]
-            else: 
+            else:
                 last[k] = self.logs[k]
         return last
 
