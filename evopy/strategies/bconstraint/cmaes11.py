@@ -30,10 +30,11 @@ from numpy import array, mean, log, eye, diag, transpose
 from numpy import identity, matrix, dot, exp, zeros, ones, sqrt
 from numpy.random import normal, rand
 from numpy.linalg import eigh, norm, inv
+from evopy.helper.logger import Logger
 
 from evopy.strategies.evolution_strategy import EvolutionStrategy
 
-class CMAES11(EvolutionStrategy):
+class CMAES11(object):
 
     description =\
         "Covariance matrix adaption evolution strategy (1+1-CMA-ES) with "\
@@ -42,10 +43,12 @@ class CMAES11(EvolutionStrategy):
 
     description_short = "1+1-CMA-ES"
 
-    def __init__(self, mu, lambd, xstart, sigma):
+    def __init__(self, xstart, sigma):
 
         # initialize super constructor
-        super(CMAES11, self).__init__(mu, lambd)
+        super(CMAES11, self).__init__()
+
+        self.logger = Logger(self)
 
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xstart, sigma)
@@ -57,6 +60,10 @@ class CMAES11(EvolutionStrategy):
         self.logger.add_const_binding('_sigma', 'initial_sigma')
 
         self.logger.add_binding('_A', 'A')
+        self.logger.add_binding('_cvec', 'cvec')
+        self.logger.add_binding('_infeasible', 'infeasible')
+        self.logger.add_binding('_feasible', 'feasible')
+        self.logger.add_binding('_s', 'succpath')
 
         # log constants
         self.logger.const_log()
@@ -87,6 +94,9 @@ class CMAES11(EvolutionStrategy):
         self._best_child = xstart
         self._last_best = deque(maxlen=5)
 
+        self._infeasible = []
+        self._feasible = []
+
     def ask_pending_solutions(self):
         """ ask pending solutions; solutions which need a checking for\
             true feasibility """
@@ -100,12 +110,16 @@ class CMAES11(EvolutionStrategy):
         for (child, feasibility) in feasibility_information:
             if(feasibility and (norm(self._z) **2) > 0.5): ### mistake in paper?
                 self._feasible_child = child
+                self._feasible.append(child)
                 return True
-            else:
-                # infeasible solution update constraint vectors
+            elif(not feasibility):
+                self._infeasible.append(child)
                 self._cvec = (1 - self._cc) * self._cvec + self._cc * (self._A * self._z)
                 wj = (inv(self._A) * self._cvec)
                 self._A = self._A - (0.1/4.0) * ((self._cvec * wj.T) / (wj.T * wj))
+                return False
+            else:
+                # infeasible solution update constraint vectors
                 return False
 
     def ask_valid_solutions(self):
@@ -168,6 +182,10 @@ class CMAES11(EvolutionStrategy):
         # update sigma with success probability
         term_frac = (self._psucc - self._ptarget) / (1.0 - self._ptarget)
         self._sigma = self._sigma * exp((1.0/self._d) * term_frac)
+
+        self.logger.log()
+        self._infeasible = []
+        self._feasible = []
 
         return self._best_child, self._best_fitness
 
