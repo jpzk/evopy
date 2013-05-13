@@ -34,8 +34,11 @@ class SingleSimulator(object):
         self.logger = Logger(self)
 
         self._count_cfc = 0
+        self._cum_count_cfc = 0
         self._count_ffc = 0
         self._generations = 0
+
+        self.logger.add_binding('_cum_count_cfc', 'cum_count_cfc')
         self.logger.add_binding('_count_cfc', 'count_cfc')
         self.logger.add_binding('_count_ffc', 'count_ffc')
         self.logger.add_binding('_generations', 'generations')
@@ -104,6 +107,8 @@ class SingleSimulator(object):
 
             # UPDATE OWN STATS
             self._generations += 1
+            self._cum_count_cfc += self._count_cfc
+
             self.logger.log()
             self._count_cfc = 0
             self._count_ffc = 0
