@@ -75,8 +75,8 @@ class CMAES11KNN(object):
         self.logger.add_binding('_feasiblemodel', 'feasiblemodel')
         self.logger.add_binding('_infeasiblemodel', 'infeasiblemodel')
 
-        self._last_best_children = deque(maxlen=20)
-        self._last_inf_children = deque(maxlen=20)
+        self._last_best_children = deque(maxlen=self._size)
+        self._last_inf_children = deque(maxlen=self._size)
 
         self._trainingset_feasible = []
         self._trainingset_infeasible = []
@@ -167,6 +167,7 @@ class CMAES11KNN(object):
         phi = self._phi
         self._R = matrix([[cos(phi), -sin(phi)],[sin(phi), cos(phi)]])
         project = lambda x : ((self._R.T * x.T).T).getA1()[0]
+
         self._trainingset_feasible = map(project, self._last_best_children)
         self._trainingset_infeasible = map(project, self._last_inf_children)
 
@@ -187,7 +188,7 @@ class CMAES11KNN(object):
                 self._feasible_child = child
                 self._feasible.append(child)
 
-                if(len(self._last_best_children) >= 1):
+                if(len(self._last_best_children) >= 2):
                     # estimate linear regression feasible plane
                     X = map(lambda e : e.getA1()[0], self._last_best_children)
                     Y = map(lambda e : e.getA1()[1], self._last_best_children)
