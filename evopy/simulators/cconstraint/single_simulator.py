@@ -1,3 +1,6 @@
+# Using the magic encoding
+# -*- coding: utf-8 -*-
+
 '''
 This file is part of evopy.
 
@@ -16,6 +19,7 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
+
 from numpy import vsplit
 
 from sys import path

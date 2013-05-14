@@ -1,4 +1,7 @@
-''' 
+# Using the magic encoding
+# -*- coding: utf-8 -*-
+
+'''
 This file is part of evopy.
 
 Copyright 2012 - 2013, Jendrik Poloczek
@@ -39,7 +42,7 @@ class DSESSVCLinearMetaModel(MetaModel):
         super(DSESSVCLinearMetaModel, self).__init__()
 
         self._window_size = window_size
-        self._scaling = scaling            
+        self._scaling = scaling
         self._training_infeasibles = deque(maxlen = self._window_size)
         self._crossvalidation = crossvalidation
         self._repair_mode = repair_mode
@@ -66,10 +69,10 @@ class DSESSVCLinearMetaModel(MetaModel):
 
         encode = lambda distance : False if distance < 0 else True
         return encode(prediction)
-        
+
     def train(self):
         """ Train a meta model classification with new points, return True
-            if training was successful, False if not enough infeasible points 
+            if training was successful, False if not enough infeasible points
             are gathered """
 
         if(len(self._training_infeasibles) < self._window_size):
@@ -95,12 +98,12 @@ class DSESSVCLinearMetaModel(MetaModel):
             self._crossvalidation.crossvalidate(\
                 scaled_cv_feasibles, scaled_cv_infeasibles)
 
-        # @todo WARNING maybe rescale training feasibles/infeasibles (!) 
+        # @todo WARNING maybe rescale training feasibles/infeasibles (!)
         fvalues = [f.getA1() for f in self._selected_feasibles]
         ivalues = [i.getA1() for i in self._selected_infeasibles]
 
         points = ivalues + fvalues
-        labels = [-1] * len(ivalues) + [1] * len(fvalues) 
+        labels = [-1] * len(ivalues) + [1] * len(fvalues)
 
         self._clf = svm.SVC(\
             kernel = 'linear',\
@@ -119,11 +122,11 @@ class DSESSVCLinearMetaModel(MetaModel):
         # VERY IMPORTANT
         w = self._clf.coef_[0]
         nw = w / sqrt(sum(w ** 2))
- 
+
         if sklearn_version == '0.10':
-            return -nw 
+            return -nw
         if sklearn_version == '0.11':
-            return nw 
+            return nw
         if sklearn_version != '0.10' and sklearn_version != '0.11':
             raise Exception("sklearn version is not supported")
 
@@ -133,15 +136,15 @@ class DSESSVCLinearMetaModel(MetaModel):
         w = self._clf.coef_[0]
         nw = self.get_normal()
         b = self._clf.intercept_[0] / w[1]
-     
+
         to_hp = (self._clf.decision_function(x) * (1/sqrt(sum(w ** 2))))
         if self._repair_mode == 'mirror':
             s = 2 * to_hp
         if self._repair_mode == 'none':
             return individual
         if self._repair_mode == 'project':
-            s = to_hp 
-        if self._repair_mode == None: 
+            s = to_hp
+        if self._repair_mode == None:
             raise Exception("no repair_mode selected: " + repair_mode)
 
         nx = x + (-nw * s)  #(-nw * (1/sqrt(sum(w ** 2))))

@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -40,7 +40,7 @@ class SVCLinearMetaModel(MetaModel):
         super(SVCLinearMetaModel, self).__init__()
 
         self._window_size = window_size
-        self._scaling = scaling 
+        self._scaling = scaling
         self._training_infeasibles = deque(maxlen = self._window_size)
         self._crossvalidation = crossvalidation
         self._repair_mode = repair_mode
@@ -55,29 +55,29 @@ class SVCLinearMetaModel(MetaModel):
         for feasible in feasibles:
             copied_individual = deepcopy(feasible)
             copied_individual.value = [feasible.value[0]]
-            reduced_infeasibles.append(copied_individual)	    
-	   
+            reduced_infeasibles.append(copied_individual)
+
         self._training_feasibles = reduced_infeasibles
 
     def add_infeasible(self, infeasible):
         copied_individual = deepcopy(infeasible)
-        copied_individual.value = [infeasible.value[0]]     
+        copied_individual.value = [infeasible.value[0]]
         self._training_infeasibles.append(copied_individual)
 
     def check_feasibility(self, individual):
         """ Check the feasibility with meta model """
-    	copied_individual = deepcopy(individual)
-    	copied_individual.value = [individual.value[0]]
-	
+        copied_individual = deepcopy(individual)
+        copied_individual.value = [individual.value[0]]
+
         scaled_individual = self._scaling.scale(copied_individual)
         prediction = self._clf.predict(scaled_individual.value)
 
         encode = lambda distance : False if distance < 0 else True
         return encode(prediction)
-        
+
     def train(self):
         """ Train a meta model classification with new points, return True
-            if training was successful, False if not enough infeasible points 
+            if training was successful, False if not enough infeasible points
             are gathered """
 
         if(len(self._training_infeasibles) < self._window_size):
@@ -101,15 +101,15 @@ class SVCLinearMetaModel(MetaModel):
             self._crossvalidation.crossvalidate(\
                 scaled_cv_feasibles, scaled_cv_infeasibles)
 
-        # @todo WARNING maybe rescale training feasibles/infeasibles (!) 
+        # @todo WARNING maybe rescale training feasibles/infeasibles (!)
         fvalues = [f.value for f in self._selected_feasibles]
         ivalues = [i.value for i in self._selected_infeasibles]
 
         points = ivalues + fvalues
-        labels = [-1] * len(ivalues) + [1] * len(fvalues) 
+        labels = [-1] * len(ivalues) + [1] * len(fvalues)
 
         self._clf = svm.SVC(kernel = 'linear', C = self._best_parameter_C, tol = 1.0)
-        self._clf.fit(points, labels)  
+        self._clf.fit(points, labels)
         self.logger.log()
 
         return True
@@ -118,11 +118,11 @@ class SVCLinearMetaModel(MetaModel):
         # VERY IMPORTANT
         w = self._clf.coef_[0]
         nw = w / sqrt(sum(w ** 2))
- 
+
         if sklearn_version == '0.10':
-            return -nw 
+            return -nw
         if sklearn_version == '0.11':
-            return nw 
+            return nw
         if sklearn_version != '0.10' and sklearn_version != '0.11':
             raise Exception("sklearn version is not supported")
 
@@ -133,21 +133,21 @@ class SVCLinearMetaModel(MetaModel):
 
         w = self._clf.coef_[0]
         nw = self.get_normal()
-      
+
         to_hp = (self._clf.decision_function(x) * (1/sqrt(sum(w ** 2))))
         if repair_mode == 'mirror':
             s = 2 * to_hp
         if repair_mode == 'none':
             return individual
         if repair_mode == 'project':
-            s = to_hp 
+            s = to_hp
         if repair_mode == 'projectsigma':
             s = to_hp + mean(individual.sigmas)
-        if repair_mode == None: 
+        if repair_mode == None:
             raise Exception("no repair_mode selected: " + repair_mode)
 
         nx = x + (nw * s)
-        
+
         individual.value[0] = nx
         return individual
 
