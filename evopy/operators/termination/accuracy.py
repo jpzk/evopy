@@ -1,4 +1,7 @@
-''' 
+# Using the magic encoding
+# -*- coding: utf-8 -*-
+
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek

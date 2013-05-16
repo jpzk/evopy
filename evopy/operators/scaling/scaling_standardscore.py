@@ -1,4 +1,7 @@
-''' 
+# Using the magic encoding
+# -*- coding: utf-8 -*-
+
+'''
 This file is part of evopy.
 
 Copyright 2012 - 2013, Jendrik Poloczek
@@ -25,20 +28,20 @@ class ScalingStandardscore():
 
     def setup(self, values):
         dimensions = values[0].size
-       
+
         iinrow = []
-        for val in values: 
-            iinrow.append(val.getA1())
+        for val in values:
+            iinrow.append(val)
         temp = matrix(iinrow)
         self._mean = temp.mean(axis = 0)
         self._std = temp.std(axis = 0)
 
     def scale(self, valx):
         scale = lambda val, mean, std : (val - mean) / std if std != 0 else val
-        _mat_scale = vectorize(scale) 
-        return _mat_scale(valx, self._mean, self._std)   
+        _mat_scale = vectorize(scale)
+        return _mat_scale(valx, self._mean, self._std)
 
     def descale(self, valx):
         descale = lambda val, mean, std : (val * std) + mean if std != 0 else val
-        _mat_descale = vectorize(descale) 
+        _mat_descale = vectorize(descale)
         return _mat_descale(valx, self._mean, self._std)
