@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -42,8 +42,8 @@ class ConfusionMatrix():
             (self.tn + self.fp) * (self.tn + self.fn))
         if(bottom == 0):
             self._mcc = top / 1.0
-        else:            
-            self._mcc = top / bottom            
+        else:
+            self._mcc = top / bottom
 
     def success_probability(self):
         sum_b = self.tn + self.fn + self.tp + self.fp
@@ -56,7 +56,7 @@ class ConfusionMatrix():
 
     # negative prediction value
     def npv(self):
-        sum_ = self.tn + self.fn 
+        sum_ = self.tn + self.fn
         if(sum_ == 0):
             return 0.0
         else:
@@ -68,6 +68,6 @@ class ConfusionMatrix():
             return 0.0
         else:
             return self.tp / float(self.tp + self.fp)
-   
+
     def matrix(self):
         return matrix([[self.tp, self.fp],[self.fn, self.tn]])
