@@ -194,8 +194,13 @@ class AHMCE2(object):
 
         print "nearest_feasible", self._nearest_feasible
         print "nearest_infeasible", self._nearest_infeasible
+
         self.trained = True
 
+        ## train only with nearest points, support vectors
+        model = SVC(kernel = 'linear', C = 10000)
+        X = [self._nearest_feasible.getA1(), self._nearest_infeasible.getA1()]
+        Y = [1, -1]
+        model.fit(X, Y)
         self._model = model
-
 
