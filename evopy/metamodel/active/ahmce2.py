@@ -61,6 +61,7 @@ class AHMCE2(object):
         self.logger.add_binding('_spent_budget', 'spent_budget')
         self.logger.add_binding('_X', 'X')
         self.logger.add_binding('_Y', 'Y')
+        self.logger.add_binding('_var', 'var')
 
     def _generate_individual(self):
         ldirection = self._nearest_infeasible - self._mean
@@ -71,9 +72,13 @@ class AHMCE2(object):
         if(scalar >= 0):
             return matrix(self._mean + scalar * ldirection)
 
-    # ask if prediction accuracy is good enough.
     def ask_prediction_possible(self, individual):
-        return True
+        """ ask prediction accuracy is good enough if the decision
+        value is > 1 or < 1. Is this the case, then the individual
+        lies outside the geometric margin of the SVC. """
+
+        dist = self._model.decision_function(self._scaling.scale(individual))
+        return dist
 
     def is_feasible(self, individual):
         y = self._model.predict(self._scaling.scale(individual))
@@ -88,11 +93,6 @@ class AHMCE2(object):
 
         evaluate_cf = lambda x : problem.is_feasible(x)
         encode = lambda b : 1 if b == True else -1
-
-        C_range = [10000]
-        tuned_parameters = [{
-            'kernel': ['linear'],
-            'C': C_range}]
 
         # spawn initial population
         # we need both feasible and infeasible solutions
@@ -119,16 +119,11 @@ class AHMCE2(object):
                     self._Y.append(encode(True))
                 self._spent_budget += 1
 
-        grid = GridSearchCV(SVC(), tuned_parameters,\
-        cv = LeaveOneOut(len(self._X)), verbose=0)
-
         Xa, Ya = map(lambda x : x.getA1(), self._X), array(self._Y)
         self._scaling.setup(Xa)
         Xa = map(lambda x : x.getA1(), map(lambda x : self._scaling.scale(x), Xa))
 
-        grid.fit(Xa, Ya)
-        best_C = grid.best_estimator.C
-        model = SVC(kernel = 'linear', C = best_C)
+        model = SVC(kernel = 'linear', C = 10000)
         model.fit(Xa, Ya)
 
         # get the nearest feasible
@@ -169,16 +164,13 @@ class AHMCE2(object):
             self._X.append(x)
             self._Y.append(y)
 
-            grid = GridSearchCV(SVC(), tuned_parameters,\
-            cv = LeaveOneOut(len(self._X)), verbose=0)
-
             Xa, Ya = map(lambda x : x.getA1(), self._X), array(self._Y)
             self._scaling.setup(Xa)
             Xa = map(lambda x : x.getA1(), map(lambda x : self._scaling.scale(x), Xa))
 
-            grid.fit(Xa, Ya)
-            best_C = grid.best_estimator.C
-            model = SVC(kernel = 'linear', C = best_C)
+            #grid.fit(Xa, Ya)
+            #best_C = grid.best_estimator.C
+            model = SVC(kernel = 'linear', C = 10000)
             model.fit(Xa, Ya)
 
             # update mean, var
@@ -200,7 +192,10 @@ class AHMCE2(object):
 
             print "train ahmce2", sum(self._Y), len(self._X), self._var
 
+        print "nearest_feasible", self._nearest_feasible
+        print "nearest_infeasible", self._nearest_infeasible
         self.trained = True
+
         self._model = model
 
 
