@@ -18,6 +18,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from random import random, sample, gauss
+from numpy import vectorize
 
 class OHProblem():
 
@@ -39,4 +40,4 @@ class OHProblem():
         return self._power(x).sum()
 
     def optimum_fitness(self):
-        return float(self._d)
+        return float(0.0)
