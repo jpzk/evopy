@@ -1,4 +1,4 @@
-''' 
+'''
 This file is part of evopy.
 
 Copyright 2012, Jendrik Poloczek
@@ -28,12 +28,15 @@ class OHProblem():
         self._d = dimensions
         self._size = 10
 
+    def _power(self, x):
+        _lpower = vectorize(lambda x : pow(x,2))
+        return _lpower(x)
+
     def is_feasible(self, x):
-        return sum(x.value) >= 0
-        #return sum(x.value) - float(self._d) >= 0
+        return float(x.sum()) >= 0
 
     def fitness(self, x):
-        return sum(map(lambda x : pow(x,2), x.value)) 
+        return self._power(x).sum()
 
     def optimum_fitness(self):
-        return 0.0#float(self._d)
+        return float(self._d)
