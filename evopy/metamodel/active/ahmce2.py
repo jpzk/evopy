@@ -72,7 +72,8 @@ class AHMCE2(object):
         return True
 
     def is_feasible(self, individual):
-        self._model.predict(individual)
+        y = self._model.predict(self._scaling.scale(individual))
+        return True if y == 1 else False
 
     # tell meta model to train problem
     def tell_train(self, problem):
@@ -142,9 +143,6 @@ class AHMCE2(object):
         # update mean, var
         self._mean = 0.5 * (self._nearest_feasible + self._nearest_infeasible)
         self._var = norm(self._nearest_feasible - self._nearest_infeasible)
-
-        import pdb
-        pdb.set_trace()
 
         while(self._spent_budget < self._budget):
             # train svm and add new points
