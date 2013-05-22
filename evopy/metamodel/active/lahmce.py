@@ -35,18 +35,17 @@ from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.helper.logger import Logger
 
 class LAHMCE(object):
-    def __init__(self, initial, feasible, infeasible, toadd, bt, budget):
-        self._initial = initial
+    def __init__(self, feasible, infeasible, toadd, budget, accuracy):
         self._feasible = feasible
         self._infeasible = infeasible
         self._toadd = toadd
         self._spent_budget = 0
         self._budget = budget
-        self._bt = bt
         self._scaling = ScalingStandardscore()
         self._model = None
         self._X = None
         self._Y = None
+        self._accuracy = accuracy
         self.trained = False
         self.logger = Logger(self)
 
@@ -64,24 +63,12 @@ class LAHMCE(object):
         rdirection = self._nearest_feasible - self._mean
         scalar = triangular(-1.0, 0.0, 1.0)
         if(scalar < 0):
-            return matrix(self._mean + scalar * ldirection)
+            return matrix(self._mean + abs(scalar) * rdirection)
         if(scalar >= 0):
-            return matrix(self._mean + scalar * ldirection)
-
-    def ask_prediction_possible(self, individual):
-        """ ask prediction accuracy is good enough if the decision
-        value is > 1 or < 1. Is this the case, then the individual
-        lies outside the geometric margin of the SVC. """
-
-        dist = self._model.decision_function(self._scaling.scale(individual))
-        return dist
-
-    def is_feasible(self, individual):
-        y = self._model.predict(self._scaling.scale(individual))
-        return True if y == 1 else False
+            return matrix(self._mean + abs(scalar) * ldirection)
 
     # tell meta model to train problem
-    def tell_train(self, problem):
+    def train(self, problem):
 
         self._mean = 0.5 * (self._feasible + self._infeasible)
         self._var = norm(self._feasible - self._infeasible)
@@ -90,54 +77,13 @@ class LAHMCE(object):
         evaluate_cf = lambda x : problem.is_feasible(x)
         encode = lambda b : 1 if b == True else -1
 
-        # spawn initial population
-        # we need both feasible and infeasible solutions
-        self._X = [self._generate_individual()\
-            for i in xrange(self._initial)]
-        self._Y = map(encode, map(evaluate_cf, self._X))
-        self._spent_budget += len(self._Y)
-
-        # ensure balance, bt equals balance tolerance
-        while(abs(sum(self._Y)) > self._bt):
-            if(self._spent_budget > self._budget):
-                print "Failed to initialize because of balancing"
-                exit(0)
-            if(sum(self._Y) > self._bt): # more feasibles than infeasible
-                x = self._generate_individual()
-                if(not problem.is_feasible(x)):
-                    self._X.append(x)
-                    self._Y.append(encode(False))
-                self._spent_budget += 1
-            else: # sum(Y) <= bt
-                x = self._generate_individual()
-                if(problem.is_feasible(x)):
-                    self._X.append(x)
-                    self._Y.append(encode(True))
-                self._spent_budget += 1
-
-        Xa, Ya = map(lambda x : x.getA1(), self._X), array(self._Y)
-        self._scaling.setup(Xa)
-        Xa = map(lambda x : x.getA1(), map(lambda x : self._scaling.scale(x), Xa))
-
+        # initial model
+        self._X = [self._nearest_feasible, self._nearest_infeasible]
+        self._Y = [1, -1]
         model = SVC(kernel = 'linear', C = 10000)
-        model.fit(Xa, Ya)
-
-        # get the nearest feasible
-        tuples = zip(self._X, self._Y)
-        geta1 = lambda x : x[0].getA1()
-
-        feasibles = map(geta1, filter(lambda x : x[1] == 1, tuples))
-        infeasibles = map(geta1, filter(lambda x : x[1] == -1, tuples))
-
-        feasiblesD = [(x, abs(model.decision_function(x))) for x in feasibles]
-        infeasiblesD = [(x, abs(model.decision_function(x))) for x in infeasibles]
-
-        self._nearest_feasible = sorted(feasiblesD, key = lambda t : t[1])[0][0]
-        self._nearest_infeasible = sorted(infeasiblesD, key = lambda t : t[1])[0][0]
-
-        # update mean, var
-        self._mean = 0.5 * (self._nearest_feasible + self._nearest_infeasible)
-        self._var = norm(self._nearest_feasible - self._nearest_infeasible)
+        X = [array(self._nearest_feasible.getA1()), array(self._nearest_infeasible.getA1())]
+        Y = array([1, -1])
+        model.fit(X, Y)
 
         while(self._spent_budget < self._budget):
             # train svm and add new points
@@ -183,20 +129,16 @@ class LAHMCE(object):
                 self._mean = 0.5 *\
                         (self._nearest_feasible + self._nearest_infeasible)
                 self._var = norm(self._nearest_feasible - self._nearest_infeasible)
+                if(self._var < self._accuracy):
+                    break
 
             self.logger.log()
 
-            print "train ahmce2", sum(self._Y), len(self._X), self._var
+            print "train lahmce", sum(self._Y), len(self._X), self._var
 
-        print "nearest_feasible", self._nearest_feasible
-        print "nearest_infeasible", self._nearest_infeasible
-
-        self.trained = True
-
-        ## train only with nearest points, support vectors
-        model = SVC(kernel = 'linear', C = 10000)
-        X = [self._nearest_feasible.getA1(), self._nearest_infeasible.getA1()]
-        Y = [1, -1]
-        model.fit(X, Y)
-        self._model = model
+        print "mean", self._mean
+        print "nearest_feasible_vec", self._nearest_feasible - self._mean
+        print "nearest_infeasible_vec", self._nearest_infeasible - self._mean
+        print "distance", self._var
+        return self._mean, self._nearest_feasible, self._nearest_infeasible, self._spent_budget
 
