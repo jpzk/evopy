@@ -63,9 +63,13 @@ class AHMCE2(object):
         self.logger.add_binding('_Y', 'Y')
 
     def _generate_individual(self):
-        direction = self._nearest_infeasible - self._mean
+        ldirection = self._nearest_infeasible - self._mean
+        rdirection = self._nearest_feasible - self._mean
         scalar = triangular(-1.0, 0.0, 1.0)
-        return matrix(self._mean + scalar * direction)
+        if(scalar < 0):
+            return matrix(self._mean + scalar * ldirection)
+        if(scalar >= 0):
+            return matrix(self._mean + scalar * ldirection)
 
     # ask if prediction accuracy is good enough.
     def ask_prediction_possible(self, individual):
