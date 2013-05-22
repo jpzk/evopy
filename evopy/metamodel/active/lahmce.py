@@ -18,10 +18,6 @@ Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
 evopy.  If not, see <http://www.gnu.org/licenses/>.
-
-This algorithm is based on "Towards Non-linear Constraint Estimation for
-Expensive Optimization" by Fabian Gieseke and Oliver Kramer. The algorithm
-might be superior at linear constraints.
 '''
 
 from numpy import matrix, transpose, array, eye, ones, exp
@@ -38,7 +34,7 @@ from copy import deepcopy
 from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.helper.logger import Logger
 
-class AHMCE2(object):
+class LAHMCE(object):
     def __init__(self, initial, feasible, infeasible, toadd, bt, budget):
         self._initial = initial
         self._feasible = feasible
