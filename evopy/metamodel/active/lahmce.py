@@ -27,11 +27,7 @@ from numpy.linalg import eigh, norm
 from sklearn.grid_search import GridSearchCV
 from sklearn.svm import SVC
 from sklearn.cross_validation import *
-from sys import exit
-from multiprocessing import cpu_count
-from copy import deepcopy
 
-from evopy.operators.scaling.scaling_standardscore import ScalingStandardscore
 from evopy.helper.logger import Logger
 
 class LAHMCE(object):
