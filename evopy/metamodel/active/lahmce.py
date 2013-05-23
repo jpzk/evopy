@@ -41,7 +41,6 @@ class LAHMCE(object):
         self._toadd = toadd
         self._spent_budget = 0
         self._budget = budget
-        self._scaling = ScalingStandardscore()
         self._model = None
         self._X = None
         self._Y = None
@@ -93,27 +92,21 @@ class LAHMCE(object):
             Xt = [self._generate_individual()\
                     for i in xrange(self._toadd)]
 
-            Xta = map(lambda x : (self._scaling.scale(x.getA1())).getA1(), Xt)
+            Xta = map(lambda x : x.getA1(), Xt)
             XtaD = [(x, abs(model.decision_function(x))) for x in Xta]
             XtaDs = sorted(XtaD, key = lambda t : t[1])
 
             # take the solution with smallest distance to hyperplane
             # and evaluate the cf, in the end, append to trainingset
-            x = self._scaling.descale(XtaDs[0][0])
+            x = XtaDs[0][0]
             y = encode(problem.is_feasible(x))
             self._spent_budget += 1
 
             self._X.append(x)
             self._Y.append(y)
 
-            Xa, Ya = map(lambda x : x.getA1(), self._X), array(self._Y)
-            self._scaling.setup(Xa)
-            Xa = map(lambda x : x.getA1(), map(lambda x : self._scaling.scale(x), Xa))
-
-            #grid.fit(Xa, Ya)
-            #best_C = grid.best_estimator.C
             model = SVC(kernel = 'linear', C = 10000)
-            model.fit(Xa, Ya)
+            model.fit(X, Y)
 
             # update mean, var
             if(y == 1):
