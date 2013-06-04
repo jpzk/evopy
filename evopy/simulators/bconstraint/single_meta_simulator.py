@@ -36,17 +36,19 @@ class SingleMetaSimulator(object):
     description = "Single-Threaded Meta Simulator for Binary Constraint Handling"
     description_short = "SingleMetaSimulator"
 
-    def __init__(self, optimizer, problem, termination, budget):
+    def __init__(self, optimizer, problem, termination, budget, points):
         self.optimizer = optimizer
         self.problem = problem
         self.termination = termination
         self.logger = Logger(self)
         self.budget = budget
+        self.points = points
 
         self._count_cfc = 0
         self._cum_count_cfc = 0
         self._count_ffc = 0
         self._generations = 0
+        self._false = 0
 
         self.logger.add_binding('_cum_count_cfc', 'cum_count_cfc')
         self.logger.add_binding('_count_cfc', 'count_cfc')
@@ -54,8 +56,9 @@ class SingleMetaSimulator(object):
         self.logger.add_binding('_generations', 'generations')
 
         self._spent = 0
-        self.last_feasibles = deque(maxlen=self.problem._d)
-        self.last_infeasibles = deque(maxlen=self.problem._d)
+        self._incorrect = 0
+        self.last_feasibles = deque(maxlen=self.points)
+        self.last_infeasibles = deque(maxlen=self.points)
         self.plane = None
         self.trained = False
 
@@ -116,17 +119,20 @@ class SingleMetaSimulator(object):
                             self.last_infeasibles.append(f[0])
 
                         # check if enough last fea. inf.
-                        if(len(self.last_feasibles) == self.problem._d and
-                            len(self.last_infeasibles) == self.problem._d):
+                        if(len(self.last_feasibles) == self.points and
+                            len(self.last_infeasibles) == self.points):
                             self.update_active_plane()
                             self.trained = True
                     else:
                         if(self.plane.predictable(position)):
                             f = feasibilitym(solution, position)
+                            if(f[1] == False):
+                                self._false += 1
                             feasibility_information.append(f)
                             tf = feasibility(solution, position)
                             if(f[1] != tf[1]):
-                                raise Exception("active plane incorrect")
+                            #   raise Exception("active plane incorrect")
+                                self._incorrect += 1
                         else:
                             print "Updating Active Plane"
                             # sample with original cfc function
@@ -180,6 +186,7 @@ class SingleMetaSimulator(object):
             # TERMINATION
             if(self.termination.terminate(optimum_fitness, self._generations)):
                 print "%i generations " % (self._generations)
+                print "%i incorrect classifications " % (self._incorrect)
                 print "%i cfcs " % sum(self.logger.all()['count_cfc'])
                 print "%i cfc spent for active planes" % self._spent
                 print "%i ffcs " % sum(self.logger.all()['count_ffc'])

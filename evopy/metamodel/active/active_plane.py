@@ -21,7 +21,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 from pdb import set_trace
-from numpy import matrix
+from numpy import matrix, dot
 from numpy.linalg import eigh, svd, norm
 
 class ActivePlane(object):
@@ -41,23 +41,28 @@ class ActivePlane(object):
         self.centroid = sum(points) / len(points)
         rows = []
         for point in points:
-            rows.append(point - self.centroid)
+            r = point - self.centroid
+            if(len(r.shape)>1):
+                rows.append(r[0])
+            else:
+                rows.append(r)
+
         M = matrix(rows)
         self.U, self.s, self.V = svd(M)
 
         sortkey = lambda t : t[0]
-        self.normal = sorted(zip(self.s,self.V), key=sortkey)[0][1]
+        self.normal = sorted(zip(self.s,self.V), key=sortkey)[0][1].getA1()
 
         # positive sign in feasible direction
-        dec = (nearest[0][0] - self.centroid) * self.normal.T
+        dec = dot(nearest[0][0] - self.centroid, self.normal)
         if dec < 0:
             self.normal = (-1) * self.normal
 
         # calculate uncertainty distance
         dists_feasible, dists_infeasible = [], []
         for feasible, infeasible in nearest:
-            dec_f = (feasible - self.centroid) * self.normal.T
-            dec_i = (infeasible - self.centroid) * self.normal.T
+            dec_f = dot(feasible - self.centroid, self.normal)
+            dec_i = dot(infeasible - self.centroid, self.normal)
             dists_feasible.append(abs(dec_f))
             dists_infeasible.append(abs(dec_i))
 
@@ -68,22 +73,22 @@ class ActivePlane(object):
         self.max_dist_infeasible = max(dists_infeasible)
 
     def predictable(self, x):
-        dec = (x - self.centroid) * self.normal.T
+        dec = dot((x - self.centroid), self.normal)
 
         # if uncertain then raise exception
         if dec <= 0:
-            if(abs(dec) < self.max_dist_infeasible):
+            if(abs(dec) < 2 * self.max_dist_infeasible):
                 return False
             else:
                 return True
         else:
-            if(abs(dec) < self.max_dist_feasible):
+            if(abs(dec) < 2 * self.max_dist_feasible):
                 return False
             else:
                 return True
 
     def predict(self, x):
-        dec = (x - self.centroid) * self.normal.T
+        dec = dot((x - self.centroid), self.normal)
 
         # if uncertain then raise exception
         if dec <= 0:
