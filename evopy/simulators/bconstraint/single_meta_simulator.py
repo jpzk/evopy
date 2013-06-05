@@ -83,7 +83,7 @@ class SingleMetaSimulator(object):
             points.append((nf, ni))
             self._spent += spent
 
-        self.plane = ActivePlane(points)
+        self.plane = ActivePlane(points, last)
 
     def simulate(self):
         self._information()

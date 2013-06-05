@@ -17,14 +17,23 @@ class Sampling(object):
         results = []
 
         for parameter, interval, stepsize in zip(parameters, intervals, stepsizes):
-            diff = interval[1] - interval[0]
-            if(diff % stepsize > 0):
-                raise Exception("Steps dont fit into interval")
-            steps[parameter] = int(diff / stepsize)
+
+            x = 0
+            s = interval[0]
+            y = interval[0]
+
+            while(y < interval[1]):
+                y = stepsize(y)
+                x += 1
+
+            steps[parameter] = x
             values[parameter] = []
+
+            values[parameter].append(s)
+            y = s
             for step in xrange(steps[parameter]):
-                value = interval[0] + step * stepsize
-                values[parameter].append(value)
+                y = stepsize(y)
+                values[parameter].append(y)
 
         iterables = []
         for k, vals in values.iteritems():

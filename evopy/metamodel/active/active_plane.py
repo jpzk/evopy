@@ -26,7 +26,7 @@ from numpy.linalg import eigh, svd, norm
 
 class ActivePlane(object):
 
-    def __init__(self, nearest):
+    def __init__(self, nearest, last):
         """ nfeasibles and ninfeasibles are the nearest points
         approximated by e.g. LAHMCE e.g. (feasible, infeasible)"""
 
@@ -54,7 +54,7 @@ class ActivePlane(object):
         self.normal = sorted(zip(self.s,self.V), key=sortkey)[0][1].getA1()
 
         # positive sign in feasible direction
-        dec = dot(nearest[0][0] - self.centroid, self.normal)
+        dec = dot(last[0][0] - self.centroid, self.normal)
         if dec < 0:
             self.normal = (-1) * self.normal
 
@@ -90,6 +90,13 @@ class ActivePlane(object):
     def predict(self, x):
         dec = dot((x - self.centroid), self.normal)
 
+        if dec <= 0:
+            return False
+        else:
+            return True
+
+        """
+
         # if uncertain then raise exception
         if dec <= 0:
             if(abs(dec) < self.max_dist_infeasible):
@@ -101,4 +108,4 @@ class ActivePlane(object):
                 raise Exception("Uncertain")
             else:
                 return True
-
+        """

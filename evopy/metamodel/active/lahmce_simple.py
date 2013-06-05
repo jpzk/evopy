@@ -109,11 +109,11 @@ class LAHMCESimple(object):
 
             self.logger.log()
 
-            print "train lahmce", self._distance
-
-        print "mean", self._mean
+        #print "mean", self._mean
+        """
         print "nearest_feasible_vec", self._nearest_feasible - self._mean
         print "nearest_infeasible_vec", self._nearest_infeasible - self._mean
-        print "distance", self._distance
+        """
+        #print "distance", self._distance
         return self._mean, self._nearest_feasible, self._nearest_infeasible, self._spent_budget
 
