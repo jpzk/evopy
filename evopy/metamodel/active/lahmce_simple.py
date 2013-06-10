@@ -75,8 +75,6 @@ class LAHMCESimple(object):
         encode = lambda b : 1 if b == True else -1
 
         while(self._spent_budget < self._budget):
-            # train svm and add new points
-
             # generate points, check if near the decision boundary
             # use temporary set Xt
             Xt = [self._generate_individual()\

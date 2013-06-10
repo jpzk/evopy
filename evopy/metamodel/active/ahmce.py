@@ -66,7 +66,7 @@ class AHMCE(object):
         return True
 
     def is_feasible(self, individual):
-        self._model.predict(individual)
+        return False if self._model.predict(individual) < 0 else True
 
     # tell meta model to train problem
     def tell_train(self, problem):
@@ -75,11 +75,6 @@ class AHMCE(object):
         self._spent_budget = 0
         evaluate_cf = lambda x : problem.is_feasible(x)
         encode = lambda b : 1 if b == True else -1
-
-        C_range = [10000]
-        tuned_parameters = [{
-            'kernel': ['linear'],
-            'C': C_range}]
 
         # spawn initial population
         # we need both feasible and infeasible solutions
@@ -107,14 +102,9 @@ class AHMCE(object):
                     self._Y.append(encode(True))
                 self._spent_budget += 1
 
-        grid = GridSearchCV(SVC(), tuned_parameters,\
-        cv = LeaveOneOut(len(self._X)), n_jobs = cpu_count(), verbose=0)
-
         Xa, Ya = map(lambda x : x.getA1(), self._X), array(self._Y)
 
-        grid.fit(Xa, Ya)
-        best_C = grid.best_estimator.C
-        model = SVC(kernel = 'linear', C = best_C)
+        model = SVC(kernel = 'linear', C = 10000)
         model.fit(Xa, Ya)
 
         while(self._spent_budget < self._budget):
@@ -137,14 +127,9 @@ class AHMCE(object):
             self._X.append(x)
             self._Y.append(y)
 
-            grid = GridSearchCV(SVC(), tuned_parameters,\
-            cv = LeaveOneOut(len(self._X)), n_jobs = cpu_count(), verbose=0)
-
             Xa, Ya = map(lambda x : x.getA1(), self._X), array(self._Y)
 
-            grid.fit(Xa, Ya)
-            best_C = grid.best_estimator.C
-            model = SVC(kernel = 'linear', C = best_C)
+            model = SVC(kernel = 'linear', C = 10000)
             model.fit(Xa, Ya)
 
             self.logger.log()
