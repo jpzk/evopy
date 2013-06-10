@@ -22,6 +22,7 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 
 from numpy import vsplit
 from numpy.random import randn
+from random import random
 from collections import deque
 from evopy.metamodel.active.lahmce_simple import LAHMCESimple
 from evopy.metamodel.active.active_plane import ActivePlane
@@ -36,31 +37,36 @@ class SingleMetaSimulator(object):
     description = "Single-Threaded Meta Simulator for Binary Constraint Handling"
     description_short = "SingleMetaSimulator"
 
-    def __init__(self, optimizer, problem, termination, budget, points):
+    def __init__(self, optimizer, problem, termination, budget, beta, nabla, theta):
         self.optimizer = optimizer
         self.problem = problem
         self.termination = termination
         self.logger = Logger(self)
-        self.budget = budget
-        self.points = points
 
+        # meta model strategy parameters
+        self.budget = budget
+        self.beta = beta
+        self.nabla = nabla
+        self.theta = theta
+        self.points = problem._d
+        self.plane = None
+        self.trained = False
+        self.last_feasibles = deque(maxlen=self.points)
+        self.last_infeasibles = deque(maxlen=self.points)
+        self.classifications = deque(maxlen=nabla)
+        self._spent = 0
+        self.ppv = 1.0
+
+        # statistics
         self._count_cfc = 0
         self._cum_count_cfc = 0
         self._count_ffc = 0
         self._generations = 0
-        self._false = 0
 
         self.logger.add_binding('_cum_count_cfc', 'cum_count_cfc')
         self.logger.add_binding('_count_cfc', 'count_cfc')
         self.logger.add_binding('_count_ffc', 'count_ffc')
         self.logger.add_binding('_generations', 'generations')
-
-        self._spent = 0
-        self._incorrect = 0
-        self.last_feasibles = deque(maxlen=self.points)
-        self.last_infeasibles = deque(maxlen=self.points)
-        self.plane = None
-        self.trained = False
 
     def _information(self):
         print ("-" * 80) + "\n" + self.name +"\n" + ("-" * 80)
@@ -110,6 +116,9 @@ class SingleMetaSimulator(object):
                     position = information[0]
 
                     if(not self.trained):
+                        # use cfc function and add solutions to feasible
+                        # infeasibles.
+
                         f = feasibility(solution, position)
                         feasibility_information.append(f)
                         self._count_cfc = 1
@@ -118,32 +127,47 @@ class SingleMetaSimulator(object):
                         else:
                             self.last_infeasibles.append(f[0])
 
-                        # check if enough last fea. inf.
                         if(len(self.last_feasibles) == self.points and
-                            len(self.last_infeasibles) == self.points):
+                               len(self.last_infeasibles) == self.points):
                             self.update_active_plane()
                             self.trained = True
                     else:
-                        if(self.plane.predictable(position)):
-                            f = feasibilitym(solution, position)
-                            if(f[1] == False):
-                                self._false += 1
-                            feasibility_information.append(f)
-                            tf = feasibility(solution, position)
-                            if(f[1] != tf[1]):
-                            #   raise Exception("active plane incorrect")
-                                self._incorrect += 1
-                        else:
-                            print "Updating Active Plane"
-                            # sample with original cfc function
-                            self.last_feasibles.clear()
-                            self.last_infeasibles.clear()
-                            self.trained = False
+                        # bernoulli trial
+                        fm = feasibilitym(solution, position)
+                        feasibility_information.append(fm)
+
+                        if(random() < self.beta):
+                            f = feasibility(solution, position)
+                            self._count_cfc = 1
+                            self.classifications.append((fm[1], f[1]))
 
                 # TELL feasibility, returns True if all feasible,
                 # returns False if extra checks
                 all_feasible =\
                     self.optimizer.tell_feasibility(feasibility_information)
+
+            if(len(self.classifications) == self.nabla):
+                # check positive predictive value on estimate of quality
+                tp, fp, tn, fn = 0, 0, 0, 0
+                for case in self.classifications:
+                    if(case == (True, True)):
+                        tp += 1
+                    if(case == (True, False)):
+                        fp += 1
+                    if(case == (False, False)):
+                        tn += 1
+                    if(case == (False, True)):
+                        fn += 1
+
+                if(float(tp + fp + tn + fn) > 0):
+                    self.ppv = float(tp + tn) / float(tp + fp + tn + fn)
+                else:
+                    self.ppv = 0
+
+            if(self.ppv < self.theta):
+                self.trained = False
+                self.last_feasibles.clear()
+                self.last_infeasibles.clear()
 
             # ASK for valid solutions (feasible)
             valid_solutions = self.optimizer.ask_valid_solutions()
@@ -181,14 +205,16 @@ class SingleMetaSimulator(object):
             self.logger.log()
             self._count_cfc = 0
             self._count_ffc = 0
-            print optimum, "%.20f" % (optimum_fitness)
+            print optimum, "%.20f" % (optimum_fitness), self.ppv
 
             # TERMINATION
             if(self.termination.terminate(optimum_fitness, self._generations)):
-                print "%i generations " % (self._generations)
-                print "%i incorrect classifications " % (self._incorrect)
-                print "%i cfcs " % sum(self.logger.all()['count_cfc'])
-                print "%i cfc spent for active planes" % self._spent
-                print "%i ffcs " % sum(self.logger.all()['count_ffc'])
-                break
+                if(self.problem.is_feasible(optimum)):
+                    print "%i generations " % (self._generations)
+                    print "%i cfcs " % sum(self.logger.all()['count_cfc'])
+                    print "%i cfc spent for active planes" % self._spent
+                    print "%i ffcs " % sum(self.logger.all()['count_ffc'])
+                    break
+                else:
+                    continue
         return self
