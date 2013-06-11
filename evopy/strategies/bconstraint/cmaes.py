@@ -26,15 +26,13 @@ at http://www.lri.fr/~hansen/cmaesintro.html.
 
 from copy import deepcopy
 
+from evopy.helper.logger import Logger
 from numpy import array, mean, log, eye, diag, transpose
 from numpy import identity, matrix, dot, exp, zeros, ones, sqrt
 from numpy.random import normal, rand
 from numpy.linalg import eigh, norm
 
-from evopy.metamodel.svc_linear_meta_model import SVCLinearMetaModel
-from evolution_strategy import EvolutionStrategy
-
-class CMAES(EvolutionStrategy):
+class CMAES(object):
 
     description =\
         "Covariance matrix adaption evolution strategy (CMA-ES) "\
@@ -44,8 +42,8 @@ class CMAES(EvolutionStrategy):
 
     def __init__(self, mu, lambd, xmean, sigma):
 
-        # initialize super constructor
-        super(CMAES, self).__init__(mu, lambd)
+        self._mu = mu
+        self._lambd = lambd
 
         # initialize CMA-ES specific strategy parameters
         self._init_cma_strategy_parameters(xmean, sigma)
@@ -54,15 +52,15 @@ class CMAES(EvolutionStrategy):
         self._valid_solutions = []
 
         # statistics
+        self.logger = Logger(self)
         self.logger.add_const_binding('_xmean', 'initial_xmean')
         self.logger.add_const_binding('_sigma', 'initial_sigma')
-
         self.logger.add_binding('_D', 'D')
         self.logger.add_binding('_C', 'C')
         self.logger.add_binding('_B', 'B')
-
-        # log constants
         self.logger.const_log()
+
+        self._count_constraint_infeasibles = 0
 
     def _init_cma_strategy_parameters(self, xmean, sigma):
 
