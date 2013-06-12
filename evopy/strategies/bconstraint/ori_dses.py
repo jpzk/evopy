@@ -23,13 +23,13 @@ evopy.  If not, see <http://www.gnu.org/licenses/>.
 from numpy import array, random, matrix, exp, vectorize
 from numpy.random import normal
 
-from evolution_strategy import EvolutionStrategy
-
 # constants, row indices for individual matrix
 POS = 0
 SIGMA = 1
 
-class ORIDSES(EvolutionStrategy):
+class ORIDSES(object):
+    """ The original DSES approach with Death Penalty and a minimum
+    step size control. """
 
     description =\
         "Ori. Death Penalty Step Control Evolution Strategy (DSES)"
@@ -129,9 +129,14 @@ class ORIDSES(EvolutionStrategy):
         return child
 
     def ask_pending_solutions(self):
+        """ The simulator ask for produced solutions """
+
         return [self._generate_individual()]
 
     def tell_feasibility(self, feasibility_information):
+        """ The simulator tells feasibility and the strategy
+        handles the feasiblity of solutions. """
+
         for (child, feasibility) in feasibility_information:
             if(feasibility):
                 self._valid_solutions.append(child)
@@ -146,9 +151,16 @@ class ORIDSES(EvolutionStrategy):
             return True
 
     def ask_valid_solutions(self):
+        """ The simulator asks for feasible solutions, the
+        strategy returns valid solutios """
+
         return self._valid_solutions
 
     def tell_fitness(self, fitnesses):
+        """ The simulator tells the optimizer the needed
+        fitness information, the strategy handles the
+        information and updates internal strategy parameters. """
+
         fitness = lambda (child, fitness) : fitness
         child = lambda (child, fitness) : child
 
@@ -169,7 +181,6 @@ class ORIDSES(EvolutionStrategy):
             p = (1.0 / (fitness / float(sum_of_fitnesses))) / a_prop_sum
             probabilities.append((individual, p))
         probabilities.reverse()
-
 
         """ update the current population """
         self._current_population = []

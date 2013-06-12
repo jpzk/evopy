@@ -33,6 +33,11 @@ from numpy.random import normal, rand
 from numpy.linalg import eigh, norm
 
 class CMAES(object):
+    """
+        Covariance Matrix Adaption Evolution Strategy (CMA-ES) with Death
+        Penalty Constraint Approach. This implementation is based on
+        "The CMA Evolution Strategy: A Tutorial" from Nikolaus Hansen
+    """
 
     description =\
         "Covariance matrix adaption evolution strategy (CMA-ES) "\

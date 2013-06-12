@@ -110,6 +110,9 @@ class CMAES11(object):
         return [value]
 
     def tell_feasibility(self, feasibility_information):
+        """ simulators tells optimizer the feasibility information and
+        the strategy manages feasible solutions. """
+
         for (child, feasibility) in feasibility_information:
             if(feasibility and (norm(self._z) **2) > 0.5): ### mistake in paper?
                 self._feasible_child = child
@@ -126,9 +129,13 @@ class CMAES11(object):
                 return False
 
     def ask_valid_solutions(self):
+        """ returns valid solutions """
         return [self._feasible_child]
 
     def tell_fitness(self, fitnesses):
+        """ simulator tells strategy fitness values and the strategy updates
+        internal strategy parameters """
+
         N = self._best_child.size
 
         child, fitness = fitnesses[0]

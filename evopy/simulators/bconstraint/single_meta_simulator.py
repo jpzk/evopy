@@ -27,6 +27,7 @@ from collections import deque
 from evopy.metamodel.active.lahmce_simple import LAHMCESimple
 from evopy.metamodel.active.active_plane import ActivePlane
 
+from copy import deepcopy
 from sys import path
 from evopy.helper.logger import Logger
 
@@ -118,27 +119,34 @@ class SingleMetaSimulator(object):
                     if(not self.trained):
                         # use cfc function and add solutions to feasible
                         # infeasibles.
+                            f = feasibility(solution, position)
+                            if(f[1]):
+                                self.last_feasibles.append(f[0])
+                            elif(not f[1]):
+                                self.last_infeasibles.append(f[0])
+                            print f
+                            self._count_cfc += 1
 
-                        f = feasibility(solution, position)
-                        feasibility_information.append(f)
-                        self._count_cfc = 1
-                        if(f[1]):
-                            self.last_feasibles.append(f[0])
-                        else:
-                            self.last_infeasibles.append(f[0])
+                            feasibility_information.append(f)
 
-                        if(len(self.last_feasibles) == self.points and
-                               len(self.last_infeasibles) == self.points):
-                            self.update_active_plane()
-                            self.trained = True
+                            if(len(self.last_feasibles) == self.points and
+                                len(self.last_infeasibles) == self.points):
+
+                                self.update_active_plane() ## use last_feasibles / infeasibles
+                                self.trained = True
                     else:
                         # bernoulli trial
                         fm = feasibilitym(solution, position)
+                        self._count_cfc += 0
                         feasibility_information.append(fm)
 
                         if(random() < self.beta):
                             f = feasibility(solution, position)
-                            self._count_cfc = 1
+                            if(f[1]):
+                                self.last_feasibles.append(f[0])
+                            else:
+                                self.last_infeasibles.append(f[0])
+                            self._count_cfc += 1
                             self.classifications.append((fm[1], f[1]))
 
                 # TELL feasibility, returns True if all feasible,
@@ -166,8 +174,6 @@ class SingleMetaSimulator(object):
 
             if(self.ppv < self.theta):
                 self.trained = False
-                self.last_feasibles.clear()
-                self.last_infeasibles.clear()
 
             # ASK for valid solutions (feasible)
             valid_solutions = self.optimizer.ask_valid_solutions()
