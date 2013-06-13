@@ -1,15 +1,17 @@
 Documentation of evopy
 ======================
 
-The evopy project is a framework for experimenting with evolutionary algorithms (EA). The framework is based on widely used libraries like SciPy [1]_, NumPy [1]_ and Matplotlib [2]_. In contrast to other EA frameworks for Python, like `PyGMO`_, `inspyred`_ and `DEAP`_ [3]_, evopy focusses on new algorithms and provides tools for analysis and comparison of different algorithms. Besides, the architecture is based on the original ASK/TELL optimization pattern by Collette, Y., N. Hansen, G. Pujol, D. Salazar Aponte and R. Le Riche, see [4]_. Further, this approach has been extended to suit constrained optimization. The project, with its implementations of the various algorithms, is licensed under the Free Software License GPLv3.
+The evopy project is a framework for experimenting with evolutionary algorithms (EA). The framework is based on widely used libraries like SciPy [1]_, NumPy [1]_ and Matplotlib [2]_. In contrast to other EA frameworks for Python, like `PyGMO`_, `inspyred`_ and `DEAP`_ [3]_, evopy focusses on new algorithms and provides tools for analysis and comparison of different algorithms. Furthermore, evopy concentrates on (constrained) *numerical* black box optimization with EA. 
 
 .. _PyGMO : http://pagmo.sourceforge.net/pygmo/index.html
 .. _inspyred : http://inspyred.github.io/
 .. _DEAP : https://code.google.com/p/deap/
 
-Quick Example
+Brief Example
 -------------
-Here comes a brief example of how to use evopy::
+
+In this example, we use the single-threaded simulator for binary constraints, the tangent-restriction problem and the (1+1)-CMA-ES for constrained optimization. As termination condition we use the accuracy termination operator. ::
+
 
     from evopy.simulators.bconstraint.single_simulator import SingleSimulator
     from evopy.problems.tr_problem import TRProblem
@@ -31,19 +33,8 @@ Getting Started
     about
     installation
     gettingstarted
-
-Optimizers
-----------
-
-Because the ASK/TELL optimizer pattern is used, the optimizers are used as a component in a simulator. Different optimizers can be used to solve a certain problem. Please make sure you use the right simulator with a certain optimizer.  
-
-Constrained Optimization
-------------------------
-
-.. toctree::
-    dses
-    cmaesdp
-    cmaes11dp
+    unconstrained
+    constrained
 
 Indices and tables
 ------------------
