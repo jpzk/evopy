@@ -42,6 +42,7 @@ class SingleSimulator(object):
         self._count_ffc = 0
         self._generations = 0
 
+        self.logger.add_binding('_best_fitness', 'best_fitness')
         self.logger.add_binding('_cum_count_cfc', 'cum_count_cfc')
         self.logger.add_binding('_count_cfc', 'count_cfc')
         self.logger.add_binding('_count_ffc', 'count_ffc')
@@ -92,6 +93,7 @@ class SingleSimulator(object):
 
             # TELL fitness, return optimum
             optimum, optimum_fitness = self.optimizer.tell_fitness(fitnesses)
+            self._best_fitness = optimum_fitness
 
             # A-POSTERIORI information for confusion matrix
             if('ask_a_posteriori_solutions' in dir(self.optimizer)):
