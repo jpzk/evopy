@@ -25,8 +25,8 @@ class OHProblem():
     description = "Sphere function with origin hyperplane restriction"
     description_short = "OH"
 
-    def __init__(self, dim):
-        self._d = dim
+    def __init__(self, dimensions):
+        self._d = dimensions
 
     def _power(self, x):
         _lpower = vectorize(lambda x : pow(x,2))
