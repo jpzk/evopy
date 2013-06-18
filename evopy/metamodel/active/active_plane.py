@@ -39,13 +39,11 @@ class ActivePlane(object):
         points = means
 
         self.centroid = sum(points) / len(points)
+
         rows = []
         for point in points:
             r = point - self.centroid
-            if(len(r.shape)>1):
-                rows.append(r[0])
-            else:
-                rows.append(r)
+            rows.append(r)
 
         M = matrix(rows)
         self.U, self.s, self.V = svd(M)

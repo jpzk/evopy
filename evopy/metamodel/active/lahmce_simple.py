@@ -28,8 +28,12 @@ from evopy.helper.logger import Logger
 
 class LAHMCESimple(object):
     def __init__(self, feasible, infeasible, toadd, budget):
-        self._feasible = feasible
-        self._infeasible = infeasible
+
+        print "input", feasible
+        print "input", infeasible
+
+        self._feasible = feasible.getA1()
+        self._infeasible = infeasible.getA1()
         self._toadd = toadd
         self._spent_budget = 0
         self._budget = budget
@@ -39,8 +43,8 @@ class LAHMCESimple(object):
         self.trained = False
         self.logger = Logger(self)
 
-        self._nearest_feasible = feasible
-        self._nearest_infeasible = infeasible
+        self._nearest_feasible = feasible.getA1()
+        self._nearest_infeasible = infeasible.getA1()
 
         # define logger bindings
         self.logger.add_binding('_spent_budget', 'spent_budget')
@@ -53,9 +57,9 @@ class LAHMCESimple(object):
         rdirection = self._nearest_feasible - self._mean
         scalar = triangular(-1.0, 0.0, 1.0)
         if(scalar < 0):
-            return matrix(self._mean + abs(scalar) * rdirection)
+            return array(self._mean + abs(scalar) * rdirection)
         if(scalar >= 0):
-            return matrix(self._mean + abs(scalar) * ldirection)
+            return array(self._mean + abs(scalar) * ldirection)
 
     # tell meta model to train problem
     def train(self, problem):
@@ -80,13 +84,16 @@ class LAHMCESimple(object):
             Xt = [self._generate_individual()\
                     for i in xrange(self._toadd)]
 
-            Xta = map(lambda x : x.getA1(), Xt)
+            Xta = map(lambda x : x, Xt)
             XtaD = [(x, norm(x - self._mean)) for x in Xta]
             XtaDs = sorted(XtaD, key = lambda t : t[1])
 
             # take the solution with smallest distance to hyperplane
             # and evaluate the cf, in the end, append to trainingset
             x = XtaDs[0][0]
+            if(x.shape.count(1) == 2):
+                x = x[0]
+
             y = encode(problem.is_feasible(x))
             self._spent_budget += 1
 
@@ -108,10 +115,10 @@ class LAHMCESimple(object):
             self.logger.log()
 
         #print "mean", self._mean
-        """
-        print "nearest_feasible_vec", self._nearest_feasible - self._mean
-        print "nearest_infeasible_vec", self._nearest_infeasible - self._mean
-        """
-        #print "distance", self._distance
-        return self._mean, self._nearest_feasible, self._nearest_infeasible, self._spent_budget
+
+        print "nearest_feasible_vec", self._nearest_feasible
+        print "nearest_infeasible_vec", self._nearest_infeasible
+
+        return self._mean, self._nearest_feasible,\
+                self._nearest_infeasible, self._spent_budget
 
