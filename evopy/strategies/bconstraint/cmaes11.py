@@ -35,8 +35,6 @@ from numpy.random import normal, rand
 from numpy.linalg import eigh, norm, inv
 from evopy.helper.logger import Logger
 
-from evopy.strategies.evolution_strategy import EvolutionStrategy
-
 class CMAES11(object):
 
     description =\
@@ -123,9 +121,6 @@ class CMAES11(object):
                 self._cvec = (1 - self._cc) * self._cvec + self._cc * (self._A * self._z)
                 wj = (inv(self._A) * self._cvec)
                 self._A = self._A - (0.1/4.0) * ((self._cvec * wj.T) / (wj.T * wj))
-                return False
-            else:
-                # infeasible solution update constraint vectors
                 return False
 
     def ask_valid_solutions(self):
