@@ -33,6 +33,7 @@ from numpy import array, mean, log, eye, diag, transpose
 from numpy import identity, matrix, dot, exp, zeros, ones, sqrt
 from numpy.random import normal, rand
 from numpy.linalg import eigh, norm, inv
+from numpy import inf, nan
 from evopy.helper.logger import Logger
 
 class CMAES11(object):
@@ -45,9 +46,6 @@ class CMAES11(object):
     description_short = "1+1-CMA-ES"
 
     def __init__(self, xstart, sigma):
-
-        # initialize super constructor
-        super(CMAES11, self).__init__()
 
         self.logger = Logger(self)
 
@@ -119,9 +117,16 @@ class CMAES11(object):
             elif(not feasibility):
                 self._infeasible.append(child)
                 self._cvec = (1 - self._cc) * self._cvec + self._cc * (self._A * self._z)
-                wj = (inv(self._A) * self._cvec)
-                self._A = self._A - (0.1/4.0) * ((self._cvec * wj.T) / (wj.T * wj))
+                try:
+                    wj = (inv(self._A) * self._cvec)
+                    self._A = self._A - (0.1/4.0) * ((self._cvec * wj.T) / (wj.T * wj))
+                except:
+                    # A is singular matrix
+                    return False
                 return False
+            else:
+                return False
+                self._last_evals.append(False)
 
     def ask_valid_solutions(self):
         """ returns valid solutions """
@@ -143,14 +148,18 @@ class CMAES11(object):
 
         if better:
             # success in regard to fitness
-            A_inv = inv(self._A)
-            term_sq = sqrt(1 - self._ccovp)
-            term_a = term_sq * self._A
-            term_norm = norm(A_inv * self._s) ** 2
-            term_fac = term_sq / term_norm
-            term_b = sqrt(1 + ((self._ccovp * term_norm) / (1 - self._ccovp))) - 1
-            term_c = self._s * (A_inv * self._s).T
-            self._A = term_a + term_fac * term_b * term_c
+            try:
+                A_inv = inv(self._A)
+                term_sq = sqrt(1 - self._ccovp)
+                term_a = term_sq * self._A
+                term_norm = norm(A_inv * self._s) ** 2
+                term_fac = term_sq / term_norm
+                term_b = sqrt(1 + ((self._ccovp * term_norm) / (1 - self._ccovp))) - 1
+                term_c = self._s * (A_inv * self._s).T
+                self._A = term_a + term_fac * term_b * term_c
+            except:
+                # A is singular matrix
+                "Singular matrix, ignored update"
 
         else:
             term_norm = norm(self._z) ** 2
@@ -187,6 +196,10 @@ class CMAES11(object):
         # update sigma with success probability
         term_frac = (self._psucc - self._ptarget) / (1.0 - self._ptarget)
         self._sigma = self._sigma * exp((1.0/self._d) * term_frac)
+
+        if(self._sigma == inf):
+            import pdb
+            pdb.set_trace()
 
         self.logger.log()
         self._infeasible = []
