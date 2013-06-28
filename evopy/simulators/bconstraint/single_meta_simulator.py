@@ -57,6 +57,7 @@ class SingleMetaSimulator(object):
         self.classifications = deque(maxlen=nabla)
         self._spent = 0
         self.ppv = 1.0
+        self.qual = 1.0
 
         # statistics
         self._count_cfc = 0
@@ -112,6 +113,7 @@ class SingleMetaSimulator(object):
                         (solution, self.plane.predict(position))
 
                 feasibility_information = []
+
                 for solution in solutions:
                     information = vsplit(solution, solution.shape[0])
                     position = information[0]
@@ -124,10 +126,10 @@ class SingleMetaSimulator(object):
                                 self.last_feasibles.append(f[0])
                             elif(not f[1]):
                                 self.last_infeasibles.append(f[0])
-                            print f
                             self._count_cfc += 1
 
                             feasibility_information.append(f)
+                            use_cf = True
 
                             if(len(self.last_feasibles) == self.points and
                                 len(self.last_infeasibles) == self.points):
@@ -138,21 +140,28 @@ class SingleMetaSimulator(object):
                         # bernoulli trial
                         fm = feasibilitym(solution, position)
                         self._count_cfc += 0
-                        feasibility_information.append(fm)
 
-                        if(random() < self.beta):
+                        use_cf = random() < self.beta
+                        if(use_cf):
                             f = feasibility(solution, position)
                             if(f[1]):
                                 self.last_feasibles.append(f[0])
                             else:
                                 self.last_infeasibles.append(f[0])
                             self._count_cfc += 1
+
+                            # used to estimate ppv
                             self.classifications.append((fm[1], f[1]))
+
+                if(use_cf):
+                    feasibility_information.append(f)
+                else:
+                    feasibility_information.append(fm)
 
                 # TELL feasibility, returns True if all feasible,
                 # returns False if extra checks
                 all_feasible =\
-                    self.optimizer.tell_feasibility(feasibility_information)
+                    self.optimizer.tell_feasibility(feasibility_information, use_cf)
 
             if(len(self.classifications) == self.nabla):
                 # check positive predictive value on estimate of quality
@@ -168,12 +177,22 @@ class SingleMetaSimulator(object):
                         fn += 1
 
                 if(float(tp + fp + tn + fn) > 0):
-                    self.ppv = float(tp + tn) / float(tp + fp + tn + fn)
+                    self.qual = float(tp + tn) / float(tp + fp + tn + fn)
+                else:
+                    self.qual = 0
+
+                if(float(tp + fp) > 0):
+                    self.ppv = float(tp) / float(tp+fp)
                 else:
                     self.ppv = 0
 
-            if(self.ppv < self.theta):
-                self.trained = False
+                if(self.ppv == 0.0 or self.ppv == 1.0):
+                    self.trained = False
+
+                if(self.qual < self.theta):
+                    self.trained = False
+
+                self.classifications = []
 
             # ASK for valid solutions (feasible)
             valid_solutions = self.optimizer.ask_valid_solutions()
