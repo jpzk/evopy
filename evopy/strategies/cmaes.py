@@ -108,7 +108,7 @@ class CMAES(EvolutionStrategy):
         self._invsqrtC = identity(N)  # C^-1/2 
 
         # approx. norm of random vector
-        self._norm = sqrt(N) * (1.0 - (1.0/(4*N)) + (1.0/21*(N**2)))
+        self._norm = sqrt(N) * (1.0 - (1.0/(4*N)) + (1.0/(21*N**2)))
 
         ### FIRST RUN
         self._D, self._B = eigh(self._C)
